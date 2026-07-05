@@ -24,6 +24,7 @@ import {
   collection,
   addDoc,
   deleteDoc,
+  updateDoc,
   query,
   where,
   onSnapshot,
@@ -379,6 +380,31 @@ function renderComments() {
     const body = el("p", "comment-text");
     body.innerHTML = escapeHtml(c.text || "").replace(/\n/g, "<br>");
     item.appendChild(body);
+
+    // Admin reply (shown to everyone)
+    if (c.reply) {
+      const reply = el("div", "comment-reply");
+      reply.appendChild(el("span", "reply-label", "↳ 박승연"));
+      const rt = el("p", "reply-text");
+      rt.innerHTML = escapeHtml(c.reply).replace(/\n/g, "<br>");
+      reply.appendChild(rt);
+      item.appendChild(reply);
+    }
+
+    // Admin reply editor (edit mode only)
+    if (isEditMode) {
+      const box = el("div", "reply-edit");
+      const ta = el("textarea", "reply-input");
+      ta.placeholder = "답글 작성 (비우고 저장하면 답글 삭제)";
+      ta.value = c.reply || "";
+      const btn = el("button", "reply-btn", c.reply ? "답글 수정" : "답글 등록");
+      btn.type = "button";
+      btn.addEventListener("click", () => replyComment(c.id, ta.value));
+      box.appendChild(ta);
+      box.appendChild(btn);
+      item.appendChild(box);
+    }
+
     list.appendChild(item);
   });
 }
@@ -441,6 +467,19 @@ async function removeComment(id) {
   } catch (err) {
     console.error("[detail] comment delete failed", err);
     alert("삭제 중 오류가 발생했습니다.");
+  }
+}
+
+async function replyComment(id, text) {
+  if (!isEditMode) return;
+  try {
+    await updateDoc(doc(db, COMMENTS, id), {
+      reply: (text || "").trim().slice(0, 500),
+      repliedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("[detail] reply failed", err);
+    alert("답글 저장 중 오류가 발생했습니다. (보안 규칙 배포 여부를 확인하세요)");
   }
 }
 

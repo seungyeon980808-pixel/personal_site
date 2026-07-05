@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>박승연 · PHYSICS TEACHER</title>
 
+  <!-- SEO / 공유 카드 (OG) -->
+  <meta name="description" content="중학교 물리교사 박승연 — 수업과 행정을 위한 도구를 직접 만들고 자유롭게 배포합니다." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="박승연 · personal site" />
+  <meta property="og:title" content="박승연 · PHYSICS TEACHER" />
+  <meta property="og:description" content="수업과 행정을 위한 도구를 직접 만들고 자유롭게 배포합니다." />
+  <meta property="og:url" content="https://seungyeon980808-pixel.github.io/personal_site/" />
+  <meta property="og:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="박승연 · PHYSICS TEACHER" />
+  <meta name="twitter:description" content="수업과 행정을 위한 도구를 직접 만들고 자유롭게 배포합니다." />
+  <meta name="twitter:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -309,6 +324,35 @@
       color: var(--text);
       background: #fff;
     }
+
+    /* ===== NOW ===== */
+    .now {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin: 4px 0 36px;
+      padding: 18px 20px;
+      border: 1px solid var(--divider);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .now-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--sub);
+      white-space: nowrap;
+    }
+    .now-tag .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sub);
+      animation: pulse 2.4s var(--ease) infinite;
+    }
+    .now-text { margin: 0; font-size: 15px; color: var(--text); line-height: 1.6; }
+    @media (max-width: 560px) { .now { flex-direction: column; gap: 8px; } }
 
     /* ===== PROJECTS ===== */
     .proj-grid {
@@ -648,6 +692,12 @@
       <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
     </header>
 
+    <!-- ===== NOW ===== -->
+    <section class="now reveal" aria-label="지금">
+      <span class="now-tag"><span class="dot"></span> NOW</span>
+      <p class="now-text" data-editable data-field="now.text">요즘 하는 일 — 편집 모드에서 지금 만들고 배우는 것을 적어주세요.</p>
+    </section>
+
     <!-- ===== CHANNELS ===== -->
     <details class="section reveal" id="channelsSection" open>
       <summary><span class="chev">▶</span> 채널</summary>
@@ -802,7 +852,7 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer reveal">
-      <span class="mono">v3.1.0 / 2026-07-05</span>
+      <span class="mono">v3.2.0 / 2026-07-05</span>
     </footer>
 
   </div>

@@ -46,8 +46,14 @@ service cloud.firestore {
         && request.resource.data.text.size() <= 500
         && request.resource.data.createdAt == request.time;
 
-      // 수정 불가, 삭제는 관리자만 (스팸/부적절 후기 정리)
-      allow update: if false;
+      // 관리자만 답글 추가/수정 가능 (원본 이름·내용·시각은 변경 불가)
+      allow update: if isAdmin()
+        && request.resource.data.project == resource.data.project
+        && request.resource.data.name == resource.data.name
+        && request.resource.data.text == resource.data.text
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      // 삭제는 관리자만 (스팸/부적절 후기 정리)
       allow delete: if isAdmin();
     }
 

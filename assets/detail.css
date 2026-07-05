@@ -421,6 +421,44 @@ body.edit-mode #addFeatureBtn { display: block; }
 .comment-del:hover { background: #e5484d; color: #fff; }
 .comment-text { margin: 0; font-size: 14px; color: var(--text); line-height: 1.6; word-break: break-word; }
 
+/* Admin reply */
+.comment-reply {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--main);
+  background: var(--tint);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.reply-label { font-size: 12px; font-weight: 600; color: var(--main); }
+.reply-text { margin: 4px 0 0; font-size: 14px; color: var(--text); line-height: 1.6; word-break: break-word; }
+.reply-edit { display: none; margin-top: 12px; flex-direction: column; gap: 8px; }
+body.edit-mode .reply-edit { display: flex; }
+.reply-input {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 52px;
+}
+.reply-input:focus { outline: none; border-color: var(--main); }
+.reply-btn {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--main);
+  background: var(--surface);
+  color: var(--main);
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.reply-btn:hover { background: var(--main); color: #fff; }
+
 /* ===== EDITABLE FIELDS ===== */
 body.edit-mode [data-editable] {
   outline: 1px dashed var(--divider);
