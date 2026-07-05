@@ -25,9 +25,13 @@ projects/myfine.html
 
 ## 기술 스택
 - Firebase 프로젝트: edunote-96bd7
-- Firestore 컬렉션: `personal-site`
+- Firestore 컬렉션 `personal-site`
   - 메인 허브 문서: `main`
   - 상세 페이지 문서: `detail-<project>` (예: `detail-edunote`) — 프로젝트별 독립 문서
+    - `features`: 배열 `[{title, desc, mediaType:'video'|'image', mediaUrl}]` (편집모드 무제한 추가/삭제)
+- Firestore 컬렉션 `comments`: 프로젝트별 후기 `{project, name, text, createdAt}`
+  - 익명+이름 작성(공개 쓰기), 실시간(onSnapshot), 관리자만 삭제
+  - **보안 규칙은 `firestore.rules` 파일** → Firebase 콘솔에 배포해야 댓글 쓰기 활성화
 - Google 로그인: seungyeon980808@gmail.com 계정만 편집 권한
 
 ---
