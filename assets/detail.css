@@ -218,9 +218,9 @@ body.edit-mode .edit-badge { display: inline-block; }
   margin: 0;
 }
 
-/* Media / video facade */
+/* Media (video facade OR image) */
 .feature-media { min-width: 0; }
-.video {
+.media {
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius);
@@ -230,7 +230,8 @@ body.edit-mode .edit-badge { display: inline-block; }
   box-shadow: var(--shadow-lg);
   cursor: pointer;
 }
-.video img.thumb {
+.media img.thumb,
+.media img.media-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -238,14 +239,15 @@ body.edit-mode .edit-badge { display: inline-block; }
   object-fit: cover;
   display: block;
 }
-.video iframe {
+.media img.media-img { cursor: default; }
+.media iframe {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
 }
-.video .playbtn {
+.media .playbtn {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -260,8 +262,8 @@ body.edit-mode .edit-badge { display: inline-block; }
   transition: transform 0.25s var(--ease), background 0.25s var(--ease);
   pointer-events: none;
 }
-.video:hover .playbtn { transform: translate(-50%, -50%) scale(1.08); background: var(--main); }
-.video-empty {
+.media:hover .playbtn { transform: translate(-50%, -50%) scale(1.08); background: var(--main); }
+.media-empty {
   position: absolute;
   inset: 0;
   display: flex;
@@ -271,13 +273,28 @@ body.edit-mode .edit-badge { display: inline-block; }
   font-size: 13px;
   color: var(--muted-soft);
   cursor: default;
+  text-align: center;
+  padding: 0 12px;
 }
 
-/* Video URL input (edit mode) */
-.video-input {
-  display: none;
+/* Media controls (edit mode only): 영상/사진 토글 + URL 입력 */
+.media-controls { display: none; margin-top: 10px; }
+body.edit-mode .media-controls { display: block; }
+.media-type { display: flex; gap: 6px; margin-bottom: 8px; }
+.type-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.type-btn.active { color: #fff; background: var(--main); border-color: var(--main); }
+.media-url {
   width: 100%;
-  margin-top: 10px;
   font: inherit;
   font-size: 13px;
   padding: 8px 12px;
@@ -286,8 +303,123 @@ body.edit-mode .edit-badge { display: inline-block; }
   background: var(--surface);
   color: var(--text);
 }
-body.edit-mode .video-input { display: block; }
-.video-input:focus { outline: none; border-color: var(--main); }
+.media-url:focus { outline: none; border-color: var(--main); }
+
+/* Feature remove + add (edit mode only) */
+.feature-remove {
+  display: none;
+  margin-top: 16px;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5484d;
+  background: var(--surface);
+  color: #e5484d;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.feature-remove:hover { background: #e5484d; color: #fff; }
+body.edit-mode .feature-remove { display: inline-block; }
+
+#addFeatureBtn {
+  display: none;
+  margin: 8px auto 0;
+  font: inherit;
+  font-size: 14px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 1px dashed var(--main);
+  background: var(--tint);
+  color: var(--main);
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+#addFeatureBtn:hover { background: #e4efff; }
+body.edit-mode #addFeatureBtn { display: block; }
+
+/* ===== COMMENTS / 후기 ===== */
+.comments {
+  border-top: 1px solid var(--divider);
+  padding: clamp(48px, 8vw, 80px) 0 clamp(40px, 7vw, 64px);
+}
+.comments h2 {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+.comments .sub {
+  font-size: 14px;
+  color: var(--muted-soft);
+  margin: 0 0 28px;
+}
+.comment-form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 36px;
+  padding: 20px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.comment-form input,
+.comment-form textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  resize: vertical;
+}
+.comment-form input:focus,
+.comment-form textarea:focus { outline: none; border-color: var(--main); background: var(--surface); }
+.comment-form .name-row { display: flex; gap: 10px; align-items: center; }
+.comment-form .name-row input { max-width: 220px; }
+.comment-form textarea { min-height: 84px; }
+.comment-form .submit-row { display: flex; justify-content: flex-end; }
+.comment-submit {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--main);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+.comment-submit:hover { background: var(--main-strong); }
+.comment-submit:disabled { opacity: 0.6; cursor: default; }
+
+.comment-list { display: grid; gap: 14px; }
+.comment-empty { color: var(--muted-soft); font-size: 14px; }
+.comment {
+  padding: 16px 18px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.comment-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.comment-name { font-weight: 600; font-size: 14px; }
+.comment-time { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted-soft); }
+.comment-del {
+  margin-left: auto;
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5484d;
+  background: transparent;
+  color: #e5484d;
+  cursor: pointer;
+}
+.comment-del:hover { background: #e5484d; color: #fff; }
+.comment-text { margin: 0; font-size: 14px; color: var(--text); line-height: 1.6; word-break: break-word; }
 
 /* ===== EDITABLE FIELDS ===== */
 body.edit-mode [data-editable] {

@@ -1,12 +1,11 @@
 // =========================================================================
-// detail.js — 프로젝트 상세 페이지 공통 로직
-//   - Firebase(Firestore) 로 프로젝트별 문서 load/save
+// detail.js — 프로젝트 상세 페이지 공통 로직 (v2: 동적 기능블록 + 사진 + 댓글)
+//   - Firestore doc "detail-<project>" 로 히어로/링크/기능 블록 load·save
+//   - 기능 블록: 편집 모드에서 무제한 추가/삭제, 블록마다 영상(YouTube) 또는 사진(URL)
+//   - 댓글: collection "comments" 에 익명+이름으로 저장, 실시간 표시, 관리자 삭제
 //   - seungyeon980808@gmail.com 로그인 시 편집 모드
-//   - 기능 블록에 YouTube 링크를 붙여넣으면 영상 임베드
-//   - 스크롤 시 섹션이 슬라이드/페이드로 등장
 //
-//   문서: collection "personal-site", doc "detail-<project>"
-//   <body data-project="edunote"> 의 값으로 문서를 고른다.
+//   <body data-project="edunote"> 값으로 문서/댓글을 고른다.
 // =========================================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
@@ -22,6 +21,13 @@ import {
   doc,
   getDoc,
   setDoc,
+  collection,
+  addDoc,
+  deleteDoc,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -35,6 +41,7 @@ const firebaseConfig = {
 };
 
 const COLLECTION = "personal-site";
+const COMMENTS = "comments";
 const ADMIN_EMAIL = "seungyeon980808@gmail.com";
 const PROJECT_ID = document.body.dataset.project || "unknown";
 const DOC_ID = "detail-" + PROJECT_ID;
@@ -42,7 +49,27 @@ const DOC_ID = "detail-" + PROJECT_ID;
 let app, auth, db;
 let isEditMode = false;
 
-// ---- YouTube helpers -----------------------------------------------------
+const DEFAULT_FEATURES = [
+  { title: "대표 기능 1", desc: "이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.", mediaType: "video", mediaUrl: "" },
+  { title: "대표 기능 2", desc: "이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.", mediaType: "video", mediaUrl: "" },
+  { title: "대표 기능 3", desc: "이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.", mediaType: "video", mediaUrl: "" },
+];
+
+// ---- small helpers -------------------------------------------------------
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function pad2(n) { return String(n).padStart(2, "0"); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+// ---- media (video / image) ----------------------------------------------
 function youtubeId(url) {
   if (!url) return null;
   const m = String(url).match(
@@ -51,62 +78,182 @@ function youtubeId(url) {
   return m ? m[1] : null;
 }
 
-function renderVideo(container, url) {
+function renderMedia(mediaEl, type, url) {
+  mediaEl.innerHTML = "";
+  mediaEl.className = "media";
+  delete mediaEl.dataset.ytid;
+
+  if (type === "image") {
+    if (url) {
+      const img = el("img", "media-img");
+      img.loading = "lazy";
+      img.alt = "기능 사진";
+      img.src = url;
+      mediaEl.appendChild(img);
+    } else {
+      mediaEl.appendChild(
+        el("div", "media-empty", isEditMode ? "아래에 사진 URL 붙여넣기" : "이미지 준비중")
+      );
+    }
+    return;
+  }
+
+  // video (YouTube facade)
   const id = youtubeId(url);
-  container.innerHTML = "";
   if (id) {
-    const thumb = document.createElement("img");
-    thumb.className = "thumb";
+    const thumb = el("img", "thumb");
     thumb.loading = "lazy";
     thumb.alt = "영상 미리보기";
     thumb.src = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
-    const play = document.createElement("div");
-    play.className = "playbtn";
-    play.textContent = "▶";
-    container.appendChild(thumb);
-    container.appendChild(play);
-    container.dataset.ytid = id;
+    const play = el("div", "playbtn", "▶");
+    mediaEl.appendChild(thumb);
+    mediaEl.appendChild(play);
+    mediaEl.dataset.ytid = id;
   } else {
-    const empty = document.createElement("div");
-    empty.className = "video-empty";
-    empty.textContent = isEditMode ? "아래에 YouTube 링크를 붙여넣기" : "영상 준비중";
-    container.appendChild(empty);
-    delete container.dataset.ytid;
+    mediaEl.appendChild(
+      el("div", "media-empty", isEditMode ? "아래에 YouTube 링크 붙여넣기" : "영상 준비중")
+    );
   }
 }
 
-// Click facade -> load the real iframe (skip while editing).
-function wireVideoClicks() {
-  document.querySelectorAll(".video[data-video]").forEach((container) => {
-    container.addEventListener("click", () => {
-      if (isEditMode) return;
-      const id = container.dataset.ytid;
-      if (!id) return;
-      container.innerHTML =
-        '<iframe src="https://www.youtube.com/embed/' +
-        id +
-        '?autoplay=1&rel=0" title="영상" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+// ---- feature blocks (dynamic) -------------------------------------------
+function makeFeature(index, feat) {
+  const f = feat || { title: "", desc: "", mediaType: "video", mediaUrl: "" };
+  const type = f.mediaType === "image" ? "image" : "video";
+
+  const section = el("section", "feature");
+  section.dataset.featureIndex = String(index);
+
+  // media column
+  const mediaCol = el("div", "feature-media");
+  const media = el("div", "media");
+  media.dataset.media = "1";
+  mediaCol.appendChild(media);
+
+  const controls = el("div", "media-controls");
+  const typeWrap = el("div", "media-type");
+  const btnVideo = el("button", "type-btn" + (type === "video" ? " active" : ""), "영상");
+  btnVideo.type = "button";
+  btnVideo.dataset.type = "video";
+  const btnImage = el("button", "type-btn" + (type === "image" ? " active" : ""), "사진");
+  btnImage.type = "button";
+  btnImage.dataset.type = "image";
+  typeWrap.appendChild(btnVideo);
+  typeWrap.appendChild(btnImage);
+
+  const urlInput = el("input", "media-url");
+  urlInput.type = "url";
+  urlInput.value = f.mediaUrl || "";
+  urlInput.placeholder =
+    type === "image" ? "이미지 URL 붙여넣기 (https://...)" : "YouTube 링크 붙여넣기 (https://youtu.be/...)";
+
+  controls.appendChild(typeWrap);
+  controls.appendChild(urlInput);
+  mediaCol.appendChild(controls);
+
+  // text column
+  const textCol = el("div", "feature-text");
+  const num = el("div", "feature-num", pad2(index + 1));
+  const title = el("h2", "feature-title");
+  title.dataset.editable = "1";
+  title.textContent = f.title || "";
+  const desc = el("p", "feature-desc");
+  desc.dataset.editable = "1";
+  desc.textContent = f.desc || "";
+  const remove = el("button", "feature-remove", "이 기능 삭제");
+  remove.type = "button";
+  textCol.appendChild(num);
+  textCol.appendChild(title);
+  textCol.appendChild(desc);
+  textCol.appendChild(remove);
+
+  section.appendChild(mediaCol);
+  section.appendChild(textCol);
+
+  // ---- wiring ----
+  function currentType() {
+    return section.querySelector(".type-btn.active").dataset.type;
+  }
+  function rerender() {
+    renderMedia(media, currentType(), urlInput.value);
+  }
+  [btnVideo, btnImage].forEach((btn) => {
+    btn.addEventListener("click", () => {
+      typeWrap.querySelectorAll(".type-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      urlInput.placeholder =
+        btn.dataset.type === "image"
+          ? "이미지 URL 붙여넣기 (https://...)"
+          : "YouTube 링크 붙여넣기 (https://youtu.be/...)";
+      rerender();
     });
+  });
+  urlInput.addEventListener("input", rerender);
+  urlInput.addEventListener("click", (e) => e.stopPropagation());
+  media.addEventListener("click", () => {
+    if (isEditMode) return;
+    const id = media.dataset.ytid;
+    if (!id) return;
+    media.innerHTML =
+      '<iframe src="https://www.youtube.com/embed/' +
+      id +
+      '?autoplay=1&rel=0" title="영상" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  });
+  remove.addEventListener("click", () => {
+    section.remove();
+    renumber();
+  });
+
+  // initial media paint
+  renderMedia(media, type, f.mediaUrl || "");
+  // editable state
+  title.contentEditable = isEditMode ? "true" : "false";
+  desc.contentEditable = isEditMode ? "true" : "false";
+  if (isEditMode) section.classList.add("is-visible");
+  return section;
+}
+
+function renumber() {
+  document.querySelectorAll("#featureList .feature").forEach((sec, i) => {
+    sec.dataset.featureIndex = String(i);
+    const n = sec.querySelector(".feature-num");
+    if (n) n.textContent = pad2(i + 1);
   });
 }
 
-// ---- Serialization -------------------------------------------------------
+function renderFeatures(features) {
+  const list = document.getElementById("featureList");
+  if (!list) return;
+  const data = features && features.length ? features : DEFAULT_FEATURES;
+  list.innerHTML = "";
+  data.forEach((feat, i) => list.appendChild(makeFeature(i, feat)));
+}
+
+function collectFeatures() {
+  const out = [];
+  document.querySelectorAll("#featureList .feature").forEach((sec) => {
+    out.push({
+      title: (sec.querySelector(".feature-title").textContent || "").trim(),
+      desc: (sec.querySelector(".feature-desc").textContent || "").trim(),
+      mediaType: sec.querySelector(".type-btn.active").dataset.type,
+      mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
+    });
+  });
+  return out;
+}
+
+// ---- serialization (hero fields + links + features) ----------------------
 function collectData() {
-  const data = { fields: {}, links: {}, videos: {} };
-  document.querySelectorAll("[data-field]").forEach((el) => {
-    if (el.classList.contains("status")) {
-      data.fields[el.getAttribute("data-field")] = el.getAttribute("data-status");
+  const data = { fields: {}, links: {}, features: collectFeatures() };
+  document.querySelectorAll("[data-field]").forEach((elm) => {
+    if (elm.classList.contains("status")) {
+      data.fields[elm.getAttribute("data-field")] = elm.getAttribute("data-status");
     } else {
-      data.fields[el.getAttribute("data-field")] = el.textContent.trim();
+      data.fields[elm.getAttribute("data-field")] = elm.textContent.trim();
     }
   });
   document.querySelectorAll("a[data-link]").forEach((a) => {
     data.links[a.getAttribute("data-link")] = a.getAttribute("href");
-  });
-  document.querySelectorAll("[data-video-input]").forEach((input) => {
-    const key = input.getAttribute("data-video-input");
-    const val = input.value.trim();
-    if (val) data.videos[key] = val;
   });
   return data;
 }
@@ -115,13 +262,13 @@ function applyData(data) {
   data = data || {};
   if (data.fields) {
     Object.entries(data.fields).forEach(([key, val]) => {
-      const el = document.querySelector('[data-field="' + key + '"]');
-      if (!el) return;
-      if (el.classList.contains("status")) {
-        el.setAttribute("data-status", val);
-        el.textContent = val;
+      const elm = document.querySelector('[data-field="' + key + '"]');
+      if (!elm) return;
+      if (elm.classList.contains("status")) {
+        elm.setAttribute("data-status", val);
+        elm.textContent = val;
       } else {
-        el.textContent = val;
+        elm.textContent = val;
       }
     });
   }
@@ -131,27 +278,21 @@ function applyData(data) {
       if (a && href) a.setAttribute("href", href);
     });
   }
-  // Videos: fill inputs and render facades.
-  document.querySelectorAll(".video[data-video]").forEach((container) => {
-    const key = container.getAttribute("data-video");
-    const url = (data.videos && data.videos[key]) || "";
-    const input = document.querySelector('[data-video-input="' + key + '"]');
-    if (input) input.value = url;
-    renderVideo(container, url);
-  });
+  renderFeatures(data.features);
 }
 
-// ---- Edit mode -----------------------------------------------------------
+// ---- edit mode -----------------------------------------------------------
 function setEditable(on) {
-  document.querySelectorAll("[data-editable]").forEach((el) => {
-    el.contentEditable = on ? "true" : "false";
+  document.querySelectorAll("[data-editable]").forEach((elm) => {
+    elm.contentEditable = on ? "true" : "false";
   });
-  // Refresh empty-state copy for video facades.
-  document.querySelectorAll(".video[data-video]").forEach((container) => {
-    if (!container.dataset.ytid) {
-      const key = container.getAttribute("data-video");
-      const input = document.querySelector('[data-video-input="' + key + '"]');
-      renderVideo(container, input ? input.value : "");
+  // Refresh media empty-state copy (영상/사진 준비중 <-> 붙여넣기 안내).
+  document.querySelectorAll("#featureList .feature").forEach((sec) => {
+    const media = sec.querySelector(".media");
+    if (media && !media.dataset.ytid && !media.querySelector(".media-img")) {
+      const type = sec.querySelector(".type-btn.active").dataset.type;
+      const url = sec.querySelector(".media-url").value;
+      renderMedia(media, type, url);
     }
   });
 }
@@ -160,10 +301,13 @@ function enableEditMode(email) {
   isEditMode = true;
   document.body.classList.add("edit-mode");
   setEditable(true);
+  // Reveal everything so the admin can edit blocks below the fold.
+  document.querySelectorAll(".reveal, .feature").forEach((elm) => elm.classList.add("is-visible"));
   const btn = document.getElementById("adminBtn");
   const emailEl = document.getElementById("userEmail");
   if (btn) btn.textContent = "로그아웃";
   if (emailEl) emailEl.textContent = email || "";
+  renderComments(); // re-render to show delete buttons
 }
 
 function disableEditMode() {
@@ -174,12 +318,12 @@ function disableEditMode() {
   const emailEl = document.getElementById("userEmail");
   if (btn) btn.textContent = "관리자 로그인";
   if (emailEl) emailEl.textContent = "";
+  renderComments(); // re-render to hide delete buttons
 }
 
-// ---- Status badge cycle (edit mode) --------------------------------------
 const STATUS_CYCLE = ["live", "개발중", "기획중"];
 
-// ---- Firebase load/save --------------------------------------------------
+// ---- Firestore: detail content load/save ---------------------------------
 async function loadDoc() {
   try {
     const snap = await getDoc(doc(db, COLLECTION, DOC_ID));
@@ -194,12 +338,118 @@ async function saveDoc() {
   await setDoc(doc(db, COLLECTION, DOC_ID), collectData());
 }
 
+// ---- Comments ------------------------------------------------------------
+let commentsCache = [];
+
+function timeText(ts) {
+  try {
+    const d = ts && ts.toDate ? ts.toDate() : null;
+    if (!d) return "방금";
+    return d.toLocaleString("ko-KR", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch (e) {
+    return "";
+  }
+}
+
+function renderComments() {
+  const list = document.getElementById("commentList");
+  const countEl = document.getElementById("commentCount");
+  if (!list) return;
+  if (countEl) countEl.textContent = String(commentsCache.length);
+  if (!commentsCache.length) {
+    list.innerHTML = '<p class="comment-empty">아직 후기가 없습니다. 첫 후기를 남겨주세요.</p>';
+    return;
+  }
+  list.innerHTML = "";
+  commentsCache.forEach((c) => {
+    const item = el("div", "comment");
+    const head = el("div", "comment-head");
+    head.appendChild(el("span", "comment-name", c.name || "익명"));
+    head.appendChild(el("span", "comment-time", timeText(c.createdAt)));
+    if (isEditMode) {
+      const del = el("button", "comment-del", "삭제");
+      del.type = "button";
+      del.addEventListener("click", () => removeComment(c.id));
+      head.appendChild(del);
+    }
+    item.appendChild(head);
+    const body = el("p", "comment-text");
+    body.innerHTML = escapeHtml(c.text || "").replace(/\n/g, "<br>");
+    item.appendChild(body);
+    list.appendChild(item);
+  });
+}
+
+function initComments() {
+  const q = query(collection(db, COMMENTS), where("project", "==", PROJECT_ID));
+  onSnapshot(
+    q,
+    (snap) => {
+      commentsCache = [];
+      snap.forEach((d) => commentsCache.push({ id: d.id, ...d.data() }));
+      // newest first (client-side sort → no composite index needed)
+      commentsCache.sort((a, b) => {
+        const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+        const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+        return tb - ta;
+      });
+      renderComments();
+    },
+    (err) => console.error("[detail] comments listen failed", err)
+  );
+
+  const form = document.getElementById("commentForm");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nameEl = document.getElementById("commentName");
+      const textEl = document.getElementById("commentText");
+      const name = (nameEl.value || "").trim();
+      const text = (textEl.value || "").trim();
+      if (!name) { alert("이름을 입력해주세요."); return; }
+      if (!text) { alert("내용을 입력해주세요."); return; }
+      if (name.length > 30) { alert("이름은 30자 이내로 입력해주세요."); return; }
+      if (text.length > 500) { alert("내용은 500자 이내로 입력해주세요."); return; }
+      const btn = form.querySelector("button[type=submit]");
+      if (btn) btn.disabled = true;
+      try {
+        await addDoc(collection(db, COMMENTS), {
+          project: PROJECT_ID,
+          name: name.slice(0, 30),
+          text: text.slice(0, 500),
+          createdAt: serverTimestamp(),
+        });
+        textEl.value = "";
+      } catch (err) {
+        console.error("[detail] comment add failed", err);
+        alert("후기 등록 중 오류가 발생했습니다. (보안 규칙 배포 여부를 확인하세요)");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+}
+
+async function removeComment(id) {
+  if (!isEditMode) return;
+  if (!confirm("이 후기를 삭제할까요?")) return;
+  try {
+    await deleteDoc(doc(db, COMMENTS, id));
+  } catch (err) {
+    console.error("[detail] comment delete failed", err);
+    alert("삭제 중 오류가 발생했습니다.");
+  }
+}
+
 // ---- Scroll reveal -------------------------------------------------------
 function initReveal() {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const targets = document.querySelectorAll(".reveal, .feature");
   if (reduce || !("IntersectionObserver" in window)) {
-    targets.forEach((el) => el.classList.add("is-visible"));
+    targets.forEach((elm) => elm.classList.add("is-visible"));
     return;
   }
   const io = new IntersectionObserver(
@@ -213,43 +463,39 @@ function initReveal() {
     },
     { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
   );
-  targets.forEach((el) => io.observe(el));
+  targets.forEach((elm) => io.observe(elm));
 
-  // Safety net: reveal whatever is already in the viewport on load, in case
-  // the observer is slow to fire (e.g. the page was painted while hidden).
-  // Below-the-fold sections still wait for scroll via the observer.
-  setTimeout(() => {
-    targets.forEach((el) => {
-      if (el.classList.contains("is-visible")) return;
-      const r = el.getBoundingClientRect();
+  function revealInView() {
+    targets.forEach((elm) => {
+      if (elm.classList.contains("is-visible")) return;
+      const r = elm.getBoundingClientRect();
       if (r.top < window.innerHeight && r.bottom > 0) {
-        el.classList.add("is-visible");
-        io.unobserve(el);
+        elm.classList.add("is-visible");
+        io.unobserve(elm);
       }
     });
-  }, 300);
+  }
+
+  // If the page was painted while hidden, the observer (and rAF/timers) may
+  // not fire and there is no layout to measure — reveal everything at once so
+  // content never stays blank. Visible pages keep the animated observer reveal.
+  if (document.visibilityState !== "visible") {
+    targets.forEach((elm) => {
+      elm.classList.add("is-visible");
+      io.unobserve(elm);
+    });
+  }
+  // Soft net for a visible page whose observer is slow to fire.
+  setTimeout(revealInView, 400);
 }
 
 // ---- Boot ----------------------------------------------------------------
-function boot() {
+async function boot() {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
 
-  wireVideoClicks();
-  initReveal();
-
-  // Video URL inputs -> live re-render of the facade.
-  document.querySelectorAll("[data-video-input]").forEach((input) => {
-    input.addEventListener("input", () => {
-      const key = input.getAttribute("data-video-input");
-      const container = document.querySelector('.video[data-video="' + key + '"]');
-      if (container) renderVideo(container, input.value);
-    });
-    input.addEventListener("click", (e) => e.stopPropagation());
-  });
-
-  // Status badge click cycle (edit mode only).
+  // Status badge cycle (edit mode only).
   document.querySelectorAll(".status").forEach((cell) => {
     cell.addEventListener("click", () => {
       if (!isEditMode) return;
@@ -260,13 +506,26 @@ function boot() {
     });
   });
 
-  // Don't navigate external links while editing.
+  // External links: don't navigate while editing.
   document.querySelectorAll("a[data-link]").forEach((a) => {
     a.addEventListener("click", (e) => {
       const href = a.getAttribute("href");
       if (isEditMode || !href || href === "#") e.preventDefault();
     });
   });
+
+  // "+ 기능 추가"
+  const addBtn = document.getElementById("addFeatureBtn");
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      const list = document.getElementById("featureList");
+      const idx = list.querySelectorAll(".feature").length;
+      const sec = makeFeature(idx, null);
+      list.appendChild(sec);
+      sec.classList.add("is-visible");
+      sec.querySelector(".feature-title").focus();
+    });
+  }
 
   // Admin login / logout.
   const adminBtn = document.getElementById("adminBtn");
@@ -317,14 +576,16 @@ function boot() {
     });
   }
 
+  // Load content, then set up reveal + comments (features exist by now).
+  await loadDoc();
+  initReveal();
+  initComments();
+
   // Auth listener: edit mode ONLY for the admin email.
   onAuthStateChanged(auth, (user) => {
     if (user && user.email === ADMIN_EMAIL) enableEditMode(user.email);
     else disableEditMode();
   });
-
-  // Initial content load (public visitors see saved content).
-  loadDoc();
 }
 
 boot();

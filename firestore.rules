@@ -1,0 +1,59 @@
+rules_version = '2';
+
+// =========================================================================
+// Firestore 보안 규칙 — personal_site
+//
+//  배포 방법 (둘 중 하나):
+//   A) Firebase 콘솔 → Firestore Database → 규칙 탭 → 아래 내용 붙여넣기 → 게시
+//   B) firebase CLI:  firebase deploy --only firestore:rules
+//      (firebase.json 에 "firestore": { "rules": "firestore.rules" } 추가 필요)
+//
+//  핵심:
+//   - personal-site/*  : 누구나 읽기, 관리자만 쓰기 (사이트 내용)
+//   - comments/*       : 누구나 읽기, 누구나 "검증된" 후기 작성, 관리자만 삭제
+//   - 그 외 전부 차단
+// =========================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.token.email == 'seungyeon980808@gmail.com';
+    }
+
+    // ---- 사이트 내용 (메인 허브 + 프로젝트 상세) ----
+    match /personal-site/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---- 후기/댓글 ----
+    match /comments/{commentId} {
+      allow read: if true;
+
+      // 익명 작성 허용하되, 필드/길이를 엄격히 검증해 남용을 막는다.
+      allow create: if
+           request.resource.data.keys().hasOnly(['project', 'name', 'text', 'createdAt'])
+        && request.resource.data.project is string
+        && request.resource.data.project.size() > 0
+        && request.resource.data.project.size() <= 40
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 30
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+
+      // 수정 불가, 삭제는 관리자만 (스팸/부적절 후기 정리)
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---- 그 외 전부 차단 ----
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

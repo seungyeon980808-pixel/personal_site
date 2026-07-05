@@ -44,54 +44,31 @@
     </div>
   </header>
 
-  <!-- ===== FEATURES ===== -->
+  <!-- ===== FEATURES (assets/detail.js 가 동적 렌더) ===== -->
   <main class="features">
     <div class="wrap">
-
-      <!-- Feature 0 -->
-      <section class="feature">
-        <div class="feature-media">
-          <div class="video" data-video="feature.0"></div>
-          <input class="video-input" type="url" data-video-input="feature.0"
-                 placeholder="YouTube 링크 붙여넣기 (예: https://youtu.be/xxxxxxxxxxx)" />
-        </div>
-        <div class="feature-text">
-          <div class="feature-num">01</div>
-          <h2 class="feature-title" data-editable data-field="feature.0.title">대표 기능 1</h2>
-          <p class="feature-desc" data-editable data-field="feature.0.desc">이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.</p>
-        </div>
-      </section>
-
-      <!-- Feature 1 -->
-      <section class="feature">
-        <div class="feature-media">
-          <div class="video" data-video="feature.1"></div>
-          <input class="video-input" type="url" data-video-input="feature.1"
-                 placeholder="YouTube 링크 붙여넣기 (예: https://youtu.be/xxxxxxxxxxx)" />
-        </div>
-        <div class="feature-text">
-          <div class="feature-num">02</div>
-          <h2 class="feature-title" data-editable data-field="feature.1.title">대표 기능 2</h2>
-          <p class="feature-desc" data-editable data-field="feature.1.desc">이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.</p>
-        </div>
-      </section>
-
-      <!-- Feature 2 -->
-      <section class="feature">
-        <div class="feature-media">
-          <div class="video" data-video="feature.2"></div>
-          <input class="video-input" type="url" data-video-input="feature.2"
-                 placeholder="YouTube 링크 붙여넣기 (예: https://youtu.be/xxxxxxxxxxx)" />
-        </div>
-        <div class="feature-text">
-          <div class="feature-num">03</div>
-          <h2 class="feature-title" data-editable data-field="feature.2.title">대표 기능 3</h2>
-          <p class="feature-desc" data-editable data-field="feature.2.desc">이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.</p>
-        </div>
-      </section>
-
+      <div id="featureList"></div>
+      <button id="addFeatureBtn" type="button">+ 기능 추가</button>
     </div>
   </main>
+
+  <!-- ===== COMMENTS / 후기 ===== -->
+  <section class="comments reveal">
+    <div class="wrap">
+      <h2>후기 · 의견</h2>
+      <p class="sub">이 도구를 써본 후기나 버그·개선 의견을 남겨주세요 · <span id="commentCount">0</span>개</p>
+      <form class="comment-form" id="commentForm">
+        <div class="name-row">
+          <input type="text" id="commentName" placeholder="이름" maxlength="30" autocomplete="off" />
+        </div>
+        <textarea id="commentText" placeholder="후기나 의견을 적어주세요 (최대 500자)" maxlength="500"></textarea>
+        <div class="submit-row">
+          <button type="submit" class="comment-submit">후기 남기기</button>
+        </div>
+      </form>
+      <div class="comment-list" id="commentList"></div>
+    </div>
+  </section>
 
   <!-- ===== FOOTER ===== -->
   <footer class="detail-foot">
