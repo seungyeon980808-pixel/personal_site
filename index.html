@@ -16,17 +16,26 @@
   <style>
     :root {
       --main: #0969da;
+      --main-strong: #0860c4;
       --sub: #0e7490;
-      --bg: #f6f8fa;
+      --bg: #fbfbfd;
       --text: #0d1117;
-      --divider: #d0d7de;
+      --divider: #e6e8eb;
       --surface: #ffffff;
       --muted: #57606a;
-      --radius: 8px;
-      --maxw: 720px;
+      --muted-soft: #8b949e;
+      --tint: #f0f6ff;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --maxw: 760px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 6px 20px -8px rgba(15, 23, 42, 0.14);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
 
     html, body {
       margin: 0;
@@ -40,12 +49,29 @@
       line-height: 1.6;
       font-size: 16px;
       -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Ambient light — a single, very faint blue glow for depth (not decoration) */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -240px;
+      left: 50%;
+      width: 900px;
+      height: 620px;
+      transform: translateX(-50%);
+      background: radial-gradient(closest-side, rgba(9, 105, 218, 0.10), rgba(9, 105, 218, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     .wrap {
+      position: relative;
+      z-index: 1;
       max-width: var(--maxw);
       margin: 0 auto;
-      padding: 24px 16px 64px;
+      padding: 56px 20px 80px;
     }
 
     a { color: var(--main); text-decoration: none; }
@@ -56,9 +82,17 @@
     /* ===== HEADER ===== */
     .site-header {
       position: relative;
-      padding: 8px 0 24px;
-      border-bottom: 1px solid var(--divider);
-      margin-bottom: 24px;
+      padding: 4px 0 40px;
+      margin-bottom: 40px;
+    }
+    .site-header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--divider), rgba(230, 232, 235, 0));
     }
 
     .admin-bar {
@@ -80,42 +114,78 @@
     .admin-btn {
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
-      color: var(--muted);
-      background: transparent;
+      color: var(--muted-soft);
+      background: rgba(255, 255, 255, 0.6);
       border: 1px solid var(--divider);
-      border-radius: var(--radius);
-      padding: 4px 10px;
+      border-radius: 999px;
+      padding: 5px 12px;
       cursor: pointer;
       line-height: 1.4;
+      backdrop-filter: blur(6px);
+      transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    .admin-btn:hover { border-color: var(--main); color: var(--main); }
+    .admin-btn:hover { border-color: var(--main); color: var(--main); background: var(--tint); }
+
+    /* Availability pill above the name */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: 999px;
+      padding: 4px 12px 4px 10px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2da44e;
+      box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.5);
+      animation: pulse 2.4s var(--ease) infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.45); }
+      70%  { box-shadow: 0 0 0 7px rgba(45, 164, 78, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0); }
+    }
 
     .name {
-      font-size: 28px;
+      font-size: clamp(38px, 8vw, 60px);
       font-weight: 700;
-      margin: 4px 0 2px;
+      letter-spacing: -0.03em;
+      line-height: 1.04;
+      margin: 0 0 10px;
     }
 
     .role {
       font-family: "IBM Plex Mono", monospace;
       font-size: 13px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       color: var(--sub);
       text-transform: uppercase;
-      margin-bottom: 12px;
+      margin: 0 0 20px;
     }
 
     .intro {
-      max-width: 52ch;
-      margin: 0 0 12px;
-      color: var(--text);
+      max-width: 46ch;
+      font-size: 19px;
+      line-height: 1.55;
+      color: #313a45;
+      margin: 0 0 18px;
     }
 
     .notice {
       font-size: 14px;
       color: var(--muted);
-      border-left: 3px solid var(--sub);
-      padding: 4px 0 4px 12px;
+      border-left: 2px solid var(--sub);
+      padding: 2px 0 2px 14px;
       margin: 0;
     }
 
@@ -124,87 +194,118 @@
       border: 1px solid var(--divider);
       border-radius: var(--radius);
       background: var(--surface);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
     }
+    .section:hover { box-shadow: var(--shadow-md); border-color: #d6dae0; }
 
     .section > summary {
       list-style: none;
       cursor: pointer;
-      padding: 14px 16px;
+      padding: 18px 20px;
       font-weight: 600;
       font-size: 15px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       user-select: none;
+      transition: color 0.2s var(--ease);
     }
+    .section > summary:hover { color: var(--main); }
     .section > summary::-webkit-details-marker { display: none; }
 
     .section > summary .chev {
       font-family: "IBM Plex Mono", monospace;
-      color: var(--muted);
-      font-size: 12px;
-      transition: transform 0.15s ease;
+      color: var(--muted-soft);
+      font-size: 11px;
+      transition: transform 0.3s var(--ease), color 0.2s var(--ease);
     }
     .section[open] > summary .chev { transform: rotate(90deg); }
+    .section > summary:hover .chev { color: var(--main); }
 
     .section-body {
-      padding: 0 16px 16px;
+      padding: 0 20px 20px;
+    }
+    /* Content slides in when a section opens */
+    .section[open] .section-body {
+      animation: sectionOpen 0.4s var(--ease);
+    }
+    @keyframes sectionOpen {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== CHANNELS ===== */
     .channel-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 8px;
+      gap: 10px;
     }
     @media (min-width: 520px) {
       .channel-grid { grid-template-columns: 1fr 1fr; }
     }
 
     .channel-card {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 14px;
+      padding: 15px 16px;
       border: 1px solid var(--divider);
-      border-radius: var(--radius);
+      border-radius: var(--radius-sm);
       background: var(--surface);
       color: var(--text);
-      transition: border-color 0.15s ease, background 0.15s ease;
+      overflow: hidden;
+      transition: border-color 0.25s var(--ease), background 0.25s var(--ease),
+                  transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+    }
+    /* Sheen sweep on hover */
+    .channel-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 30%, rgba(9, 105, 218, 0.07) 50%, transparent 70%);
+      transform: translateX(-120%);
+      transition: transform 0.6s var(--ease);
+      pointer-events: none;
     }
     .channel-card:hover {
       border-color: var(--main);
-      background: #f0f6ff;
+      background: var(--tint);
       text-decoration: none;
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
     }
+    .channel-card:hover::after { transform: translateX(120%); }
     .channel-card .c-name { font-weight: 600; }
     .channel-card .c-desc { font-size: 13px; color: var(--muted); }
     .channel-card:hover .c-name { color: var(--main); }
 
     .channel-card .arrow {
       font-family: "IBM Plex Mono", monospace;
-      color: var(--muted);
-      transition: transform 0.15s ease, color 0.15s ease;
+      color: var(--muted-soft);
+      transition: transform 0.25s var(--ease), color 0.25s var(--ease);
     }
     .channel-card:hover .arrow {
       color: var(--main);
-      transform: translateX(4px);
+      transform: translateX(5px);
     }
 
     /* Channel href editing (edit mode only) */
     body.edit-mode .channel-card { flex-wrap: wrap; }
+    body.edit-mode .channel-card:hover { transform: none; }
     .href-input {
       flex: 0 0 100%;
       width: 100%;
       margin-top: 8px;
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
-      padding: 4px 6px;
+      padding: 6px 8px;
       border: 1px solid var(--main);
-      border-radius: 4px;
+      border-radius: 6px;
       color: var(--text);
       background: #fff;
     }
@@ -217,33 +318,47 @@
     }
     .proj-table th, .proj-table td {
       text-align: left;
-      padding: 10px 8px;
+      padding: 12px 8px;
       border-bottom: 1px solid var(--divider);
       vertical-align: top;
     }
+    .proj-table tbody tr {
+      transition: background 0.2s var(--ease);
+    }
+    .proj-table tbody tr:hover { background: var(--tint); }
     .proj-table th {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted-soft);
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
     }
     .proj-table td.ver { font-family: "IBM Plex Mono", monospace; color: var(--muted); }
 
-    .proj-name a { font-weight: 600; }
+    .proj-name a {
+      font-weight: 600;
+      background-image: linear-gradient(var(--main), var(--main));
+      background-size: 0% 1px;
+      background-position: 0 100%;
+      background-repeat: no-repeat;
+      transition: background-size 0.3s var(--ease);
+      text-decoration: none;
+    }
+    .proj-name a:hover { background-size: 100% 1px; text-decoration: none; }
 
     .status {
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
-      padding: 2px 8px;
+      padding: 3px 10px;
       border-radius: 999px;
       border: 1px solid var(--divider);
       cursor: pointer;
       white-space: nowrap;
       user-select: none;
+      transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    .status[data-status="live"]   { color: var(--sub);  border-color: var(--sub); }
-    .status[data-status="개발중"] { color: var(--main); border-color: var(--main); }
+    .status[data-status="live"]   { color: var(--sub);  border-color: var(--sub);  background: rgba(14, 116, 144, 0.06); }
+    .status[data-status="개발중"] { color: var(--main); border-color: var(--main); background: var(--tint); }
     .status[data-status="기획중"] { color: var(--muted); }
 
     /* ===== CONTACT ===== */
@@ -251,13 +366,13 @@
     .contact-list li {
       display: flex;
       gap: 8px;
-      padding: 6px 0;
+      padding: 8px 0;
       font-size: 15px;
     }
     .contact-list .label {
       font-family: "IBM Plex Mono", monospace;
       font-size: 13px;
-      color: var(--muted);
+      color: var(--muted-soft);
       min-width: 96px;
     }
 
@@ -277,8 +392,8 @@
       font-size: 12px;
       color: #fff;
       background: var(--main);
-      border-radius: var(--radius);
-      padding: 2px 8px;
+      border-radius: 999px;
+      padding: 3px 10px;
       margin-left: 8px;
     }
     body.edit-mode .edit-badge { display: inline-block; }
@@ -296,24 +411,128 @@
       color: #fff;
       background: var(--main);
       border: none;
-      border-radius: var(--radius);
-      padding: 10px 20px;
+      border-radius: 999px;
+      padding: 12px 22px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--shadow-md);
+      transition: background 0.2s var(--ease), transform 0.2s var(--ease);
     }
-    .save-btn:hover { background: #0860c4; }
+    .save-btn:hover { background: var(--main-strong); transform: translateY(-1px); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
     body.edit-mode .save-btn { display: inline-block; }
 
     /* ===== FOOTER ===== */
     .site-footer {
-      margin-top: 32px;
-      padding-top: 16px;
+      margin-top: 48px;
+      padding-top: 20px;
       border-top: 1px solid var(--divider);
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
-      color: var(--muted);
+      color: var(--muted-soft);
       text-align: center;
+    }
+
+    /* ===== MOTION: entrance + scroll reveal ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+      will-change: opacity, transform;
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Hero entrance — supporting lines fade up (delays set inline) */
+    .hero-item {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: heroIn 0.8s var(--ease) forwards;
+    }
+    @keyframes heroIn {
+      to { opacity: 1; transform: none; }
+    }
+
+    /* Kinetic name — letters rise one by one, then a light sweep */
+    .name.kinetic-pending { opacity: 0; }
+    .name .kchar {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(0.62em) rotate(3deg);
+      animation: kcharIn 0.6s var(--ease) forwards;
+      animation-delay: calc(var(--i) * 0.05s + 0.1s);
+      will-change: transform, opacity;
+    }
+    @keyframes kcharIn {
+      to { opacity: 1; transform: none; }
+    }
+    .name.shine {
+      background-image: linear-gradient(100deg,
+        var(--text) 0%, var(--text) 42%,
+        #4c9dff 50%,
+        var(--text) 58%, var(--text) 100%);
+      background-size: 220% 100%;
+      background-position: 130% 0;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: shineSweep 1.1s var(--ease) forwards;
+    }
+    @keyframes shineSweep {
+      to { background-position: -30% 0; }
+    }
+
+    /* Cursor-follow glow (pointer devices only; toggled by JS) */
+    .cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 440px;
+      height: 440px;
+      margin: -220px 0 0 -220px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(9, 105, 218, 0.12), rgba(9, 105, 218, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease);
+      will-change: transform;
+    }
+    .cursor-glow.on { opacity: 1; }
+
+    /* 3D tilt — perspective lives on the grid, cards rotate via JS */
+    .channel-grid { perspective: 1000px; }
+    .channel-card { transform-style: preserve-3d; }
+
+    /* Scroll story — channel cards stagger in as the section reveals */
+    .reveal.is-visible .channel-card {
+      animation: cardIn 0.55s var(--ease) backwards;
+    }
+    .reveal.is-visible .channel-card:nth-child(1) { animation-delay: 0.06s; }
+    .reveal.is-visible .channel-card:nth-child(2) { animation-delay: 0.12s; }
+    .reveal.is-visible .channel-card:nth-child(3) { animation-delay: 0.18s; }
+    .reveal.is-visible .channel-card:nth-child(4) { animation-delay: 0.24s; }
+    .reveal.is-visible .channel-card:nth-child(5) { animation-delay: 0.30s; }
+    .reveal.is-visible .channel-card:nth-child(6) { animation-delay: 0.36s; }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .reveal, .hero-item, .name.kinetic-pending, .name .kchar {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .cursor-glow { display: none !important; }
     }
   </style>
 </head>
@@ -327,14 +546,15 @@
         <button id="adminBtn" class="admin-btn" type="button">관리자 로그인</button>
       </div>
       <span class="edit-badge" id="editBadge">편집 모드</span>
-      <h1 class="name" data-editable data-field="name">박승연</h1>
-      <p class="role" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
-      <p class="intro" data-editable data-field="intro">중학교 물리교사. 수업과 행정을 위한 도구를 직접 만들고, 성장하는 과정을 기록합니다.</p>
-      <p class="notice" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
+      <span class="status-pill hero-item" style="animation-delay:0.05s"><span class="dot"></span> Open to share · 자유 배포</span>
+      <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
+      <p class="role hero-item" style="animation-delay:0.5s" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
+      <p class="intro hero-item" style="animation-delay:0.62s" data-editable data-field="intro">중학교 물리교사. 수업과 행정을 위한 도구를 직접 만들고, 성장하는 과정을 기록합니다.</p>
+      <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
     </header>
 
     <!-- ===== CHANNELS ===== -->
-    <details class="section" id="channelsSection" open>
+    <details class="section reveal" id="channelsSection" open>
       <summary><span class="chev">▶</span> 채널</summary>
       <div class="section-body">
         <div class="channel-grid" id="channelGrid">
@@ -385,7 +605,7 @@
     </details>
 
     <!-- ===== PROJECTS ===== -->
-    <details class="section" id="projectsSection">
+    <details class="section reveal" id="projectsSection">
       <summary><span class="chev">▶</span> 개발 프로젝트</summary>
       <div class="section-body">
         <table class="proj-table">
@@ -413,7 +633,7 @@
     </details>
 
     <!-- ===== CONTACT ===== -->
-    <details class="section" id="contactSection">
+    <details class="section reveal" id="contactSection">
       <summary><span class="chev">▶</span> 협업</summary>
       <div class="section-body">
         <ul class="contact-list">
@@ -430,14 +650,123 @@
     </details>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="site-footer">
-      <span class="mono">v1.1.0 / 2026-06-15</span>
+    <footer class="site-footer reveal">
+      <span class="mono">v2.0.0 / 2026-07-05</span>
     </footer>
 
   </div>
 
   <!-- Save button (visible only in edit mode) -->
   <button id="saveBtn" class="save-btn" type="button">저장</button>
+
+  <!-- ===== MOTION ===== -->
+  <!--
+    Motion layer (progressive enhancement, all effects are optional):
+    - Scroll reveal: sections fade up as they enter the viewport.
+    - Kinetic name: letters rise, then a light sweep (run after Firestore load).
+    - Cursor glow + card 3D tilt: pointer devices only, disabled in edit mode.
+    All effects respect prefers-reduced-motion.
+  -->
+  <script>
+    (function () {
+      "use strict";
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+      // ---- Scroll reveal ---------------------------------------------------
+      var targets = document.querySelectorAll(".reveal");
+      if (reduce || !("IntersectionObserver" in window)) {
+        targets.forEach(function (el) { el.classList.add("is-visible"); });
+      } else {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+        targets.forEach(function (el) { io.observe(el); });
+      }
+
+      // ---- Kinetic name: letters rise, then a shine sweep ------------------
+      var heroDone = false;
+      function runHeroKinetic() {
+        if (heroDone) return;
+        heroDone = true;
+        var el = document.querySelector(".name");
+        if (!el) return;
+        var text = el.textContent;
+        // Skip the split while editing, or when motion is reduced.
+        if (reduce || document.body.classList.contains("edit-mode")) {
+          el.classList.remove("kinetic-pending");
+          return;
+        }
+        el.textContent = "";
+        var chars = Array.from(text);
+        chars.forEach(function (ch, i) {
+          var s = document.createElement("span");
+          s.className = "kchar";
+          s.style.setProperty("--i", i);
+          s.textContent = ch === " " ? " " : ch;
+          el.appendChild(s);
+        });
+        el.classList.remove("kinetic-pending");
+        var settle = (chars.length * 0.05 + 0.6 + 0.15) * 1000;
+        setTimeout(function () {
+          // Flatten back to plain text so edit mode / Firestore stay clean.
+          el.textContent = text;
+          el.classList.add("shine");
+          setTimeout(function () { el.classList.remove("shine"); }, 1300);
+        }, settle);
+      }
+      // Expose so the ADMIN section can fire it once the store load settles.
+      window.__heroKinetic = runHeroKinetic;
+      // Safety net: run anyway if the store load never resolves.
+      setTimeout(runHeroKinetic, 1400);
+
+      // ---- Cursor-follow glow (pointer devices only) -----------------------
+      if (finePointer && !reduce) {
+        var glow = document.createElement("div");
+        glow.className = "cursor-glow";
+        document.body.appendChild(glow);
+        var tx = 0, ty = 0, cx = 0, cy = 0, running = false;
+        function loop() {
+          cx += (tx - cx) * 0.15;
+          cy += (ty - cy) * 0.15;
+          glow.style.transform = "translate(" + cx + "px," + cy + "px)";
+          if (Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5) {
+            requestAnimationFrame(loop);
+          } else {
+            running = false;
+          }
+        }
+        window.addEventListener("pointermove", function (e) {
+          tx = e.clientX; ty = e.clientY;
+          glow.classList.add("on");
+          if (!running) { running = true; requestAnimationFrame(loop); }
+        }, { passive: true });
+      }
+
+      // ---- Channel card 3D tilt (pointer devices, not in edit mode) --------
+      if (finePointer && !reduce) {
+        document.querySelectorAll(".channel-card").forEach(function (card) {
+          card.addEventListener("pointermove", function (e) {
+            if (document.body.classList.contains("edit-mode")) return;
+            var r = card.getBoundingClientRect();
+            var px = (e.clientX - r.left) / r.width - 0.5;
+            var py = (e.clientY - r.top) / r.height - 0.5;
+            card.style.transform =
+              "translateY(-3px) rotateX(" + (-py * 6).toFixed(2) +
+              "deg) rotateY(" + (px * 6).toFixed(2) + "deg)";
+          });
+          card.addEventListener("pointerleave", function () {
+            card.style.transform = "";
+          });
+        });
+      }
+    })();
+  </script>
 
   <!-- ===== ADMIN ===== -->
   <!--
@@ -600,8 +929,12 @@
       // Expose for FIREBASE section to drive UI without leaking internals.
       window.Site.ui = { enableEditMode, disableEditMode };
 
-      // Initial load from store (applies saved content for all visitors).
-      window.Site.db.load();
+      // Initial load from store (applies saved content for all visitors),
+      // then run the kinetic name animation on the final text.
+      window.Site.db.load().then(fireHeroKinetic, fireHeroKinetic);
+      function fireHeroKinetic() {
+        if (window.__heroKinetic) window.__heroKinetic();
+      }
     });
   </script>
 
