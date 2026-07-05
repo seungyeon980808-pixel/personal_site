@@ -310,33 +310,113 @@
       background: #fff;
     }
 
-    /* ===== PROJECTS ===== */
-    .proj-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    .proj-table th, .proj-table td {
-      text-align: left;
-      padding: 12px 8px;
+    /* ===== STATS STRIP ===== */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 4px 0 40px;
+      padding: 24px 8px;
+      border-top: 1px solid var(--divider);
       border-bottom: 1px solid var(--divider);
-      vertical-align: top;
     }
-    .proj-table tbody tr {
-      transition: background 0.2s var(--ease);
+    .stat { text-align: center; }
+    .stat-value {
+      display: block;
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
     }
-    .proj-table tbody tr:hover { background: var(--tint); }
-    .proj-table th {
+    .stat-suffix { color: var(--main); }
+    .stat-label {
+      display: block;
+      margin-top: 6px;
       font-size: 12px;
       color: var(--muted-soft);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
     }
-    .proj-table td.ver { font-family: "IBM Plex Mono", monospace; color: var(--muted); }
+    body.edit-mode .stat-value { outline: 1px dashed var(--divider); }
 
+    /* ===== PROJECTS ===== */
+    .proj-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 18px;
+    }
+    .proj-card {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--divider);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+    }
+    .proj-card:hover {
+      border-color: var(--main);
+      box-shadow: 0 12px 32px -16px rgba(9, 105, 218, 0.32);
+      transform: translateY(-2px);
+    }
+
+    /* Preview: still frame by default, GIF plays on hover (see MOTION script) */
+    .proj-preview {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #eef2f7, #e2e8f1);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .proj-preview img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .proj-preview-empty {
+      font-size: 12px;
+      color: var(--muted-soft);
+      font-family: "IBM Plex Mono", monospace;
+      letter-spacing: 0.03em;
+    }
+    .proj-preview .play {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(13, 17, 23, 0.62);
+      color: #fff;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+      pointer-events: none;
+    }
+    .proj-card:hover .proj-preview .play { opacity: 1; transform: none; }
+
+    .proj-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px 16px 18px;
+      flex: 1;
+    }
+    .proj-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
     .proj-name a {
       font-weight: 600;
+      font-size: 15px;
       background-image: linear-gradient(var(--main), var(--main));
       background-size: 0% 1px;
       background-position: 0 100%;
@@ -345,6 +425,48 @@
       text-decoration: none;
     }
     .proj-name a:hover { background-size: 100% 1px; text-decoration: none; }
+    .proj-why {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .proj-why::before {
+      content: "왜 · ";
+      color: var(--main);
+      font-weight: 600;
+    }
+    .proj-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .proj-stack {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--muted-soft);
+      letter-spacing: 0.02em;
+    }
+    .proj-foot {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: auto;
+      padding-top: 8px;
+      flex-wrap: wrap;
+    }
+    .proj-foot a {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s var(--ease);
+    }
+    .proj-foot a:hover { color: var(--main); }
+    .proj-foot .ver {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: var(--muted-soft);
+      margin-left: auto;
+    }
 
     .status {
       font-family: "IBM Plex Mono", monospace;
@@ -553,6 +675,22 @@
       <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
     </header>
 
+    <!-- ===== STATS ===== -->
+    <section class="stats reveal" id="statsStrip" aria-label="요약 지표">
+      <div class="stat">
+        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.tools">5</span></span>
+        <span class="stat-label">만든 도구</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.students">200</span><span class="stat-suffix">+</span></span>
+        <span class="stat-label">함께한 학생</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.years">3</span></span>
+        <span class="stat-label">년차 개발</span>
+      </div>
+    </section>
+
     <!-- ===== CHANNELS ===== -->
     <details class="section reveal" id="channelsSection" open>
       <summary><span class="chev">▶</span> 채널</summary>
@@ -608,27 +746,84 @@
     <details class="section reveal" id="projectsSection">
       <summary><span class="chev">▶</span> 개발 프로젝트</summary>
       <div class="section-body">
-        <table class="proj-table">
-          <thead>
-            <tr>
-              <th>이름</th>
-              <th>설명</th>
-              <th>배포여부</th>
-              <th>버전</th>
-            </tr>
-          </thead>
-          <tbody id="projectRows">
-            <!-- placeholder row -->
-            <tr>
-              <td class="proj-name">
-                <a href="#" target="_blank" rel="noopener" data-editable data-field="project.0.name">프로젝트명</a>
-              </td>
-              <td data-editable data-field="project.0.desc">설명을 입력하세요</td>
-              <td><span class="status" data-status="기획중" data-field="project.0.status">기획중</span></td>
-              <td class="ver" data-editable data-field="project.0.version">v0.1.0</td>
-            </tr>
-          </tbody>
-        </table>
+        <!--
+          프로젝트 카드. 텍스트는 편집 모드에서 수정하세요.
+          GIF 미리보기를 넣으려면 .proj-preview 안의 .proj-preview-empty 를
+          <img src="정지이미지" data-gif="움직이는GIF" alt=""> 로 교체하면
+          MOTION 스크립트가 hover 시 자동 재생/정지시킵니다.
+        -->
+        <div class="proj-grid" id="projectRows">
+
+          <!-- Project 0 -->
+          <article class="proj-card">
+            <div class="proj-preview">
+              <span class="proj-preview-empty">미리보기 준비중</span>
+              <span class="play">▶ 재생</span>
+            </div>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a href="#" target="_blank" rel="noopener" data-link="project.0.url" data-editable data-field="project.0.name">edunote</a>
+                </span>
+                <span class="status" data-status="live" data-field="project.0.status">live</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.0.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.0.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.0.stack">HTML · JS · Firebase</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.0.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.0.version">v1.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 1 -->
+          <article class="proj-card">
+            <div class="proj-preview">
+              <span class="proj-preview-empty">미리보기 준비중</span>
+              <span class="play">▶ 재생</span>
+            </div>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a href="#" target="_blank" rel="noopener" data-link="project.1.url" data-editable data-field="project.1.name">physics_draw</a>
+                </span>
+                <span class="status" data-status="개발중" data-field="project.1.status">개발중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.1.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.1.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.1.stack">HTML · Canvas · JS</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.1.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.1.version">v0.3.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 2 -->
+          <article class="proj-card">
+            <div class="proj-preview">
+              <span class="proj-preview-empty">미리보기 준비중</span>
+              <span class="play">▶ 재생</span>
+            </div>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a href="#" target="_blank" rel="noopener" data-link="project.2.url" data-editable data-field="project.2.name">K-마이파인</a>
+                </span>
+                <span class="status" data-status="개발중" data-field="project.2.status">개발중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.2.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.2.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.2.stack">HTML · JS</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.2.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.2.version">v0.2.0</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
       </div>
     </details>
 
@@ -651,7 +846,7 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer reveal">
-      <span class="mono">v2.0.0 / 2026-07-05</span>
+      <span class="mono">v2.1.0 / 2026-07-05</span>
     </footer>
 
   </div>
@@ -765,6 +960,56 @@
           });
         });
       }
+
+      // ---- Stat count-up (runs once, after data load AND when in view) -----
+      var statsSeen = false, dataLoaded = false, counted = false;
+      function runCountUp() {
+        document.querySelectorAll(".stat-num[data-count]").forEach(function (el) {
+          var target = parseInt((el.textContent || "0").replace(/[^0-9]/g, ""), 10) || 0;
+          if (reduce) { el.textContent = String(target); return; }
+          var dur = 1200, start = null;
+          function step(ts) {
+            if (start === null) start = ts;
+            var p = Math.min((ts - start) / dur, 1);
+            var eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+            el.textContent = String(Math.round(target * eased));
+            if (p < 1) requestAnimationFrame(step);
+            else el.textContent = String(target);
+          }
+          requestAnimationFrame(step);
+        });
+      }
+      function maybeCount() {
+        if (counted || !statsSeen || !dataLoaded) return;
+        counted = true;
+        runCountUp();
+      }
+      // Data load completion is signalled by the ADMIN section.
+      window.__statsDataLoaded = function () { dataLoaded = true; maybeCount(); };
+      setTimeout(function () { dataLoaded = true; maybeCount(); }, 1500); // safety
+      var statsEl = document.getElementById("statsStrip");
+      if (statsEl) {
+        if (reduce || !("IntersectionObserver" in window)) {
+          statsSeen = true; maybeCount();
+        } else {
+          var sio = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) { statsSeen = true; sio.disconnect(); maybeCount(); }
+            });
+          }, { threshold: 0.4 });
+          sio.observe(statsEl);
+        }
+      }
+
+      // ---- Project preview: swap still <-> GIF on hover -------------------
+      document.querySelectorAll(".proj-preview img[data-gif]").forEach(function (img) {
+        var still = img.getAttribute("src");
+        var gif = img.getAttribute("data-gif");
+        var card = img.closest(".proj-card");
+        if (!card || !gif) return;
+        card.addEventListener("pointerenter", function () { img.src = gif; });
+        card.addEventListener("pointerleave", function () { if (still) img.src = still; });
+      });
     })();
   </script>
 
@@ -817,24 +1062,41 @@
         });
       }
 
-      // ---- Channel hrefs become editable input fields in edit mode ---------
+      // ---- Links become editable input fields in edit mode ----------------
+      // Adds an href-input to a target element for the given anchor.
+      function attachHrefInput(anchor, mount, place) {
+        const input = document.createElement("input");
+        input.type = "url";
+        input.className = "href-input";
+        input.placeholder = "https://...";
+        const href = anchor.getAttribute("href");
+        input.value = href && href !== "#" ? href : "";
+        input.addEventListener("click", (e) => e.preventDefault());
+        input.addEventListener("input", () => {
+          anchor.setAttribute("href", input.value.trim() || "#");
+        });
+        if (place === "after") anchor.insertAdjacentElement("afterend", input);
+        else mount.appendChild(input);
+      }
+
       function setChannelLinksEditable(on) {
+        // Channel cards: the card itself is the anchor; input goes inside it.
         document.querySelectorAll(".channel-card").forEach((card) => {
           const existing = card.querySelector(".href-input");
           if (on) {
             if (existing) return; // idempotent
-            const input = document.createElement("input");
-            input.type = "url";
-            input.className = "href-input";
-            input.placeholder = "https://...";
-            const href = card.getAttribute("href");
-            input.value = href && href !== "#" ? href : "";
-            // Keep clicks/typing from navigating the anchor.
-            input.addEventListener("click", (e) => e.preventDefault());
-            input.addEventListener("input", () => {
-              card.setAttribute("href", input.value.trim() || "#");
-            });
-            card.appendChild(input);
+            attachHrefInput(card, card, "append");
+          } else if (existing) {
+            existing.remove();
+          }
+        });
+        // Generic [data-link] anchors (project URL / GitHub): input goes after.
+        document.querySelectorAll("a[data-link]").forEach((a) => {
+          const sib = a.nextElementSibling;
+          const existing = sib && sib.classList.contains("href-input") ? sib : null;
+          if (on) {
+            if (existing) return; // idempotent
+            attachHrefInput(a, null, "after");
           } else if (existing) {
             existing.remove();
           }
@@ -875,8 +1137,8 @@
         });
       });
 
-      // ---- Project name links: don't navigate while editing ----------------
-      document.querySelectorAll(".proj-name a").forEach((link) => {
+      // ---- Project / generic links: don't navigate while editing -----------
+      document.querySelectorAll("a[data-link]").forEach((link) => {
         link.addEventListener("click", (e) => {
           const href = link.getAttribute("href");
           if (isEditMode || !href || href === "#") {
@@ -931,9 +1193,10 @@
 
       // Initial load from store (applies saved content for all visitors),
       // then run the kinetic name animation on the final text.
-      window.Site.db.load().then(fireHeroKinetic, fireHeroKinetic);
-      function fireHeroKinetic() {
+      window.Site.db.load().then(onInitialLoad, onInitialLoad);
+      function onInitialLoad() {
         if (window.__heroKinetic) window.__heroKinetic();
+        if (window.__statsDataLoaded) window.__statsDataLoaded();
       }
     });
   </script>
@@ -1038,8 +1301,8 @@
       document.querySelectorAll("[data-channel]").forEach((a) => {
         data.links["channel." + a.getAttribute("data-channel")] = a.getAttribute("href");
       });
-      document.querySelectorAll(".proj-name a").forEach((a, i) => {
-        data.links["project." + i] = a.getAttribute("href");
+      document.querySelectorAll("a[data-link]").forEach((a) => {
+        data.links[a.getAttribute("data-link")] = a.getAttribute("href");
       });
       return data;
     }
@@ -1060,6 +1323,16 @@
       }
       if (data.links) {
         Object.entries(data.links).forEach(([key, href]) => {
+          // New generic [data-link] anchors resolve directly.
+          const linkEl = document.querySelector('a[data-link="' + key + '"]');
+          if (linkEl) {
+            linkEl.setAttribute("href", href);
+            const sib = linkEl.nextElementSibling;
+            if (sib && sib.classList.contains("href-input")) {
+              sib.value = href && href !== "#" ? href : "";
+            }
+            return;
+          }
           if (key.startsWith("channel.")) {
             const el = document.querySelector('[data-channel="' + key.split(".")[1] + '"]');
             if (el) {
@@ -1068,10 +1341,6 @@
               const input = el.querySelector(".href-input");
               if (input) input.value = href && href !== "#" ? href : "";
             }
-          } else if (key.startsWith("project.")) {
-            const idx = key.split(".")[1];
-            const el = document.querySelectorAll(".proj-name a")[idx];
-            if (el) el.setAttribute("href", href);
           }
         });
       }
