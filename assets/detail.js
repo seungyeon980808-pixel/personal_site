@@ -534,6 +534,19 @@ async function boot() {
   auth = getAuth(app);
   db = getFirestore(app);
 
+  // Theme toggle.
+  const themeBtn = document.getElementById("themeToggle");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const cur =
+        document.documentElement.getAttribute("data-theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("theme", next); } catch (e) {}
+    });
+  }
+
   // Status badge cycle (edit mode only).
   document.querySelectorAll(".status").forEach((cell) => {
     cell.addEventListener("click", () => {

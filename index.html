@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Theme init (before paint, avoids flash of wrong theme) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
   <title>박승연 · PHYSICS TEACHER</title>
 
   <!-- SEO / 공유 카드 (OG) -->
@@ -47,6 +56,70 @@
       --shadow-md: 0 6px 20px -8px rgba(15, 23, 42, 0.14);
       --ease: cubic-bezier(0.22, 1, 0.36, 1);
     }
+
+    /* ===== DARK THEME ===== */
+    :root[data-theme="dark"] {
+      --main: #4c9dff; --main-strong: #388bfd; --sub: #39c5cf;
+      --bg: #0b0e14; --text: #e6edf3; --divider: #232a33; --surface: #141a22;
+      --muted: #9aa4af; --muted-soft: #6e7681; --tint: #12233a;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --main: #4c9dff; --main-strong: #388bfd; --sub: #39c5cf;
+        --bg: #0b0e14; --text: #e6edf3; --divider: #232a33; --surface: #141a22;
+        --muted: #9aa4af; --muted-soft: #6e7681; --tint: #12233a;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+      }
+    }
+    body { transition: background-color 0.4s var(--ease), color 0.4s var(--ease); }
+
+    /* Cross-page view transitions (smooth navigation where supported) */
+    @view-transition { navigation: auto; }
+
+    /* Hero particle canvas (behind content via negative z-index in header's own stacking context) */
+    #heroCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+    /* Theme toggle (fixed) */
+    .theme-toggle {
+      position: fixed; right: 18px; bottom: 18px; z-index: 50;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--divider); background: var(--surface); color: var(--text);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), background 0.3s var(--ease);
+    }
+    .theme-toggle:hover { transform: translateY(-2px); border-color: var(--main); }
+    .theme-toggle svg { width: 20px; height: 20px; }
+    .theme-toggle .i-sun { display: none; }
+    :root[data-theme="dark"] .theme-toggle .i-sun { display: block; }
+    :root[data-theme="dark"] .theme-toggle .i-moon { display: none; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .theme-toggle .i-sun { display: block; }
+      :root:not([data-theme="light"]) .theme-toggle .i-moon { display: none; }
+    }
+
+    /* Physics mini-demo (gravity playground) */
+    .demo { margin: 8px 0 40px; }
+    .demo-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .demo-title { font-size: 13px; font-family: "IBM Plex Mono", monospace; letter-spacing: 0.04em; color: var(--sub); }
+    .demo-hint { font-size: 12px; color: var(--muted-soft); }
+    .demo-stage {
+      position: relative; width: 100%; aspect-ratio: 16 / 7;
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      background: radial-gradient(circle at 50% 42%, var(--tint), var(--surface));
+      overflow: hidden; cursor: crosshair;
+    }
+    .demo-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .demo-reset {
+      position: absolute; right: 12px; top: 12px; z-index: 2;
+      font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 999px;
+      border: 1px solid var(--divider); background: var(--surface); color: var(--muted); cursor: pointer;
+    }
+    .demo-reset:hover { border-color: var(--main); color: var(--main); }
+    @media (max-width: 560px) { .demo-stage { aspect-ratio: 4 / 3; } }
 
     * { box-sizing: border-box; }
 
@@ -99,6 +172,11 @@
       position: relative;
       padding: 4px 0 40px;
       margin-bottom: 40px;
+      min-height: clamp(500px, 80vh, 820px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      isolation: isolate;
     }
     .site-header::after {
       content: "";
@@ -366,7 +444,7 @@
       border: 1px solid var(--divider);
       border-radius: 14px;
       overflow: hidden;
-      background: #fff;
+      background: var(--surface);
       transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
     }
     .proj-card:hover {
@@ -379,7 +457,7 @@
     .proj-preview {
       position: relative;
       aspect-ratio: 16 / 10;
-      background: linear-gradient(135deg, #eef2f7, #e2e8f1);
+      background: linear-gradient(135deg, var(--tint), var(--surface));
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -680,6 +758,7 @@
 
     <!-- ===== HEADER ===== -->
     <header class="site-header">
+      <canvas id="heroCanvas" aria-hidden="true"></canvas>
       <div class="admin-bar">
         <span class="user-email" id="userEmail"></span>
         <button id="adminBtn" class="admin-btn" type="button">관리자 로그인</button>
@@ -748,6 +827,18 @@
         </div>
       </div>
     </details>
+
+    <!-- ===== PHYSICS DEMO ===== -->
+    <section class="demo reveal" aria-label="물리 놀이터">
+      <div class="demo-head">
+        <span class="demo-title">물리 놀이터 · GRAVITY</span>
+        <span class="demo-hint">빈 곳을 드래그해 행성을 쏘아보세요 — 중력에 끌려 궤도를 돕니다</span>
+      </div>
+      <div class="demo-stage" id="demoStage">
+        <canvas id="demoCanvas"></canvas>
+        <button class="demo-reset" id="demoReset" type="button">초기화</button>
+      </div>
+    </section>
 
     <!-- ===== PROJECTS ===== -->
     <details class="section reveal" id="projectsSection">
@@ -852,13 +943,19 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer reveal">
-      <span class="mono">v3.2.0 / 2026-07-05</span>
+      <span class="mono">v3.3.0 / 2026-07-05</span>
     </footer>
 
   </div>
 
   <!-- Save button (visible only in edit mode) -->
   <button id="saveBtn" class="save-btn" type="button">저장</button>
+
+  <!-- Theme toggle -->
+  <button id="themeToggle" class="theme-toggle" type="button" aria-label="라이트/다크 전환">
+    <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
 
   <!-- ===== MOTION ===== -->
   <!--
@@ -976,6 +1073,163 @@
         card.addEventListener("pointerenter", function () { img.src = gif; });
         card.addEventListener("pointerleave", function () { if (still) img.src = still; });
       });
+
+      // ---- Theme toggle ----------------------------------------------------
+      var themeBtn = document.getElementById("themeToggle");
+      if (themeBtn) {
+        themeBtn.addEventListener("click", function () {
+          var cur = document.documentElement.getAttribute("data-theme") ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          var next = cur === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          try { localStorage.setItem("theme", next); } catch (e) {}
+        });
+      }
+
+      // ---- Hero particle field (constellation, cursor-reactive) ------------
+      (function () {
+        var canvas = document.getElementById("heroCanvas");
+        if (!canvas || reduce) return;
+        var ctx = canvas.getContext("2d");
+        var host = canvas.parentElement;
+        var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var pts = [], mouse = { x: -9999, y: -9999 }, raf = null;
+
+        function resize() {
+          W = host.clientWidth; H = host.clientHeight;
+          canvas.width = W * dpr; canvas.height = H * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          var count = Math.round((W * H) / 14000);
+          count = Math.min(count, window.innerWidth < 640 ? 30 : 72);
+          pts = [];
+          for (var i = 0; i < count; i++) {
+            pts.push({ x: Math.random() * W, y: Math.random() * H,
+              vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35 });
+          }
+        }
+        function step() {
+          ctx.clearRect(0, 0, W, H);
+          for (var i = 0; i < pts.length; i++) {
+            var p = pts[i];
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > W) p.vx *= -1;
+            if (p.y < 0 || p.y > H) p.vy *= -1;
+            var mx = mouse.x - p.x, my = mouse.y - p.y, md = Math.hypot(mx, my);
+            if (md < 150 && md > 0.1) { p.x += (mx / md) * 0.45; p.y += (my / md) * 0.45; }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(76,157,255,0.55)";
+            ctx.fill();
+          }
+          for (var a = 0; a < pts.length; a++) {
+            for (var b = a + 1; b < pts.length; b++) {
+              var dx = pts[a].x - pts[b].x, dy = pts[a].y - pts[b].y, d = Math.hypot(dx, dy);
+              if (d < 120) {
+                ctx.beginPath();
+                ctx.moveTo(pts[a].x, pts[a].y);
+                ctx.lineTo(pts[b].x, pts[b].y);
+                ctx.strokeStyle = "rgba(9,105,218," + (0.15 * (1 - d / 120)).toFixed(3) + ")";
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            }
+          }
+          raf = requestAnimationFrame(step);
+        }
+        function start() { if (!raf) raf = requestAnimationFrame(step); }
+        function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
+
+        window.addEventListener("resize", resize);
+        if ("ResizeObserver" in window) new ResizeObserver(resize).observe(host);
+        window.addEventListener("mousemove", function (e) {
+          var r = canvas.getBoundingClientRect();
+          mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
+        });
+        window.addEventListener("mouseout", function () { mouse.x = -9999; mouse.y = -9999; });
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) { e.isIntersecting && !document.hidden ? start() : stop(); });
+          }, { threshold: 0 }).observe(host);
+        }
+        document.addEventListener("visibilitychange", function () { document.hidden ? stop() : start(); });
+        resize(); start();
+      })();
+
+      // ---- Physics mini-demo: gravity playground --------------------------
+      (function () {
+        var canvas = document.getElementById("demoCanvas");
+        var stage = document.getElementById("demoStage");
+        if (!canvas || !stage) return;
+        var ctx = canvas.getContext("2d");
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var W = 0, H = 0, sun = { x: 0, y: 0 }, bodies = [], G = 800, raf = null, drag = null;
+
+        function resize() {
+          W = stage.clientWidth; H = stage.clientHeight;
+          canvas.width = W * dpr; canvas.height = H * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          sun.x = W / 2; sun.y = H / 2;
+        }
+        function drawSun() {
+          ctx.beginPath(); ctx.arc(sun.x, sun.y, 16, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(76,157,255,0.12)"; ctx.fill();
+          ctx.beginPath(); ctx.arc(sun.x, sun.y, 7, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(76,157,255,0.95)"; ctx.fill();
+        }
+        function step() {
+          ctx.clearRect(0, 0, W, H);
+          drawSun();
+          for (var i = 0; i < bodies.length; i++) {
+            var b = bodies[i];
+            var dx = sun.x - b.x, dy = sun.y - b.y, d2 = dx * dx + dy * dy, d = Math.sqrt(d2);
+            if (d < 9) { bodies.splice(i, 1); i--; continue; }
+            var acc = G / Math.max(d2, 64);
+            b.vx += acc * dx / d; b.vy += acc * dy / d;
+            b.x += b.vx; b.y += b.vy;
+            b.trail.push(b.x); b.trail.push(b.y);
+            if (b.trail.length > 80) { b.trail.shift(); b.trail.shift(); }
+            ctx.beginPath();
+            for (var t = 0; t < b.trail.length; t += 2) {
+              if (t === 0) ctx.moveTo(b.trail[t], b.trail[t + 1]);
+              else ctx.lineTo(b.trail[t], b.trail[t + 1]);
+            }
+            ctx.strokeStyle = "rgba(57,197,207,0.45)"; ctx.lineWidth = 1.4; ctx.stroke();
+            ctx.beginPath(); ctx.arc(b.x, b.y, 3.2, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(230,237,243,0.92)"; ctx.fill();
+            if (b.x < -220 || b.x > W + 220 || b.y < -220 || b.y > H + 220) { bodies.splice(i, 1); i--; }
+          }
+          raf = requestAnimationFrame(step);
+        }
+        function start() { if (!raf && !reduce) raf = requestAnimationFrame(step); }
+        function stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
+        function xy(e) {
+          var r = canvas.getBoundingClientRect();
+          return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+        stage.addEventListener("pointerdown", function (e) {
+          if (e.target.id === "demoReset") return;
+          drag = xy(e);
+        });
+        window.addEventListener("pointerup", function (e) {
+          if (!drag) return;
+          var end = xy(e);
+          bodies.push({ x: drag.x, y: drag.y, vx: (drag.x - end.x) * 0.06, vy: (drag.y - end.y) * 0.06, trail: [] });
+          if (bodies.length > 12) bodies.shift();
+          drag = null;
+        });
+        var resetBtn = document.getElementById("demoReset");
+        if (resetBtn) resetBtn.addEventListener("click", function () { bodies = []; });
+        window.addEventListener("resize", resize);
+        if ("ResizeObserver" in window) new ResizeObserver(resize).observe(stage);
+        resize();
+        if (reduce) { drawSun(); return; }
+        bodies.push({ x: sun.x + 110, y: sun.y, vx: 0, vy: Math.sqrt(G / 110), trail: [] });
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) { e.isIntersecting ? start() : stop(); });
+          }, { threshold: 0 }).observe(stage);
+        } else { start(); }
+      })();
     })();
   </script>
 
