@@ -310,36 +310,6 @@
       background: #fff;
     }
 
-    /* ===== STATS STRIP ===== */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 4px 0 40px;
-      padding: 24px 8px;
-      border-top: 1px solid var(--divider);
-      border-bottom: 1px solid var(--divider);
-    }
-    .stat { text-align: center; }
-    .stat-value {
-      display: block;
-      font-size: clamp(28px, 6vw, 42px);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      line-height: 1.1;
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-suffix { color: var(--main); }
-    .stat-label {
-      display: block;
-      margin-top: 6px;
-      font-size: 12px;
-      color: var(--muted-soft);
-      letter-spacing: 0.02em;
-    }
-    body.edit-mode .stat-value { outline: 1px dashed var(--divider); }
-
     /* ===== PROJECTS ===== */
     .proj-grid {
       display: grid;
@@ -379,12 +349,15 @@
       object-fit: cover;
       display: block;
     }
+    a.proj-preview { text-decoration: none; }
     .proj-preview-empty {
       font-size: 12px;
       color: var(--muted-soft);
       font-family: "IBM Plex Mono", monospace;
       letter-spacing: 0.03em;
+      transition: color 0.2s var(--ease), transform 0.2s var(--ease);
     }
+    .proj-card:hover .proj-preview-empty { color: var(--main); transform: translateX(3px); }
     .proj-preview .play {
       position: absolute;
       right: 10px;
@@ -675,22 +648,6 @@
       <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
     </header>
 
-    <!-- ===== STATS ===== -->
-    <section class="stats reveal" id="statsStrip" aria-label="요약 지표">
-      <div class="stat">
-        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.tools">5</span></span>
-        <span class="stat-label">만든 도구</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.students">200</span><span class="stat-suffix">+</span></span>
-        <span class="stat-label">함께한 학생</span>
-      </div>
-      <div class="stat">
-        <span class="stat-value"><span class="stat-num" data-count data-editable data-field="stat.years">3</span></span>
-        <span class="stat-label">년차 개발</span>
-      </div>
-    </section>
-
     <!-- ===== CHANNELS ===== -->
     <details class="section reveal" id="channelsSection" open>
       <summary><span class="chev">▶</span> 채널</summary>
@@ -747,23 +704,21 @@
       <summary><span class="chev">▶</span> 개발 프로젝트</summary>
       <div class="section-body">
         <!--
-          프로젝트 카드. 텍스트는 편집 모드에서 수정하세요.
-          GIF 미리보기를 넣으려면 .proj-preview 안의 .proj-preview-empty 를
-          <img src="정지이미지" data-gif="움직이는GIF" alt=""> 로 교체하면
-          MOTION 스크립트가 hover 시 자동 재생/정지시킵니다.
+          프로젝트 카드. 카드/제목을 클릭하면 각 프로젝트 상세 페이지로 이동한다.
+          텍스트(제목·설명·스택·버전)는 편집 모드에서 수정.
+          라이브/GitHub 링크도 편집 모드에서 URL 입력창으로 수정 가능.
         -->
         <div class="proj-grid" id="projectRows">
 
           <!-- Project 0 -->
           <article class="proj-card">
-            <div class="proj-preview">
-              <span class="proj-preview-empty">미리보기 준비중</span>
-              <span class="play">▶ 재생</span>
-            </div>
+            <a class="proj-preview proj-detail" href="projects/edunote.html">
+              <span class="proj-preview-empty">자세히 보기 →</span>
+            </a>
             <div class="proj-body">
               <div class="proj-head">
                 <span class="proj-name">
-                  <a href="#" target="_blank" rel="noopener" data-link="project.0.url" data-editable data-field="project.0.name">edunote</a>
+                  <a class="proj-detail" href="projects/edunote.html" data-editable data-field="project.0.name">edunote</a>
                 </span>
                 <span class="status" data-status="live" data-field="project.0.status">live</span>
               </div>
@@ -771,6 +726,7 @@
               <p class="proj-desc" data-editable data-field="project.0.desc">무엇을 하는 도구인지 한 줄</p>
               <span class="proj-stack" data-editable data-field="project.0.stack">HTML · JS · Firebase</span>
               <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.0.url">라이브 ↗</a>
                 <a href="#" target="_blank" rel="noopener" data-link="project.0.github">GitHub ↗</a>
                 <span class="ver" data-editable data-field="project.0.version">v1.0.0</span>
               </div>
@@ -779,14 +735,13 @@
 
           <!-- Project 1 -->
           <article class="proj-card">
-            <div class="proj-preview">
-              <span class="proj-preview-empty">미리보기 준비중</span>
-              <span class="play">▶ 재생</span>
-            </div>
+            <a class="proj-preview proj-detail" href="projects/physics-draw.html">
+              <span class="proj-preview-empty">자세히 보기 →</span>
+            </a>
             <div class="proj-body">
               <div class="proj-head">
                 <span class="proj-name">
-                  <a href="#" target="_blank" rel="noopener" data-link="project.1.url" data-editable data-field="project.1.name">physics_draw</a>
+                  <a class="proj-detail" href="projects/physics-draw.html" data-editable data-field="project.1.name">physics_draw</a>
                 </span>
                 <span class="status" data-status="개발중" data-field="project.1.status">개발중</span>
               </div>
@@ -794,6 +749,7 @@
               <p class="proj-desc" data-editable data-field="project.1.desc">무엇을 하는 도구인지 한 줄</p>
               <span class="proj-stack" data-editable data-field="project.1.stack">HTML · Canvas · JS</span>
               <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.1.url">라이브 ↗</a>
                 <a href="#" target="_blank" rel="noopener" data-link="project.1.github">GitHub ↗</a>
                 <span class="ver" data-editable data-field="project.1.version">v0.3.0</span>
               </div>
@@ -802,14 +758,13 @@
 
           <!-- Project 2 -->
           <article class="proj-card">
-            <div class="proj-preview">
-              <span class="proj-preview-empty">미리보기 준비중</span>
-              <span class="play">▶ 재생</span>
-            </div>
+            <a class="proj-preview proj-detail" href="projects/myfine.html">
+              <span class="proj-preview-empty">자세히 보기 →</span>
+            </a>
             <div class="proj-body">
               <div class="proj-head">
                 <span class="proj-name">
-                  <a href="#" target="_blank" rel="noopener" data-link="project.2.url" data-editable data-field="project.2.name">K-마이파인</a>
+                  <a class="proj-detail" href="projects/myfine.html" data-editable data-field="project.2.name">K-마이파인</a>
                 </span>
                 <span class="status" data-status="개발중" data-field="project.2.status">개발중</span>
               </div>
@@ -817,6 +772,7 @@
               <p class="proj-desc" data-editable data-field="project.2.desc">무엇을 하는 도구인지 한 줄</p>
               <span class="proj-stack" data-editable data-field="project.2.stack">HTML · JS</span>
               <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.2.url">라이브 ↗</a>
                 <a href="#" target="_blank" rel="noopener" data-link="project.2.github">GitHub ↗</a>
                 <span class="ver" data-editable data-field="project.2.version">v0.2.0</span>
               </div>
@@ -846,7 +802,7 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer reveal">
-      <span class="mono">v2.1.0 / 2026-07-05</span>
+      <span class="mono">v3.0.0 / 2026-07-05</span>
     </footer>
 
   </div>
@@ -959,46 +915,6 @@
             card.style.transform = "";
           });
         });
-      }
-
-      // ---- Stat count-up (runs once, after data load AND when in view) -----
-      var statsSeen = false, dataLoaded = false, counted = false;
-      function runCountUp() {
-        document.querySelectorAll(".stat-num[data-count]").forEach(function (el) {
-          var target = parseInt((el.textContent || "0").replace(/[^0-9]/g, ""), 10) || 0;
-          if (reduce) { el.textContent = String(target); return; }
-          var dur = 1200, start = null;
-          function step(ts) {
-            if (start === null) start = ts;
-            var p = Math.min((ts - start) / dur, 1);
-            var eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
-            el.textContent = String(Math.round(target * eased));
-            if (p < 1) requestAnimationFrame(step);
-            else el.textContent = String(target);
-          }
-          requestAnimationFrame(step);
-        });
-      }
-      function maybeCount() {
-        if (counted || !statsSeen || !dataLoaded) return;
-        counted = true;
-        runCountUp();
-      }
-      // Data load completion is signalled by the ADMIN section.
-      window.__statsDataLoaded = function () { dataLoaded = true; maybeCount(); };
-      setTimeout(function () { dataLoaded = true; maybeCount(); }, 1500); // safety
-      var statsEl = document.getElementById("statsStrip");
-      if (statsEl) {
-        if (reduce || !("IntersectionObserver" in window)) {
-          statsSeen = true; maybeCount();
-        } else {
-          var sio = new IntersectionObserver(function (entries) {
-            entries.forEach(function (e) {
-              if (e.isIntersecting) { statsSeen = true; sio.disconnect(); maybeCount(); }
-            });
-          }, { threshold: 0.4 });
-          sio.observe(statsEl);
-        }
       }
 
       // ---- Project preview: swap still <-> GIF on hover -------------------
@@ -1137,13 +1053,20 @@
         });
       });
 
-      // ---- Project / generic links: don't navigate while editing -----------
+      // ---- Generic external links (라이브/GitHub): don't navigate editing --
       document.querySelectorAll("a[data-link]").forEach((link) => {
         link.addEventListener("click", (e) => {
           const href = link.getAttribute("href");
           if (isEditMode || !href || href === "#") {
             e.preventDefault();
           }
+        });
+      });
+
+      // ---- Detail-page links: navigate normally, but not while editing -----
+      document.querySelectorAll("a.proj-detail").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          if (isEditMode) e.preventDefault();
         });
       });
 
@@ -1196,7 +1119,6 @@
       window.Site.db.load().then(onInitialLoad, onInitialLoad);
       function onInitialLoad() {
         if (window.__heroKinetic) window.__heroKinetic();
-        if (window.__statsDataLoaded) window.__statsDataLoaded();
       }
     });
   </script>
