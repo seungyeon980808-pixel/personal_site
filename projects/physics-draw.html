@@ -11,19 +11,19 @@
       } catch (e) {}
     })();
   </script>
-  <title>physics_draw · 박승연</title>
-  <meta name="description" content="박승연이 만든 도구 physics_draw — 대표 기능과 시연을 확인하세요." />
+  <title>5E · 박승연</title>
+  <meta name="description" content="박승연이 만든 과학 도해 편집기 5E — 대표 기능과 시연을 확인하세요." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="박승연 · personal site" />
-  <meta property="og:title" content="physics_draw · 박승연" />
-  <meta property="og:description" content="박승연이 만든 도구 physics_draw — 대표 기능과 시연을 확인하세요." />
+  <meta property="og:title" content="5E · 박승연" />
+  <meta property="og:description" content="박승연이 만든 과학 도해 편집기 5E — 대표 기능과 시연을 확인하세요." />
   <meta property="og:url" content="https://seungyeon980808-pixel.github.io/personal_site/projects/physics-draw.html" />
   <meta property="og:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="physics_draw · 박승연" />
-  <meta name="twitter:description" content="박승연이 만든 도구 physics_draw — 대표 기능과 시연을 확인하세요." />
+  <meta name="twitter:title" content="5E · 박승연" />
+  <meta name="twitter:description" content="박승연이 만든 과학 도해 편집기 5E — 대표 기능과 시연을 확인하세요." />
   <meta name="twitter:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,7 +38,7 @@
   <!-- ===== TOP BAR ===== -->
   <div class="topbar">
     <a class="home" href="../index.html">← 홈</a>
-    <span class="crumb" id="crumb">projects / physics_draw</span>
+    <span class="crumb" id="crumb">projects / 5E</span>
     <span class="spacer"></span>
     <span class="edit-badge">편집 모드</span>
     <div class="admin-area">
@@ -52,7 +52,7 @@
   <header class="detail-hero reveal">
     <div class="wrap">
       <span class="eyebrow"><span class="dot"></span> PROJECT</span>
-      <h1 class="detail-title" data-editable data-field="hero.title">physics_draw</h1>
+      <h1 class="detail-title" data-editable data-field="hero.title">5E</h1>
       <p class="detail-tagline" data-editable data-field="hero.tagline">한 줄 소개 — 이 도구가 무엇을 해결하는지 적어주세요.</p>
       <div class="detail-meta">
         <span class="stack" data-editable data-field="hero.stack">HTML · Canvas · JS</span>
@@ -72,6 +72,26 @@
       <button id="addFeatureBtn" type="button">+ 기능 추가</button>
     </div>
   </main>
+
+  <!-- ===== FEATURE INDEX (검색형 기능 목록) ===== -->
+  <section class="feature-index reveal" aria-label="전체 기능 목록">
+    <div class="wrap">
+      <div class="fi-head">
+        <h2>이 외에도, 이런 기능들이 있어요</h2>
+        <p class="sub">영상으로 하나하나 보여주긴 힘든 자잘한 기능들 — 필요한 것만 검색해서 찾아보세요.</p>
+      </div>
+      <div class="fi-search-row">
+        <div class="fi-search">
+          <svg class="fi-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="fiSearch" placeholder="기능 검색 · 예) 스냅, 라벨, 300dpi" autocomplete="off" />
+        </div>
+        <span class="fi-count" id="fiCount"></span>
+      </div>
+      <div class="fi-chips" id="fiChips" role="group" aria-label="카테고리 필터"></div>
+      <div class="fi-grid" id="fiGrid"></div>
+      <p class="fi-empty" id="fiEmpty" hidden></p>
+    </div>
+  </section>
 
   <!-- ===== COMMENTS / 후기 ===== -->
   <section class="comments reveal">
@@ -106,5 +126,87 @@
   </button>
 
   <script type="module" src="../assets/detail.js"></script>
+
+  <!-- ===== FEATURE INDEX 데이터 (5E 전용) ===== -->
+  <script type="module">
+    import { initFeatureIndex } from "../assets/feature-index.js";
+
+    const FI_CATEGORIES = [
+      { id: "start", label: "시작하기", emoji: "🧭" },
+      { id: "draw", label: "그리기 도구", emoji: "✏️" },
+      { id: "text", label: "텍스트·수식", emoji: "🔤" },
+      { id: "graph", label: "그래프", emoji: "📈" },
+      { id: "image", label: "이미지", emoji: "🖼️" },
+      { id: "library", label: "과학 라이브러리", emoji: "🧪" },
+      { id: "exam", label: "기출", emoji: "📄" },
+      { id: "save", label: "저장·내보내기", emoji: "💾" },
+    ];
+
+    const FI_ITEMS = [
+      // 시작하기
+      { cat: "start", name: "안내선", desc: "눈금자를 클릭해 만드는, 인쇄엔 안 나오는 보조선", kw: "가이드라인 guide" },
+      { cat: "start", name: "화면 이동·확대", desc: "휠·Ctrl+휠·Space 드래그로 뷰만 이동, 도면은 그대로", key: "Ctrl+휠" },
+      { cat: "start", name: "실행 취소", desc: "Ctrl+Z 한 번으로 방금 한 작업이 통째로 복구", key: "Ctrl+Z" },
+      { cat: "start", name: "그룹 멤버 지목", desc: "그룹 안의 한 멤버만 더블클릭으로 골라 편집" },
+      { cat: "start", name: "오브젝트 잠금", desc: "실수로 못 움직이게 K로 잠그고, 다시 K로 풀기", key: "K" },
+      { cat: "start", name: "레이어 3단", desc: "레이어별로 선택 범위를 나눠 겹친 도형도 안전하게" },
+      // 그리기 도구
+      { cat: "draw", name: "직선", desc: "두 번 클릭으로 선, Shift 끝점 스냅·Ctrl 15° 스냅", key: "L" },
+      { cat: "draw", name: "꺾은선", desc: "점을 이어 빗면·계단 모양, 닫으면 채워진 다각형", key: "P" },
+      { cat: "draw", name: "곡선", desc: "지나갈 점만 듬성듬성 찍으면 알아서 매끈하게", key: "C" },
+      { cat: "draw", name: "사각형·타원·직각삼각형", desc: "드래그로 크기, Shift로 정사각형·정원", key: "S · O · Y" },
+      { cat: "draw", name: "자유 그리기", desc: "손으로 그은 궤적을 다듬어 닫힌 도형으로", key: "D" },
+      { cat: "draw", name: "스냅", desc: "Shift를 누르면 끝점·변·접선에 자석처럼 붙음", kw: "snap 자석" },
+      { cat: "draw", name: "자", desc: "mm 눈금 측정 가이드, 1mm로 바꾸면 실제 자처럼" },
+      { cat: "draw", name: "각도기", desc: "반원형 각도 측정 가이드" },
+      { cat: "draw", name: "가위(절단)", desc: "선을 그어 도형을 두 조각 이상으로 절단", key: "E" },
+      { cat: "draw", name: "각도 호·직각 표시", desc: "θ 부채꼴과 직각 기호를 클릭 세 번으로", key: "A · Shift+A" },
+      // 텍스트·수식
+      { cat: "text", name: "텍스트 입력", desc: "여러 줄 글자, 글꼴 5종·크기·굵기 지정", key: "T" },
+      { cat: "text", name: "LaTeX 자동 인식", desc: "\\frac, ^, _ 를 쓰면 알아서 수식으로 조판", kw: "라텍 수식" },
+      { cat: "text", name: "수식 팔레트", desc: "분수·루트·벡터·그리스문자를 버튼 클릭으로" },
+      { cat: "text", name: "라벨러", desc: "지시선 달린 라벨, ㉠부터 수식까지 붙일 수 있음", key: "Shift+T" },
+      { cat: "text", name: "각도 호 라벨", desc: "θ를 더블클릭해 α·60° 등으로 즉시 교체" },
+      { cat: "text", name: "도형·축 라벨", desc: "물리량(이탤릭)·라벨(정체) 글꼴을 구분해서" },
+      { cat: "text", name: "글씨 일괄 수정", desc: "여러 텍스트·라벨의 크기·글씨체를 한 번에 통일" },
+      // 그래프
+      { cat: "graph", name: "함수 입력", desc: "수식 하나로 좌표평면과 그래프를 동시에", key: "F" },
+      { cat: "graph", name: "여러 함수 겹치기", desc: "칩으로 함수를 추가, 선 종류로 색 없이 구분" },
+      { cat: "graph", name: "정의역 지정", desc: "드래그 핸들로 그리는 x구간만 잘라내기" },
+      { cat: "graph", name: "좌표평면 상세 편집", desc: "범위·눈금·축 이름·형태(십자·L자·직선)를 한 창에서" },
+      { cat: "graph", name: "곡선으로 변환", desc: "수식 구동을 끊고 점을 직접 편집하는 곡선으로" },
+      // 이미지
+      { cat: "image", name: "이미지 가져오기", desc: "붙여넣기·불러오기·끌어놓기·기출검색, 4가지 경로", key: "Ctrl+V" },
+      { cat: "image", name: "이미지 관리 패널", desc: "투명도·선택금지·위치고정으로 트레이싱 배경 세팅" },
+      { cat: "image", name: "이미지 객체화", desc: "그림 속 잉크 덩어리를 편집 가능한 객체로 자동 분리", key: "Ctrl+T", kw: "벡터화" },
+      { cat: "image", name: "선·도형 승격", desc: "가는 획은 선 객체로, 반듯한 도형은 상자·원으로 (실험)" },
+      { cat: "image", name: "비교", desc: "원본 이미지와 내가 그린 그림을 같은 배율로 나란히" },
+      // 과학 라이브러리
+      { cat: "library", name: "과목 전환", desc: "물리·화학·생명·지구과학 테마와 라이브러리를 함께" },
+      { cat: "library", name: "회로 소자", desc: "두 점 클릭으로 배치, R·L·C·V·A 글자로 표시" },
+      { cat: "library", name: "광학 기구", desc: "렌즈·거울·물체·스크린을 드래그 한 번으로 배치" },
+      { cat: "library", name: "단진자", desc: "고정점→추 중심 드래그, 잔상과 길이 라벨 기본 포함" },
+      { cat: "library", name: "오브젝트 검색", desc: "심볼과 퍼스널 오브젝트를 이름으로 바로 찾기", key: "Ctrl+F" },
+      { cat: "library", name: "퍼스널 오브젝트", desc: "내가 만든 도해 세트를 이름 붙여 저장·재사용" },
+      { cat: "library", name: "오브젝트 저장소", desc: "썸네일로 저장한 세트를 훑어보며 삽입·삭제" },
+      // 기출
+      { cat: "exam", name: "기출문항 검색", desc: "8과목 · 2007~2027학년도 약 4,000문항 내장", key: "Ctrl+Shift+F" },
+      { cat: "exam", name: "번호 코드 검색", desc: "261101처럼 압축 번호로 문항 바로 찾기" },
+      { cat: "exam", name: "해시태그 검색", desc: "#역학#도르레처럼 개념 태그로 좁혀 찾기" },
+      { cat: "exam", name: "이미지 삽입", desc: "기출 문항을 이미지 객체로 바로 캔버스에" },
+      { cat: "exam", name: "오브젝트 변환", desc: "기출 이미지를 편집 가능한 선·텍스트로 자동 분해" },
+      // 저장·내보내기
+      { cat: "save", name: "프로젝트 저장", desc: "다시 편집 가능한 JSON 도면 파일로", key: "Ctrl+S" },
+      { cat: "save", name: "PNG·SVG 내보내기", desc: "실제 mm 크기 그대로, 300dpi 인쇄용", key: "Alt+P" },
+      { cat: "save", name: "영역 지정 내보내기", desc: "드래그로 지정한 부분만 잘라서 저장" },
+      { cat: "save", name: "클립보드 복사", desc: "PNG를 파일 없이 바로 한글·PPT에 Ctrl+V" },
+      { cat: "save", name: "시험지 미리보기", desc: "수능 8절 양식 위에 실제 인쇄 크기로 확인" },
+      { cat: "save", name: "인쇄 비교 배경 등록", desc: "내 학교 시험지 스캔본으로 실측 크기 비교" },
+      { cat: "save", name: "설정 백업·복원", desc: "퍼스널 오브젝트·테마를 파일로 다른 PC까지" },
+      { cat: "save", name: "전체 통일/수정", desc: "선 굵기·명도·각도를 선택한 오브젝트 전체에 한 번에" },
+    ];
+
+    initFeatureIndex(FI_ITEMS, FI_CATEGORIES);
+  </script>
 </body>
 </html>

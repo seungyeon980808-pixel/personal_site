@@ -382,6 +382,142 @@ body.edit-mode .feature-remove { display: inline-block; }
 #addFeatureBtn:hover { background: #e4efff; }
 body.edit-mode #addFeatureBtn { display: block; }
 
+/* ===== FEATURE INDEX (검색형 기능 목록) ===== */
+.feature-index { padding: 0 0 clamp(48px, 8vw, 88px); }
+.fi-head { margin-bottom: 22px; }
+.fi-head h2 {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+.fi-head .sub { font-size: 14px; color: var(--muted-soft); margin: 0; }
+
+.fi-search-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.fi-search { position: relative; flex: 1; min-width: 220px; }
+.fi-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--muted-soft);
+  pointer-events: none;
+  transition: color 0.2s var(--ease);
+}
+.fi-search:focus-within .fi-search-icon { color: var(--main); }
+#fiSearch {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 12px 16px 12px 40px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+#fiSearch:focus { outline: none; border-color: var(--main); box-shadow: 0 0 0 3px var(--tint); }
+#fiSearch::placeholder { color: var(--muted-soft); }
+.fi-count {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--muted-soft);
+  white-space: nowrap;
+}
+
+.fi-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.fi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease), transform 0.15s var(--ease);
+}
+.fi-chip:hover { border-color: var(--main); color: var(--main); transform: translateY(-1px); }
+.fi-chip.active { color: #fff; background: var(--main); border-color: var(--main); }
+.fi-chip-emoji { font-size: 13px; }
+
+.fi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  perspective: 900px;
+}
+.fi-card {
+  position: relative;
+  padding: 16px 18px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: default;
+  transform-style: preserve-3d;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+  animation: fiIn 0.35s var(--ease) both;
+}
+.fi-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--main) 40%, var(--divider)); }
+.fi-card:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
+.fi-card-cat {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--sub);
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+.fi-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 6px; }
+.fi-card-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
+.fi-card-key {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--divider);
+  color: var(--muted-soft);
+  background: var(--bg);
+}
+.fi-card mark { background: var(--tint); color: var(--main); font-weight: 700; border-radius: 3px; padding: 0 1px; }
+.fi-card.fi-pop { animation: fiPop 0.45s var(--ease); }
+
+.fi-empty { text-align: center; padding: 32px 12px; font-size: 14px; color: var(--muted-soft); }
+
+@keyframes fiIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fiPop {
+  0% { transform: scale(1); border-color: var(--divider); }
+  35% { transform: scale(1.035); border-color: var(--main); box-shadow: var(--shadow-md); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 560px) {
+  .fi-grid { grid-template-columns: 1fr; }
+  .fi-search-row { flex-direction: column; align-items: stretch; }
+  .fi-count { align-self: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fi-card { animation: none; }
+  .fi-card.fi-pop { animation: none; }
+}
+
 /* ===== COMMENTS / 후기 ===== */
 .comments {
   border-top: 1px solid var(--divider);
