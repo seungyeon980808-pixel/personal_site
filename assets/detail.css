@@ -450,7 +450,6 @@ body.edit-mode #addFeatureBtn { display: block; }
 }
 .fi-chip:hover { border-color: var(--main); color: var(--main); transform: translateY(-1px); }
 .fi-chip.active { color: #fff; background: var(--main); border-color: var(--main); }
-.fi-chip-emoji { font-size: 13px; }
 
 .fi-grid {
   display: grid;
@@ -466,11 +465,17 @@ body.edit-mode #addFeatureBtn { display: block; }
   background: var(--surface);
   cursor: default;
   transform-style: preserve-3d;
-  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease), grid-column 0.2s var(--ease);
   animation: fiIn 0.35s var(--ease) both;
 }
+.fi-card.has-detail { cursor: pointer; }
 .fi-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--main) 40%, var(--divider)); }
 .fi-card:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
+.fi-card.expanded {
+  grid-column: 1 / -1;
+  border-color: var(--main);
+  box-shadow: var(--shadow-md);
+}
 .fi-card-cat {
   display: block;
   font-family: "IBM Plex Mono", monospace;
@@ -493,18 +498,35 @@ body.edit-mode #addFeatureBtn { display: block; }
   background: var(--bg);
 }
 .fi-card mark { background: var(--tint); color: var(--main); font-weight: 700; border-radius: 3px; padding: 0 1px; }
-.fi-card.fi-pop { animation: fiPop 0.45s var(--ease); }
+
+/* 클릭 시 펼쳐지는 상세 설명 */
+.fi-card-detail-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s var(--ease);
+}
+.fi-card.expanded .fi-card-detail-wrap { max-height: 300px; }
+.fi-card-detail {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--divider);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+}
+.fi-card-more {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--main);
+}
 
 .fi-empty { text-align: center; padding: 32px 12px; font-size: 14px; color: var(--muted-soft); }
 
 @keyframes fiIn {
   from { opacity: 0; transform: translateY(6px) scale(0.98); }
   to { opacity: 1; transform: none; }
-}
-@keyframes fiPop {
-  0% { transform: scale(1); border-color: var(--divider); }
-  35% { transform: scale(1.035); border-color: var(--main); box-shadow: var(--shadow-md); }
-  100% { transform: scale(1); }
 }
 
 @media (max-width: 560px) {
@@ -515,7 +537,7 @@ body.edit-mode #addFeatureBtn { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .fi-card { animation: none; }
-  .fi-card.fi-pop { animation: none; }
+  .fi-card-detail-wrap { transition: none; }
 }
 
 /* ===== COMMENTS / 후기 ===== */

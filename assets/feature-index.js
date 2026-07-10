@@ -3,8 +3,8 @@
 // 프로젝트 상세 페이지 어디서든 재사용 가능한 범용 컴포넌트.
 // 사용하는 페이지는 #fiSearch #fiChips #fiGrid #fiCount #fiEmpty 를 갖춘 뒤
 // initFeatureIndex(items, categories) 를 호출한다.
-// items: [{ cat, name, desc, key?, kw? }]
-// categories: [{ id, label, emoji }]
+// items: [{ cat, name, desc, detail?, key?, kw? }] — 카드를 클릭하면 detail이 펼쳐짐
+// categories: [{ id, label }]
 // =============================================================================
 
 const EMPTY_MESSAGES = [
@@ -29,18 +29,19 @@ export function initFeatureIndex(items, categories) {
 
   let activeCat = "all";
   let query = "";
+  const expanded = new Set();
 
   // ---- 카테고리 칩 ----
-  chipsEl.appendChild(makeChip("all", "전체", "✨"));
-  categories.forEach((c) => chipsEl.appendChild(makeChip(c.id, c.label, c.emoji)));
+  chipsEl.appendChild(makeChip("all", "전체"));
+  categories.forEach((c) => chipsEl.appendChild(makeChip(c.id, c.label)));
 
-  function makeChip(id, label, emoji) {
+  function makeChip(id, label) {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "fi-chip" + (id === "all" ? " active" : "");
     b.dataset.cat = id;
     b.setAttribute("aria-pressed", id === "all" ? "true" : "false");
-    b.innerHTML = '<span class="fi-chip-emoji">' + emoji + "</span>" + escapeHtml(label);
+    b.textContent = label;
     b.addEventListener("click", () => {
       activeCat = id;
       chipsEl.querySelectorAll(".fi-chip").forEach((el) => {
@@ -83,7 +84,9 @@ export function initFeatureIndex(items, categories) {
 
   function matches(item, q) {
     if (!q) return true;
-    const hay = (item.name + " " + item.desc + " " + (item.kw || "") + " " + (item.key || "")).toLowerCase();
+    const hay = (
+      item.name + " " + item.desc + " " + (item.detail || "") + " " + (item.kw || "") + " " + (item.key || "")
+    ).toLowerCase();
     return hay.indexOf(q) !== -1;
   }
 
@@ -93,31 +96,46 @@ export function initFeatureIndex(items, categories) {
     gridEl.innerHTML = "";
     filtered.forEach((it, i) => {
       const meta = catMeta[it.cat] || {};
+      const isOpen = expanded.has(it.name);
       const card = document.createElement("article");
-      card.className = "fi-card";
+      card.className = "fi-card" + (it.detail ? " has-detail" : "") + (isOpen ? " expanded" : "");
       card.tabIndex = 0;
+      card.setAttribute("aria-expanded", isOpen ? "true" : "false");
       if (!reduce) card.style.animationDelay = Math.min(i * 16, 260) + "ms";
       card.innerHTML =
-        '<span class="fi-card-cat">' + (meta.emoji || "") + " " + escapeHtml(meta.label || "") + "</span>" +
+        '<span class="fi-card-cat">' + escapeHtml(meta.label || "") + "</span>" +
         '<h3 class="fi-card-title">' + highlight(it.name, query) + "</h3>" +
         '<p class="fi-card-desc">' + highlight(it.desc, query) + "</p>" +
-        (it.key ? '<span class="fi-card-key">' + escapeHtml(it.key) + "</span>" : "");
+        (it.key ? '<span class="fi-card-key">' + escapeHtml(it.key) + "</span>" : "") +
+        (it.detail
+          ? '<div class="fi-card-detail-wrap"><p class="fi-card-detail">' +
+            highlight(it.detail, query) +
+            "</p></div>" +
+            '<span class="fi-card-more">' + (isOpen ? "접기" : "더 보기") + "</span>"
+          : "");
 
-      const pop = () => {
-        card.classList.remove("fi-pop");
-        void card.offsetWidth; // reflow, 애니메이션 재시작
-        card.classList.add("fi-pop");
+      const toggle = () => {
+        if (!it.detail) return;
+        if (expanded.has(it.name)) expanded.delete(it.name);
+        else expanded.add(it.name);
+        const open = expanded.has(it.name);
+        card.style.transform = ""; // 펼치는 동안 3D 틸트가 남아있지 않도록 초기화
+        card.classList.toggle("expanded", open);
+        card.setAttribute("aria-expanded", open ? "true" : "false");
+        const more = card.querySelector(".fi-card-more");
+        if (more) more.textContent = open ? "접기" : "더 보기";
       };
-      card.addEventListener("click", pop);
+      card.addEventListener("click", toggle);
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          pop();
+          toggle();
         }
       });
 
       if (finePointer && !reduce) {
         card.addEventListener("pointermove", (e) => {
+          if (card.classList.contains("expanded")) return;
           const r = card.getBoundingClientRect();
           const px = (e.clientX - r.left) / r.width - 0.5;
           const py = (e.clientY - r.top) / r.height - 0.5;
