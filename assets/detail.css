@@ -16,7 +16,7 @@
   --tint: #f0f6ff;
   --radius: 12px;
   --radius-sm: 8px;
-  --maxw: 960px;
+  --maxw: 1040px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-md: 0 6px 20px -8px rgba(15, 23, 42, 0.14);
   --shadow-lg: 0 24px 60px -28px rgba(15, 23, 42, 0.28);
@@ -156,7 +156,7 @@ body.edit-mode .edit-badge { display: inline-block; }
 
 /* ===== HERO ===== */
 .detail-hero {
-  padding: clamp(40px, 6vw, 64px) 0 clamp(28px, 4vw, 44px);
+  padding: clamp(32px, 4vw, 52px) 0 clamp(22px, 3vw, 32px);
 }
 .detail-hero .eyebrow {
   display: inline-flex;
@@ -227,13 +227,13 @@ body.edit-mode .edit-badge { display: inline-block; }
 .cta.ghost:hover { border-color: var(--main); color: var(--main); transform: translateY(-2px); }
 
 /* ===== FEATURE SECTIONS ===== */
-.features { padding: clamp(20px, 5vw, 40px) 0 clamp(60px, 10vw, 120px); }
+.features { padding: clamp(12px, 2vw, 24px) 0 clamp(32px, 5vw, 56px); }
 .feature {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(24px, 5vw, 56px);
+  gap: clamp(20px, 3vw, 36px);
   align-items: center;
-  padding: clamp(40px, 8vw, 80px) 0;
+  padding: clamp(24px, 4vw, 40px) 0;
   border-top: 1px solid var(--divider);
 }
 .feature:first-child { border-top: 0; }
@@ -243,22 +243,22 @@ body.edit-mode .edit-badge { display: inline-block; }
 
 .feature-num {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--main);
   letter-spacing: 0.08em;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .feature-title {
-  font-size: clamp(24px, 4.6vw, 34px);
+  font-size: clamp(18px, 1.8vw, 22px);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin: 0 0 14px;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin: 0 0 8px;
 }
 .feature-desc {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -383,22 +383,22 @@ body.edit-mode .feature-remove { display: inline-block; }
 body.edit-mode #addFeatureBtn { display: block; }
 
 /* ===== FEATURE INDEX (검색형 기능 목록) ===== */
-.feature-index { padding: 0 0 clamp(48px, 8vw, 88px); }
-.fi-head { margin-bottom: 22px; }
+.feature-index { padding: 0 0 clamp(32px, 5vw, 56px); }
+.fi-head { margin-bottom: 16px; }
 .fi-head h2 {
-  font-size: clamp(22px, 4vw, 30px);
+  font-size: clamp(18px, 1.6vw, 21px);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
+  letter-spacing: -0.015em;
+  margin: 0 0 5px;
 }
-.fi-head .sub { font-size: 14px; color: var(--muted-soft); margin: 0; }
+.fi-head .sub { font-size: 13px; color: var(--muted-soft); margin: 0; }
 
 .fi-search-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .fi-search { position: relative; flex: 1; min-width: 220px; }
 .fi-search-icon {
@@ -416,8 +416,8 @@ body.edit-mode #addFeatureBtn { display: block; }
 #fiSearch {
   width: 100%;
   font: inherit;
-  font-size: 14px;
-  padding: 12px 16px 12px 40px;
+  font-size: 13px;
+  padding: 9px 14px 9px 38px;
   border: 1px solid var(--divider);
   border-radius: 999px;
   background: var(--surface);
@@ -433,14 +433,14 @@ body.edit-mode #addFeatureBtn { display: block; }
   white-space: nowrap;
 }
 
-.fi-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.fi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .fi-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font: inherit;
-  font-size: 13px;
-  padding: 6px 14px;
+  font-size: 12px;
+  padding: 5px 12px;
   border-radius: 999px;
   border: 1px solid var(--divider);
   background: var(--surface);
@@ -453,13 +453,13 @@ body.edit-mode #addFeatureBtn { display: block; }
 
 .fi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
   perspective: 900px;
 }
 .fi-card {
   position: relative;
-  padding: 16px 18px;
+  padding: 13px 15px;
   border: 1px solid var(--divider);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -543,24 +543,24 @@ body.edit-mode #addFeatureBtn { display: block; }
 /* ===== COMMENTS / 후기 ===== */
 .comments {
   border-top: 1px solid var(--divider);
-  padding: clamp(48px, 8vw, 80px) 0 clamp(40px, 7vw, 64px);
+  padding: clamp(32px, 5vw, 52px) 0 clamp(28px, 4vw, 40px);
 }
 .comments h2 {
-  font-size: clamp(22px, 4vw, 30px);
+  font-size: clamp(18px, 1.6vw, 21px);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
+  letter-spacing: -0.015em;
+  margin: 0 0 5px;
 }
 .comments .sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted-soft);
-  margin: 0 0 28px;
+  margin: 0 0 20px;
 }
 .comment-form {
   display: grid;
   gap: 10px;
-  margin-bottom: 36px;
-  padding: 20px;
+  margin-bottom: 28px;
+  padding: 16px;
   border: 1px solid var(--divider);
   border-radius: var(--radius);
   background: var(--surface);
@@ -674,7 +674,7 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
 /* ===== FOOTER ===== */
 .detail-foot {
   border-top: 1px solid var(--divider);
-  padding: 32px 0 56px;
+  padding: 24px 0 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
