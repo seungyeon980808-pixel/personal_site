@@ -104,14 +104,15 @@ export function initFeatureIndex(items, categories) {
       if (!reduce) card.style.animationDelay = Math.min(i * 16, 260) + "ms";
       card.innerHTML =
         '<span class="fi-card-cat">' + escapeHtml(meta.label || "") + "</span>" +
-        '<h3 class="fi-card-title">' + highlight(it.name, query) + "</h3>" +
+        '<div class="fi-card-titlerow">' +
+          '<h3 class="fi-card-title">' + highlight(it.name, query) + "</h3>" +
+          (it.key ? '<span class="fi-card-key">' + escapeHtml(it.key) + "</span>" : "") +
+        "</div>" +
         '<p class="fi-card-desc">' + highlight(it.desc, query) + "</p>" +
-        (it.key ? '<span class="fi-card-key">' + escapeHtml(it.key) + "</span>" : "") +
         (it.detail
           ? '<div class="fi-card-detail-wrap"><p class="fi-card-detail">' +
             highlight(it.detail, query) +
-            "</p></div>" +
-            '<span class="fi-card-more">' + (isOpen ? "접기" : "더 보기") + "</span>"
+            "</p></div>"
           : "");
 
       const toggle = () => {
@@ -122,8 +123,6 @@ export function initFeatureIndex(items, categories) {
         card.style.transform = ""; // 펼치는 동안 3D 틸트가 남아있지 않도록 초기화
         card.classList.toggle("expanded", open);
         card.setAttribute("aria-expanded", open ? "true" : "false");
-        const more = card.querySelector(".fi-card-more");
-        if (more) more.textContent = open ? "접기" : "더 보기";
       };
       card.addEventListener("click", toggle);
       card.addEventListener("keydown", (e) => {

@@ -468,34 +468,59 @@ body.edit-mode #addFeatureBtn { display: block; }
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease), grid-column 0.2s var(--ease);
   animation: fiIn 0.35s var(--ease) both;
 }
-.fi-card.has-detail { cursor: pointer; }
+.fi-card.has-detail { cursor: pointer; padding-right: 30px; }
 .fi-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--main) 40%, var(--divider)); }
 .fi-card:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
 .fi-card.expanded {
   grid-column: 1 / -1;
   border-color: var(--main);
   box-shadow: var(--shadow-md);
+  padding-right: 15px;
 }
+
+/* 펼침 가능 표시용 코너 셰브론 (별도 공간 차지 없이 절대배치) */
+.fi-card.has-detail::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 15px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--muted-soft);
+  border-bottom: 1.5px solid var(--muted-soft);
+  transform: rotate(45deg);
+  transition: transform 0.25s var(--ease), border-color 0.2s var(--ease);
+}
+.fi-card.has-detail:hover::after { border-color: var(--main); }
+.fi-card.expanded::after { transform: rotate(-135deg); border-color: var(--main); }
+
 .fi-card-cat {
   display: block;
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
   color: var(--sub);
   letter-spacing: 0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
-.fi-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 6px; }
+.fi-card-titlerow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-bottom: 5px;
+}
+.fi-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
 .fi-card-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0; }
 .fi-card-key {
-  display: inline-block;
-  margin-top: 10px;
+  flex-shrink: 0;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 6px;
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 5px;
   border: 1px solid var(--divider);
   color: var(--muted-soft);
   background: var(--bg);
+  line-height: 1.5;
 }
 .fi-card mark { background: var(--tint); color: var(--main); font-weight: 700; border-radius: 3px; padding: 0 1px; }
 
@@ -513,13 +538,6 @@ body.edit-mode #addFeatureBtn { display: block; }
   font-size: 13px;
   color: var(--text);
   line-height: 1.65;
-}
-.fi-card-more {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--main);
 }
 
 .fi-empty { text-align: center; padding: 32px 12px; font-size: 14px; color: var(--muted-soft); }
