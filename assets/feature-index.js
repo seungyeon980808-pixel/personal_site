@@ -104,6 +104,7 @@ export function initFeatureIndex(items, categories) {
       if (!reduce) card.style.animationDelay = Math.min(i * 16, 260) + "ms";
       card.innerHTML =
         '<span class="fi-card-cat">' + escapeHtml(meta.label || "") + "</span>" +
+        (it.detail ? '<span class="fi-card-toggle" aria-hidden="true"></span>' : "") +
         '<div class="fi-card-titlerow">' +
           '<h3 class="fi-card-title">' + highlight(it.name, query) + "</h3>" +
           (it.key ? '<span class="fi-card-key">' + escapeHtml(it.key) + "</span>" : "") +

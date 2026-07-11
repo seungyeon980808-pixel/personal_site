@@ -176,8 +176,13 @@ body.edit-mode .edit-badge { display: inline-block; }
   font-size: clamp(28px, 3.2vw, 44px);
   font-weight: 700;
   letter-spacing: -0.025em;
-  line-height: 1.1;
+  line-height: 1.15;
   margin: 0 0 14px;
+  width: fit-content;
+  max-width: 100%;
+  /* classiq 스타일 형광펜 밑줄 — 마지막 줄 하단에 은은한 틸 밴드 */
+  background-image: linear-gradient(to top, color-mix(in srgb, var(--sub) 22%, transparent) 0.22em, transparent 0.22em);
+  background-repeat: no-repeat;
 }
 .detail-tagline {
   font-size: clamp(14px, 1.3vw, 17px);
@@ -247,6 +252,10 @@ body.edit-mode .edit-badge { display: inline-block; }
   color: var(--main);
   letter-spacing: 0.08em;
   margin-bottom: 10px;
+}
+.feature-num::after {
+  content: " / 시연";
+  color: var(--muted-soft);
 }
 .feature-title {
   font-size: clamp(18px, 1.8vw, 22px);
@@ -460,39 +469,59 @@ body.edit-mode #addFeatureBtn { display: block; }
 .fi-card {
   position: relative;
   padding: 13px 15px;
-  border: 1px solid var(--divider);
+  border: 1px solid color-mix(in srgb, var(--divider) 55%, transparent);
   border-radius: var(--radius-sm);
   background: var(--surface);
   cursor: default;
+  box-shadow: var(--shadow-sm);
   transform-style: preserve-3d;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease), grid-column 0.2s var(--ease);
   animation: fiIn 0.35s var(--ease) both;
 }
-.fi-card.has-detail { cursor: pointer; padding-right: 30px; }
-.fi-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--main) 40%, var(--divider)); }
+.fi-card.has-detail { cursor: pointer; padding-right: 40px; }
+.fi-card:hover { box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--main) 30%, var(--divider)); }
 .fi-card:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
 .fi-card.expanded {
   grid-column: 1 / -1;
   border-color: var(--main);
   box-shadow: var(--shadow-md);
-  padding-right: 15px;
 }
 
-/* 펼침 가능 표시용 코너 셰브론 (별도 공간 차지 없이 절대배치) */
-.fi-card.has-detail::after {
+/* 펼침 토글 — classiq FAQ 스타일 원형 +/× 버튼 (닫힘=회색+, 열림=틸×) */
+.fi-card-toggle {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  pointer-events: none;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.25s var(--ease);
+}
+.fi-card-toggle::before,
+.fi-card-toggle::after {
   content: "";
   position: absolute;
-  top: 16px;
-  right: 15px;
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid var(--muted-soft);
-  border-bottom: 1.5px solid var(--muted-soft);
-  transform: rotate(45deg);
-  transition: transform 0.25s var(--ease), border-color 0.2s var(--ease);
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--muted-soft);
+  transform: translate(-50%, -50%);
+  transition: background 0.2s var(--ease);
 }
-.fi-card.has-detail:hover::after { border-color: var(--main); }
-.fi-card.expanded::after { transform: rotate(-135deg); border-color: var(--main); }
+.fi-card-toggle::after { transform: translate(-50%, -50%) rotate(90deg); }
+.fi-card.has-detail:hover .fi-card-toggle { border-color: var(--main); }
+.fi-card.expanded .fi-card-toggle {
+  background: var(--main);
+  border-color: var(--main);
+  transform: rotate(45deg);
+}
+.fi-card.expanded .fi-card-toggle::before,
+.fi-card.expanded .fi-card-toggle::after { background: #fff; }
 
 .fi-card-cat {
   display: block;
@@ -579,9 +608,10 @@ body.edit-mode #addFeatureBtn { display: block; }
   gap: 10px;
   margin-bottom: 28px;
   padding: 16px;
-  border: 1px solid var(--divider);
+  border: 1px solid color-mix(in srgb, var(--divider) 55%, transparent);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 .comment-form input,
 .comment-form textarea {
@@ -620,9 +650,10 @@ body.edit-mode #addFeatureBtn { display: block; }
 .comment-empty { color: var(--muted-soft); font-size: 14px; }
 .comment {
   padding: 16px 18px;
-  border: 1px solid var(--divider);
+  border: 1px solid color-mix(in srgb, var(--divider) 55%, transparent);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 .comment-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .comment-name { font-weight: 600; font-size: 14px; }
