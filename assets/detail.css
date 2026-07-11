@@ -156,7 +156,7 @@ body.edit-mode .edit-badge { display: inline-block; }
 
 /* ===== HERO ===== */
 .detail-hero {
-  padding: clamp(48px, 10vw, 96px) 0 clamp(36px, 7vw, 64px);
+  padding: clamp(40px, 6vw, 64px) 0 clamp(28px, 4vw, 44px);
 }
 .detail-hero .eyebrow {
   display: inline-flex;
@@ -173,14 +173,14 @@ body.edit-mode .edit-badge { display: inline-block; }
   background: var(--sub);
 }
 .detail-title {
-  font-size: clamp(40px, 9vw, 76px);
+  font-size: clamp(28px, 3.2vw, 44px);
   font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
-  margin: 0 0 18px;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0 0 14px;
 }
 .detail-tagline {
-  font-size: clamp(17px, 3.4vw, 22px);
+  font-size: clamp(14px, 1.3vw, 17px);
   color: var(--muted);
   max-width: 620px;
   margin: 0 0 26px;
