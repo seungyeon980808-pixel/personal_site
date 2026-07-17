@@ -184,11 +184,13 @@
     code, .mono { font-family: "IBM Plex Mono", monospace; }
 
     /* ===== HEADER ===== */
+    /* min-height 는 콘텐츠(약 300px)보다 조금만 크게 잡는다. 더 키우면 justify-content:center
+       때문에 남는 높이의 절반이 히어로 아래 빈 공간으로 그대로 쌓인다. */
     .site-header {
       position: relative;
-      padding: 4px 0 36px;
-      margin-bottom: 36px;
-      min-height: clamp(300px, 44vh, 440px);
+      padding: 4px 0 20px;
+      margin-bottom: 24px;
+      min-height: clamp(280px, 30vh, 330px);
       display: flex;
       flex-direction: column;
       justify-content: center;
