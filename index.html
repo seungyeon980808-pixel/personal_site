@@ -104,10 +104,9 @@
       :root:not([data-theme="light"]) .theme-toggle .i-moon { display: none; }
     }
 
-    /* Physics mini-demo (gravity playground) */
-    .demo { margin: 8px 0 40px; }
-    .demo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-    .demo-title { font-size: 13px; font-family: "IBM Plex Mono", monospace; letter-spacing: 0.04em; color: var(--sub); }
+    /* Physics mini-demo (gravity playground)
+       — 다른 섹션과 똑같이 접히는 .section 이다. 제목은 summary 가 맡는다. */
+    .demo-head { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
     .demo-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .demo-tab {
       font: inherit; font-size: 12px; padding: 5px 13px; border-radius: 999px;
@@ -222,20 +221,29 @@
       line-height: 1.4;
     }
 
+    /* 관리자 전용 버튼 — 평소엔 배경에 묻어 있다가 가져다 대면 드러난다.
+       (배경이 rgba(255,255,255,.6) 로 박혀 있어 다크 테마에서 밝은 알약처럼 튀었다) */
     .admin-btn {
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
       color: var(--muted-soft);
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid var(--divider);
+      background: transparent;
+      border: 1px solid transparent;
       border-radius: 999px;
       padding: 5px 12px;
       cursor: pointer;
       line-height: 1.4;
-      backdrop-filter: blur(6px);
-      transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
+      opacity: 0.45;
+      transition: opacity 0.2s var(--ease), border-color 0.2s var(--ease),
+                  color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    .admin-btn:hover { border-color: var(--main); color: var(--main); background: var(--tint); }
+    .admin-btn:hover,
+    .admin-btn:focus-visible {
+      opacity: 1;
+      border-color: var(--divider);
+      color: var(--main);
+      background: var(--tint);
+    }
 
     /* Availability pill above the name */
     .status-pill {
@@ -846,25 +854,7 @@
       transition: opacity 0.2s var(--ease);
     }
     .proj-modal-cta:hover { opacity: 0.88; }
-    .proj-modal-foot {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--divider);
-    }
-    .proj-modal-foot a {
-      font-size: 12px;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s var(--ease);
-    }
-    .proj-modal-foot a:hover { color: var(--main); }
-    .proj-modal-meta .ver,
-    .proj-modal-foot .ver {
+    .proj-modal-meta .ver {
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
       color: var(--muted-soft);
@@ -1319,7 +1309,7 @@
     </section>
 
     <!-- ===== CHANNELS ===== -->
-    <details class="section reveal" id="channelsSection" open>
+    <details class="section reveal" id="channelsSection">
       <summary><span class="chev">▶</span> 채널</summary>
       <div class="section-body">
         <div class="channel-grid" id="channelGrid">
@@ -1370,9 +1360,10 @@
     </details>
 
     <!-- ===== PHYSICS DEMO ===== -->
-    <section class="demo reveal" aria-label="물리 놀이터">
+    <details class="section demo reveal" id="demoSection">
+      <summary><span class="chev">▶</span> 물리 놀이터</summary>
+      <div class="section-body">
       <div class="demo-head">
-        <span class="demo-title">물리 놀이터</span>
         <div class="demo-tabs" id="demoTabs">
           <button class="demo-tab active" data-sim="gravity" type="button">중력 궤도</button>
           <button class="demo-tab" data-sim="pendulum" type="button">단진자</button>
@@ -1384,7 +1375,8 @@
         <span class="demo-hint" id="demoHint">빈 곳을 드래그해 행성을 쏘아보세요</span>
         <button class="demo-reset" id="demoReset" type="button">초기화</button>
       </div>
-    </section>
+      </div>
+    </details>
 
     <!-- ===== CONTACT ===== -->
     <details class="section reveal" id="contactSection">
@@ -1761,6 +1753,17 @@
         if ("ResizeObserver" in window) new ResizeObserver(resize).observe(stage);
         resize();
         select("gravity");
+        // 접힌 채로 로드되면 stage 가 0x0 이라 행성이 화면 밖에 생긴다.
+        // 펼치는 순간 크기를 다시 재고 처음 상태로 되돌린다.
+        var demoSection = document.getElementById("demoSection");
+        if (demoSection) {
+          demoSection.addEventListener("toggle", function () {
+            if (!demoSection.open) return;
+            resize();
+            if (cur.reset) cur.reset();
+            if (reduce) renderStill();
+          });
+        }
         if ("IntersectionObserver" in window) {
           new IntersectionObserver(function (es) {
             es.forEach(function (e) { e.isIntersecting ? start() : stop(); });
@@ -1939,8 +1942,6 @@
         const desc = card.querySelector(".proj-desc")?.textContent.trim() || "";
         const stack = card.querySelector(".proj-stack")?.textContent.trim() || "";
         const detailHref = card.querySelector("a.proj-detail")?.getAttribute("href") || "#";
-        const liveHref = card.querySelector('a[data-link$=".url"]')?.getAttribute("href") || "";
-        const ghHref = card.querySelector('a[data-link$=".github"]')?.getAttribute("href") || "";
         const ver = card.querySelector(".ver")?.textContent.trim() || "";
         const logoImg = card.querySelector(".proj-preview-logo img");
 
@@ -1960,10 +1961,6 @@
           ? '<a class="proj-modal-cta" href="' + detailHref + '">자세히 보기 →</a>'
           : '';
 
-        const footLinks = [];
-        if (liveHref && liveHref !== "#") footLinks.push('<a href="' + liveHref + '" target="_blank" rel="noopener">라이브 ↗</a>');
-        if (ghHref && ghHref !== "#") footLinks.push('<a href="' + ghHref + '" target="_blank" rel="noopener">GitHub ↗</a>');
-
         const emptyHtml = !why && !desc
           ? '<p class="proj-desc">아직 소개 문구가 없어요 · 편집모드에서 채워주세요</p>'
           : "";
@@ -1980,8 +1977,7 @@
           (desc ? '<p class="proj-desc">' + desc + "</p>" : "") +
           emptyHtml +
           stackHtml +
-          ctaHtml +
-          (footLinks.length ? '<div class="proj-modal-foot">' + footLinks.join("") + "</div>" : "");
+          ctaHtml;
 
         projModalOverlay.hidden = false;
         // display:none -> flex 직후 곧바로 .open 을 붙이면 시작 상태(opacity:0)가
