@@ -172,6 +172,26 @@ body.edit-mode .edit-badge { display: inline-block; }
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--sub);
 }
+/* 앱 아이콘 + 제목을 한 줄로. 아이콘 없는 프로젝트는 이 블록을 빼면 그만이다. */
+.detail-headline {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 22px);
+  margin-bottom: 14px;
+}
+.detail-icon {
+  flex: 0 0 auto;
+  width: clamp(52px, 6vw, 76px);
+  height: auto;
+  /* 아이콘 SVG 자체가 rx=20/96 로 둥글다. 그림자가 그 윤곽을 따라가도록 같은 비율. */
+  border-radius: 21%;
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
+}
+.detail-headline .detail-title { margin: 0; }
+@media (max-width: 560px) {
+  .detail-headline { gap: 12px; }
+}
+
 .detail-title {
   font-size: clamp(28px, 3.2vw, 44px);
   font-weight: 700;

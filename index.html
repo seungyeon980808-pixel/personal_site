@@ -186,9 +186,9 @@
     /* ===== HEADER ===== */
     .site-header {
       position: relative;
-      padding: 4px 0 40px;
-      margin-bottom: 40px;
-      min-height: clamp(500px, 80vh, 820px);
+      padding: 4px 0 36px;
+      margin-bottom: 36px;
+      min-height: clamp(300px, 44vh, 440px);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -238,6 +238,8 @@
     /* Availability pill above the name */
     .status-pill {
       display: inline-flex;
+      align-self: flex-start;
+      max-width: fit-content;
       align-items: center;
       gap: 7px;
       font-family: "IBM Plex Mono", monospace;
@@ -286,7 +288,7 @@
       max-width: 46ch;
       font-size: 19px;
       line-height: 1.55;
-      color: #313a45;
+      color: var(--text);
       margin: 0 0 18px;
     }
 
@@ -455,6 +457,7 @@
       gap: 18px;
     }
     .proj-card {
+      position: relative;
       display: flex;
       flex-direction: column;
       border: 1px solid var(--divider);
@@ -504,6 +507,16 @@
     }
     .proj-preview-logo svg { width: 42%; height: auto; }
     .proj-card:hover .proj-preview-logo { transform: scale(1.05); }
+    /* 앱 아이콘 배지(5E 등). .proj-preview img 의 absolute/cover 규칙을 되돌린다. */
+    .proj-preview-logo img {
+      position: static;
+      width: 38%;
+      height: auto;
+      object-fit: contain;
+      /* SVG 자체가 rx=20/96 로 둥글다. 그림자가 그 윤곽을 따라가도록 같은 비율로 맞춘다. */
+      border-radius: 21%;
+      box-shadow: 0 10px 26px -10px rgba(11, 17, 40, 0.55);
+    }
     .proj-preview .play {
       position: absolute;
       right: 10px;
@@ -586,6 +599,311 @@
       color: var(--muted-soft);
       margin-left: auto;
     }
+
+    /* 이미지 없는 카드의 기본 아이콘(이니셜) — 편집모드가 아닐 때만 보인다 */
+    .proj-preview-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--main);
+    }
+
+    /* ===== PROJECT ICON-ONLY VIEW (default, non-edit mode) ===== */
+    /* 기본은 아이콘만 보이는 6칸 그리드. 클릭하면 모달로 확대(JS). 편집모드에서는 기존 전체 카드로 되돌아간다. */
+    body:not(.edit-mode) .proj-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+    /* 비공개 처리한 카드(K-마이파인 등) — 편집모드에서만 보인다 */
+    body:not(.edit-mode) .proj-card-hidden { display: none; }
+    body.edit-mode .proj-card-hidden { opacity: 0.55; }
+    @media (max-width: 640px) {
+      body:not(.edit-mode) .proj-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    body:not(.edit-mode) .proj-card {
+      border-color: transparent;
+      background: transparent;
+      cursor: pointer;
+    }
+    body:not(.edit-mode) .proj-card:hover {
+      box-shadow: none;
+      transform: none;
+      border-color: transparent;
+    }
+    body:not(.edit-mode) .proj-preview {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      width: 64px;
+      margin: 0 auto;
+      border-radius: 18px;
+      box-sizing: border-box;
+      border: 1px solid var(--divider);
+      overflow: visible;
+      transition: border-color 0.25s var(--ease);
+    }
+    body:not(.edit-mode) .proj-preview-logo { overflow: hidden; border-radius: inherit; }
+    body:not(.edit-mode) .proj-preview-logo img { width: 92%; }
+    body:not(.edit-mode) .proj-preview-empty { display: none; }
+    body:not(.edit-mode) .proj-preview-fallback { display: flex; overflow: hidden; border-radius: inherit; }
+    /* 마우스를 올리면 테두리가 밝아지고, 그 주위로 빛이 빙글빙글 도는 링이 나타난다 */
+    body:not(.edit-mode) .proj-preview::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      padding: 2px;
+      background: conic-gradient(from 0deg, var(--main), transparent 45%, var(--main) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s var(--ease);
+    }
+    @keyframes proj-icon-spin { to { transform: rotate(360deg); } }
+    body:not(.edit-mode) .proj-card:hover .proj-preview { border-color: var(--main); }
+    body:not(.edit-mode) .proj-card:hover .proj-preview::before {
+      opacity: 1;
+      animation: proj-icon-spin 2.2s linear infinite;
+    }
+    @keyframes proj-icon-wiggle {
+      0%, 100% { transform: rotate(0) scale(1); }
+      25% { transform: rotate(-6deg) scale(1.06); }
+      50% { transform: rotate(5deg) scale(1.09); }
+      75% { transform: rotate(-3deg) scale(1.05); }
+    }
+    body:not(.edit-mode) .proj-card:hover .proj-preview-logo,
+    body:not(.edit-mode) .proj-card:hover .proj-preview-fallback {
+      animation: proj-icon-wiggle 0.5s var(--ease);
+    }
+    body:not(.edit-mode) .proj-body {
+      padding: 8px 4px 0;
+      align-items: center;
+      text-align: center;
+      gap: 2px;
+    }
+    body:not(.edit-mode) .proj-head { justify-content: center; max-width: 100%; }
+    body:not(.edit-mode) .proj-name { max-width: 100%; overflow: hidden; }
+    body:not(.edit-mode) .proj-name a {
+      font-size: 12px;
+      display: block;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* 아이콘 뷰에서는 카드 본문을 숨긴다.
+       — .proj-card 로 범위를 좁혀야 한다. 안 그러면 모달 안에 넣는 같은 클래스까지 같이 숨는다. */
+    body:not(.edit-mode) .proj-card .proj-head .status,
+    body:not(.edit-mode) .proj-card .proj-why,
+    body:not(.edit-mode) .proj-card .proj-desc,
+    body:not(.edit-mode) .proj-card .proj-stack,
+    body:not(.edit-mode) .proj-card .proj-foot {
+      display: none;
+    }
+
+    /* ===== PROJECT MODAL (click an icon in the icon-only view) ===== */
+    .proj-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(3, 7, 18, 0.6);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s var(--ease);
+    }
+    /* display:flex 가 [hidden] 의 display:none 을 덮어쓴다 — 명시적으로 되돌려야
+       닫힌 동안 전체화면 backdrop-filter 가 계속 합성되지 않는다. */
+    .proj-modal-overlay[hidden] { display: none; }
+    .proj-modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .proj-modal {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      padding: 34px 28px 26px;
+      border: 1px solid var(--divider);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+      transform: scale(0.94);
+      transition: transform 0.25s var(--ease);
+    }
+    .proj-modal-overlay.open .proj-modal { transform: scale(1); }
+    .proj-modal-close {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--divider);
+      border-radius: 50%;
+      background: var(--tint);
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .proj-modal-close:hover { color: var(--main); border-color: var(--main); }
+    /* 헤더: 아이콘(왼쪽) + 제목·상태(오른쪽). 제목이 길어도 세로로 흘러내리지 않는다. */
+    .proj-modal-top {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-right: 28px; /* 닫기 버튼 자리 */
+    }
+    .proj-modal-icon,
+    .proj-modal-fallback {
+      width: 64px;
+      height: 64px;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .proj-modal-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 21%;
+      box-shadow: 0 10px 26px -10px rgba(11, 17, 40, 0.55);
+    }
+    .proj-modal-fallback {
+      border-radius: 16px;
+      background: var(--tint);
+      border: 1px solid var(--divider);
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--main);
+    }
+    .proj-modal-titles { min-width: 0; } /* flex 자식이 줄어들 수 있게 — 없으면 제목이 넘친다 */
+    .proj-modal-name {
+      display: block;
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 1.4;
+      margin-bottom: 7px;
+      /* 한글은 keep-all 없이는 단어 중간에서 잘린다 */
+      word-break: keep-all;
+      text-wrap: pretty;
+    }
+    .proj-modal-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .proj-modal-body .proj-why,
+    .proj-modal-body .proj-desc {
+      text-align: left;
+      font-size: 13.5px;
+      line-height: 1.7;
+      word-break: keep-all;
+      text-wrap: pretty;
+    }
+    .proj-modal-body .proj-why { color: var(--text); margin-bottom: 8px; }
+    .proj-modal-body .proj-desc { color: var(--muted); margin-bottom: 16px; }
+    .proj-modal-stack {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .proj-modal-stack span {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--tint);
+      border: 1px solid var(--divider);
+      border-radius: 999px;
+      padding: 3px 10px;
+    }
+    .proj-modal-cta {
+      display: block;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--main);
+      border-radius: 10px;
+      padding: 11px 16px;
+      text-decoration: none;
+      transition: opacity 0.2s var(--ease);
+    }
+    .proj-modal-cta:hover { opacity: 0.88; }
+    .proj-modal-foot {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .proj-modal-foot a {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s var(--ease);
+    }
+    .proj-modal-foot a:hover { color: var(--main); }
+    .proj-modal-meta .ver,
+    .proj-modal-foot .ver {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: var(--muted-soft);
+    }
+
+    /* ===== PROJECT REORDER (edit mode only) ===== */
+    /* 손잡이를 잡아야만 드래그가 시작된다 — 카드 안의 링크·본문 편집과 안 겹치게. */
+    .drag-handle {
+      display: none;
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      z-index: 3;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--divider);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      color: var(--muted-soft);
+      font-size: 13px;
+      line-height: 1;
+      cursor: grab;
+      backdrop-filter: blur(6px);
+      transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    body.edit-mode .drag-handle { display: flex; }
+    .drag-handle:hover { color: var(--main); border-color: var(--main); }
+    .drag-handle:active { cursor: grabbing; }
+
+    body.edit-mode .proj-card { transition: none; }
+    body.edit-mode .proj-card:hover { transform: none; }
+    .proj-card.dragging {
+      opacity: 0.45;
+      border-color: var(--main);
+      border-style: dashed;
+    }
+    .proj-card.dragging .proj-preview img { filter: grayscale(1); }
+    /* 드래그 중에는 그리드 전체가 놓을 자리를 보여준다 */
+    body.reordering .proj-card:not(.dragging) { transition: transform 0.2s var(--ease); }
 
     .status {
       font-family: "IBM Plex Mono", monospace;
@@ -795,6 +1113,203 @@
       <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
     </header>
 
+    <!-- ===== PROJECTS ===== -->
+    <details class="section reveal" id="projectsSection" open>
+      <summary><span class="chev">▶</span> 개발 프로젝트</summary>
+      <div class="section-body">
+        <!--
+          프로젝트 카드. 카드/제목을 클릭하면 각 프로젝트 상세 페이지로 이동한다.
+          텍스트(제목·설명·스택·버전)는 편집 모드에서 수정.
+          라이브/GitHub 링크도 편집 모드에서 URL 입력창으로 수정 가능.
+        -->
+        <div class="proj-grid" id="projectRows">
+
+          <!-- Project 1 (5E) -->
+          <article class="proj-card" data-project="1">
+            <a class="proj-preview proj-detail" href="projects/physics-draw.html" aria-label="5E 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-5e.svg" alt="5E 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/physics-draw.html" data-editable data-field="project.1.name">5E</a>
+                </span>
+                <span class="status" data-status="개발중" data-field="project.1.status">개발중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.1.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.1.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.1.stack">HTML · Canvas · JS</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.1.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.1.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.1.version">v0.3.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 3 (HwpPalette) -->
+          <article class="proj-card" data-project="3">
+            <a class="proj-preview proj-detail" href="projects/hwp-palette.html" aria-label="HwpPalette 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-hwp.svg" alt="HwpPalette 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/hwp-palette.html" data-editable data-field="project.3.name">HwpPalette</a>
+                </span>
+                <span class="status" data-status="기획중" data-field="project.3.status">기획중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.3.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.3.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.3.stack">스택</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.3.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.3.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.3.version">v0.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 4 (EveryKey) -->
+          <article class="proj-card" data-project="4">
+            <a class="proj-preview proj-detail" href="projects/everykey.html" aria-label="EveryKey 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-everykey.svg" alt="EveryKey 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/everykey.html" data-editable data-field="project.4.name">EveryKey</a>
+                </span>
+                <span class="status" data-status="기획중" data-field="project.4.status">기획중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.4.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.4.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.4.stack">스택</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.4.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.4.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.4.version">v0.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 5 (DocFinder) -->
+          <article class="proj-card" data-project="5">
+            <a class="proj-preview proj-detail" href="projects/docfinder.html" aria-label="DocFinder 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-docfinder.svg" alt="DocFinder 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/docfinder.html" data-editable data-field="project.5.name">DocFinder</a>
+                </span>
+                <span class="status" data-status="기획중" data-field="project.5.status">기획중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.5.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.5.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.5.stack">스택</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.5.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.5.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.5.version">v0.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 6 (ModiPdf 자리 — 준비중) -->
+          <article class="proj-card" data-project="6">
+            <a class="proj-preview proj-detail" href="projects/modipdf.html" aria-label="ModiPdf 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-modipdf.svg" alt="ModiPdf 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/modipdf.html" data-editable data-field="project.6.name">ModiPdf</a>
+                </span>
+                <span class="status" data-status="기획중" data-field="project.6.status">기획중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.6.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.6.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.6.stack">스택</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.6.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.6.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.6.version">v0.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 0 (edunote/obsidian_hub — 맨 뒤. 이름은 이미 Firestore에 저장돼 있어 여기서 "ObsidianHub"로 바꿔도 반영 안 됨: 관리자 로그인 후 직접 수정 필요) -->
+          <article class="proj-card" data-project="0">
+            <a class="proj-preview proj-detail" href="projects/edunote.html" aria-label="ObsidianHub 상세 보기">
+              <span class="proj-preview-logo">
+                <img src="assets/logo-obsidian-hub.svg" alt="ObsidianHub 로고" />
+              </span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/edunote.html" data-editable data-field="project.0.name">edunote</a>
+                </span>
+                <span class="status" data-status="live" data-field="project.0.status">live</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.0.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.0.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.0.stack">HTML · JS · Firebase</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.0.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.0.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.0.version">v1.0.0</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 2 (K-마이파인/myfine — 요청에 따라 비공개 처리. 편집모드에서만 보이고 관리자 목록엔 남아있다) -->
+          <article class="proj-card proj-card-hidden" data-project="2">
+            <a class="proj-preview proj-detail" href="projects/myfine.html">
+              <span class="proj-preview-fallback" aria-hidden="true">K</span>
+              <span class="proj-preview-empty">자세히 보기 →</span>
+            </a>
+            <div class="proj-body">
+              <div class="proj-head">
+                <span class="proj-name">
+                  <a class="proj-detail" href="projects/myfine.html" data-editable data-field="project.2.name">K-마이파인</a>
+                </span>
+                <span class="status" data-status="개발중" data-field="project.2.status">개발중</span>
+              </div>
+              <p class="proj-why" data-editable data-field="project.2.why">왜 만들었는지 한 줄로 적기</p>
+              <p class="proj-desc" data-editable data-field="project.2.desc">무엇을 하는 도구인지 한 줄</p>
+              <span class="proj-stack" data-editable data-field="project.2.stack">HTML · JS</span>
+              <div class="proj-foot">
+                <a href="#" target="_blank" rel="noopener" data-link="project.2.url">라이브 ↗</a>
+                <a href="#" target="_blank" rel="noopener" data-link="project.2.github">GitHub ↗</a>
+                <span class="ver" data-editable data-field="project.2.version">v0.2.0</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== PROJECT ICON MODAL (non-edit view: click an icon to expand) ===== -->
+    <div class="proj-modal-overlay" id="projModalOverlay" hidden>
+      <div class="proj-modal" role="dialog" aria-modal="true" aria-label="프로젝트 상세">
+        <button class="proj-modal-close" id="projModalClose" type="button" aria-label="닫기">×</button>
+        <div class="proj-modal-body" id="projModalBody"></div>
+      </div>
+    </div>
+
     <!-- ===== NOW ===== -->
     <section class="now reveal" aria-label="지금">
       <span class="now-tag"><span class="dot"></span> NOW</span>
@@ -868,117 +1383,6 @@
         <button class="demo-reset" id="demoReset" type="button">초기화</button>
       </div>
     </section>
-
-    <!-- ===== PROJECTS ===== -->
-    <details class="section reveal" id="projectsSection">
-      <summary><span class="chev">▶</span> 개발 프로젝트</summary>
-      <div class="section-body">
-        <!--
-          프로젝트 카드. 카드/제목을 클릭하면 각 프로젝트 상세 페이지로 이동한다.
-          텍스트(제목·설명·스택·버전)는 편집 모드에서 수정.
-          라이브/GitHub 링크도 편집 모드에서 URL 입력창으로 수정 가능.
-        -->
-        <div class="proj-grid" id="projectRows">
-
-          <!-- Project 0 -->
-          <article class="proj-card">
-            <a class="proj-preview proj-detail" href="projects/edunote.html">
-              <span class="proj-preview-empty">자세히 보기 →</span>
-            </a>
-            <div class="proj-body">
-              <div class="proj-head">
-                <span class="proj-name">
-                  <a class="proj-detail" href="projects/edunote.html" data-editable data-field="project.0.name">edunote</a>
-                </span>
-                <span class="status" data-status="live" data-field="project.0.status">live</span>
-              </div>
-              <p class="proj-why" data-editable data-field="project.0.why">왜 만들었는지 한 줄로 적기</p>
-              <p class="proj-desc" data-editable data-field="project.0.desc">무엇을 하는 도구인지 한 줄</p>
-              <span class="proj-stack" data-editable data-field="project.0.stack">HTML · JS · Firebase</span>
-              <div class="proj-foot">
-                <a href="#" target="_blank" rel="noopener" data-link="project.0.url">라이브 ↗</a>
-                <a href="#" target="_blank" rel="noopener" data-link="project.0.github">GitHub ↗</a>
-                <span class="ver" data-editable data-field="project.0.version">v1.0.0</span>
-              </div>
-            </div>
-          </article>
-
-          <!-- Project 1 -->
-          <article class="proj-card">
-            <a class="proj-preview proj-detail" href="projects/physics-draw.html" aria-label="5E 상세 보기">
-              <span class="proj-preview-logo">
-                <svg viewBox="0 0 96 96" fill="none" stroke="currentColor" aria-hidden="true">
-                  <rect x="5" y="5" width="86" height="86" rx="22" stroke-width="2"/>
-                  <g stroke-width="1.9" stroke-linecap="round">
-                    <ellipse cx="30" cy="30" rx="13" ry="5"/>
-                    <ellipse cx="30" cy="30" rx="13" ry="5" transform="rotate(60 30 30)"/>
-                    <ellipse cx="30" cy="30" rx="13" ry="5" transform="rotate(120 30 30)"/>
-                  </g>
-                  <circle cx="30" cy="30" r="1.9" fill="currentColor" stroke="none"/>
-                  <polygon points="76,30 71,38.66 61,38.66 56,30 61,21.34 71,21.34" stroke-width="1.9" stroke-linejoin="round"/>
-                  <circle cx="66" cy="30" r="5.5" stroke-width="1.7"/>
-                  <g stroke-width="2.2" stroke-linecap="round">
-                    <path d="M30 53 C 39 57 39 62 30 66 C 21 70 21 75 30 79"/>
-                    <path d="M30 53 C 21 57 21 62 30 66 C 39 70 39 75 30 79"/>
-                  </g>
-                  <g stroke-width="1.5" stroke-linecap="round">
-                    <line x1="23" y1="58" x2="37" y2="58"/>
-                    <line x1="26" y1="62.5" x2="34" y2="62.5"/>
-                    <line x1="26" y1="69.5" x2="34" y2="69.5"/>
-                    <line x1="23" y1="74" x2="37" y2="74"/>
-                  </g>
-                  <g stroke-width="1.9">
-                    <circle cx="66" cy="66" r="11"/>
-                    <ellipse cx="66" cy="66" rx="4.5" ry="11"/>
-                    <line x1="55" y1="66" x2="77" y2="66"/>
-                  </g>
-                </svg>
-              </span>
-            </a>
-            <div class="proj-body">
-              <div class="proj-head">
-                <span class="proj-name">
-                  <a class="proj-detail" href="projects/physics-draw.html" data-editable data-field="project.1.name">5E</a>
-                </span>
-                <span class="status" data-status="개발중" data-field="project.1.status">개발중</span>
-              </div>
-              <p class="proj-why" data-editable data-field="project.1.why">왜 만들었는지 한 줄로 적기</p>
-              <p class="proj-desc" data-editable data-field="project.1.desc">무엇을 하는 도구인지 한 줄</p>
-              <span class="proj-stack" data-editable data-field="project.1.stack">HTML · Canvas · JS</span>
-              <div class="proj-foot">
-                <a href="#" target="_blank" rel="noopener" data-link="project.1.url">라이브 ↗</a>
-                <a href="#" target="_blank" rel="noopener" data-link="project.1.github">GitHub ↗</a>
-                <span class="ver" data-editable data-field="project.1.version">v0.3.0</span>
-              </div>
-            </div>
-          </article>
-
-          <!-- Project 2 -->
-          <article class="proj-card">
-            <a class="proj-preview proj-detail" href="projects/myfine.html">
-              <span class="proj-preview-empty">자세히 보기 →</span>
-            </a>
-            <div class="proj-body">
-              <div class="proj-head">
-                <span class="proj-name">
-                  <a class="proj-detail" href="projects/myfine.html" data-editable data-field="project.2.name">K-마이파인</a>
-                </span>
-                <span class="status" data-status="개발중" data-field="project.2.status">개발중</span>
-              </div>
-              <p class="proj-why" data-editable data-field="project.2.why">왜 만들었는지 한 줄로 적기</p>
-              <p class="proj-desc" data-editable data-field="project.2.desc">무엇을 하는 도구인지 한 줄</p>
-              <span class="proj-stack" data-editable data-field="project.2.stack">HTML · JS</span>
-              <div class="proj-foot">
-                <a href="#" target="_blank" rel="noopener" data-link="project.2.url">라이브 ↗</a>
-                <a href="#" target="_blank" rel="noopener" data-link="project.2.github">GitHub ↗</a>
-                <span class="ver" data-editable data-field="project.2.version">v0.2.0</span>
-              </div>
-            </div>
-          </article>
-
-        </div>
-      </div>
-    </details>
 
     <!-- ===== CONTACT ===== -->
     <details class="section reveal" id="contactSection">
@@ -1396,6 +1800,7 @@
         userEmailEl.textContent = email || "";
         makeEditableFieldsEditable(true);
         setChannelLinksEditable(true);
+        if (window.SiteReorder) window.SiteReorder.setEnabled(true);
       }
 
       function disableEditMode() {
@@ -1405,6 +1810,7 @@
         userEmailEl.textContent = "";
         makeEditableFieldsEditable(false);
         setChannelLinksEditable(false);
+        if (window.SiteReorder) window.SiteReorder.setEnabled(false);
       }
 
       function makeEditableFieldsEditable(on) {
@@ -1505,6 +1911,105 @@
         });
       });
 
+      // ---- Project icon fallback: show the name's first letter when there's no logo image ---
+      function syncProjFallbackIcons() {
+        document.querySelectorAll(".proj-card").forEach((card) => {
+          const fallback = card.querySelector(".proj-preview-fallback");
+          if (!fallback) return;
+          const name = card.querySelector(".proj-name a");
+          const text = name ? name.textContent.trim() : "";
+          fallback.textContent = text ? text.charAt(0) : "?";
+        });
+      }
+      syncProjFallbackIcons();
+      window.Site.syncProjFallbackIcons = syncProjFallbackIcons;
+
+      // ---- Project icon-only view: click a card to expand it into a modal --
+      // (편집 모드에서는 기존 카드 그대로 편집하므로 모달을 열지 않는다)
+      const projModalOverlay = document.getElementById("projModalOverlay");
+      const projModalBody = document.getElementById("projModalBody");
+      const projModalClose = document.getElementById("projModalClose");
+
+      function openProjModal(card) {
+        const name = card.querySelector(".proj-name a")?.textContent.trim() || "";
+        const status = card.querySelector(".status");
+        const why = card.querySelector(".proj-why")?.textContent.trim() || "";
+        const desc = card.querySelector(".proj-desc")?.textContent.trim() || "";
+        const stack = card.querySelector(".proj-stack")?.textContent.trim() || "";
+        const detailHref = card.querySelector("a.proj-detail")?.getAttribute("href") || "#";
+        const liveHref = card.querySelector('a[data-link$=".url"]')?.getAttribute("href") || "";
+        const ghHref = card.querySelector('a[data-link$=".github"]')?.getAttribute("href") || "";
+        const ver = card.querySelector(".ver")?.textContent.trim() || "";
+        const logoImg = card.querySelector(".proj-preview-logo img");
+
+        const iconHtml = logoImg
+          ? '<span class="proj-modal-icon"><img src="' + logoImg.getAttribute("src") + '" alt=""></span>'
+          : '<span class="proj-modal-fallback">' + (name ? name.charAt(0) : "?") + "</span>";
+
+        const statusHtml = status
+          ? '<span class="status" data-status="' + status.getAttribute("data-status") + '">' + status.textContent + "</span>"
+          : "";
+
+        const stackHtml = stack
+          ? '<div class="proj-modal-stack">' + stack.split("·").map((s) => s.trim()).filter(Boolean).map((s) => "<span>" + s + "</span>").join("") + "</div>"
+          : "";
+
+        const ctaHtml = detailHref && detailHref !== "#"
+          ? '<a class="proj-modal-cta" href="' + detailHref + '">자세히 보기 →</a>'
+          : '';
+
+        const footLinks = [];
+        if (liveHref && liveHref !== "#") footLinks.push('<a href="' + liveHref + '" target="_blank" rel="noopener">라이브 ↗</a>');
+        if (ghHref && ghHref !== "#") footLinks.push('<a href="' + ghHref + '" target="_blank" rel="noopener">GitHub ↗</a>');
+
+        const emptyHtml = !why && !desc
+          ? '<p class="proj-desc">아직 소개 문구가 없어요 · 편집모드에서 채워주세요</p>'
+          : "";
+
+        projModalBody.innerHTML =
+          '<div class="proj-modal-top">' +
+            iconHtml +
+            '<div class="proj-modal-titles">' +
+              '<span class="proj-modal-name">' + name + "</span>" +
+              '<div class="proj-modal-meta">' + statusHtml + (ver ? '<span class="ver">' + ver + "</span>" : "") + "</div>" +
+            "</div>" +
+          "</div>" +
+          (why ? '<p class="proj-why">' + why + "</p>" : "") +
+          (desc ? '<p class="proj-desc">' + desc + "</p>" : "") +
+          emptyHtml +
+          stackHtml +
+          ctaHtml +
+          (footLinks.length ? '<div class="proj-modal-foot">' + footLinks.join("") + "</div>" : "");
+
+        projModalOverlay.hidden = false;
+        // display:none -> flex 직후 곧바로 .open 을 붙이면 시작 상태(opacity:0)가
+        // 확정되기 전이라 페이드가 통째로 건너뛰어진다. 리플로우를 강제해 시작 상태를 굳힌다.
+        void projModalOverlay.offsetHeight;
+        projModalOverlay.classList.add("open");
+      }
+
+      function closeProjModal() {
+        projModalOverlay.classList.remove("open");
+        setTimeout(() => { projModalOverlay.hidden = true; }, 200);
+      }
+
+      if (projModalOverlay && projModalBody && projModalClose) {
+        document.querySelectorAll(".proj-card").forEach((card) => {
+          card.addEventListener("click", (e) => {
+            if (isEditMode) return;
+            e.preventDefault();
+            openProjModal(card);
+          });
+        });
+        projModalClose.addEventListener("click", closeProjModal);
+        projModalOverlay.addEventListener("click", (e) => {
+          if (e.target === projModalOverlay) closeProjModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !projModalOverlay.hidden) closeProjModal();
+        });
+      }
+
       // ---- Deploy-status toggle (edit mode only): live->개발중->기획중->live -
       document.querySelectorAll(".status").forEach((cell) => {
         cell.addEventListener("click", () => {
@@ -1554,8 +2059,135 @@
       window.Site.db.load().then(onInitialLoad, onInitialLoad);
       function onInitialLoad() {
         if (window.__heroKinetic) window.__heroKinetic();
+        if (window.Site.syncProjFallbackIcons) window.Site.syncProjFallbackIcons();
       }
     });
+  </script>
+
+  <!-- ===== REORDER ===== -->
+  <!--
+    프로젝트 카드 순서 바꾸기 (편집 모드 전용, 관리자만)
+    - 카드 왼쪽 위 손잡이(⠿)를 잡고 끌어야만 드래그가 시작된다.
+      카드 전체를 draggable로 두면 본문 편집(contenteditable)·링크 클릭과 충돌하므로,
+      손잡이 pointerdown 때만 draggable을 켜고 dragend에서 끈다.
+    - 순서는 카드의 data-project 값 배열로 Firestore main 문서의 order 필드에 저장된다.
+    - window.SiteReorder 로 FIREBASE(수집/적용)와 ADMIN(편집모드 on/off) 이 함께 쓴다.
+  -->
+  <script>
+    (function () {
+      "use strict";
+
+      var grid = document.getElementById("projectRows");
+      if (!grid) return;
+
+      var dragging = null;
+
+      function cards() {
+        return Array.prototype.slice.call(grid.querySelectorAll(".proj-card"));
+      }
+
+      // 현재 DOM 순서 → ["1","0","2"]
+      function getOrder() {
+        return cards().map(function (c) { return c.getAttribute("data-project"); });
+      }
+
+      // 저장된 순서 → DOM 에 반영. 목록에 없는 카드(새로 추가한 프로젝트)는 앞에 남는다.
+      function applyOrder(order) {
+        if (!Array.isArray(order)) return;
+        order.forEach(function (key) {
+          var card = grid.querySelector('.proj-card[data-project="' + key + '"]');
+          if (card) grid.appendChild(card);
+        });
+      }
+
+      // 포인터에 가장 가까운 카드를 찾아 그 앞/뒤 어디에 넣을지 정한다.
+      // (그리드는 여러 줄로 감기므로 좌우 위치만이 아니라 중심점 거리로 판단)
+      function nearestSlot(x, y) {
+        var best = null, bestDist = Infinity, before = true;
+        cards().forEach(function (el) {
+          if (el === dragging) return;
+          var b = el.getBoundingClientRect();
+          var cx = b.left + b.width / 2;
+          var cy = b.top + b.height / 2;
+          var d = Math.hypot(x - cx, y - cy);
+          if (d < bestDist) { bestDist = d; best = el; before = x < cx; }
+        });
+        return { el: best, before: before };
+      }
+
+      function ensureHandle(card) {
+        if (card.querySelector(".drag-handle")) return;
+        var h = document.createElement("span");
+        h.className = "drag-handle";
+        h.textContent = "⠿";
+        h.title = "드래그해서 순서 변경";
+        h.setAttribute("aria-hidden", "true");
+        // 손잡이를 눌렀을 때만 이 카드가 draggable 이 된다.
+        h.addEventListener("pointerdown", function () { card.draggable = true; });
+        card.appendChild(h);
+      }
+
+      function bindCard(card) {
+        if (card.__reorderBound) return;
+        card.__reorderBound = true;
+
+        card.addEventListener("dragstart", function (e) {
+          if (!card.draggable) return;
+          dragging = card;
+          card.classList.add("dragging");
+          document.body.classList.add("reordering");
+          e.dataTransfer.effectAllowed = "move";
+          // Firefox 는 데이터가 있어야 드래그를 시작한다.
+          try { e.dataTransfer.setData("text/plain", card.getAttribute("data-project")); } catch (err) {}
+        });
+
+        card.addEventListener("dragend", function () {
+          card.classList.remove("dragging");
+          document.body.classList.remove("reordering");
+          card.draggable = false;
+          dragging = null;
+        });
+      }
+
+      grid.addEventListener("dragover", function (e) {
+        if (!dragging) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        var slot = nearestSlot(e.clientX, e.clientY);
+        if (!slot.el) return;
+        grid.insertBefore(dragging, slot.before ? slot.el : slot.el.nextSibling);
+      });
+
+      grid.addEventListener("drop", function (e) { e.preventDefault(); });
+
+      // 손잡이를 누르기만 하고 끌지 않았을 때 draggable 이 켜진 채 남지 않도록 정리.
+      document.addEventListener("pointerup", function () {
+        if (dragging) return;
+        cards().forEach(function (c) { c.draggable = false; });
+      });
+
+      function setEnabled(on) {
+        cards().forEach(function (card) {
+          if (on) {
+            ensureHandle(card);
+            bindCard(card);
+            // 편집 모드에선 카드 안 링크의 기본 드래그를 꺼서 손잡이 드래그와 안 겹치게.
+            card.querySelectorAll("a").forEach(function (a) { a.draggable = false; });
+          } else {
+            card.draggable = false;
+            var h = card.querySelector(".drag-handle");
+            if (h) h.remove();
+            card.querySelectorAll("a").forEach(function (a) { a.removeAttribute("draggable"); });
+          }
+        });
+      }
+
+      window.SiteReorder = {
+        setEnabled: setEnabled,
+        getOrder: getOrder,
+        applyOrder: applyOrder,
+      };
+    })();
   </script>
 
   <!-- ===== FIREBASE ===== -->
@@ -1661,11 +2293,15 @@
       document.querySelectorAll("a[data-link]").forEach((a) => {
         data.links[a.getAttribute("data-link")] = a.getAttribute("href");
       });
+      // 프로젝트 카드 순서 (REORDER 섹션이 관리)
+      if (window.SiteReorder) data.order = window.SiteReorder.getOrder();
       return data;
     }
 
     function applyData(data) {
       if (!data) return;
+      // 저장된 카드 순서를 먼저 적용한 뒤 내용을 채운다.
+      if (data.order && window.SiteReorder) window.SiteReorder.applyOrder(data.order);
       if (data.fields) {
         Object.entries(data.fields).forEach(([key, val]) => {
           const el = document.querySelector('[data-field="' + key + '"]');

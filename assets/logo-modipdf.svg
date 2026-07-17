@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="ModiPdf — 가위로 잘리는 PDF 문서">
+  <defs>
+    <radialGradient id="mp-bg" cx="50%" cy="58%" r="73%">
+      <stop offset="0%" stop-color="#23366b"/>
+      <stop offset="100%" stop-color="#0b1128"/>
+    </radialGradient>
+    <linearGradient id="mp-blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#cdd8ec"/>
+      <stop offset="100%" stop-color="#8896b0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="96" height="96" rx="20" fill="url(#mp-bg)"/>
+
+  <!-- 배지 중심 기준으로 전체를 확대 — 좌표는 그대로 두고 프레임만 키운다 -->
+  <g transform="translate(48 48) scale(1.12) translate(-48 -48)">
+
+  <!-- 문서 — 살짝 기울여 손에 든 느낌. 자기 중심(48,46) 기준 확대라 가위는 안 따라 커진다. -->
+  <g transform="rotate(-5 48 49) translate(48 46) scale(1.2) translate(-48 -46)">
+    <rect x="28" y="18" width="40" height="56" rx="4" fill="#f6f9ff"/>
+    <!-- PDF 라벨 -->
+    <text x="48" y="35" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14"
+          font-weight="700" letter-spacing="0.5" fill="#d93a3a" text-anchor="middle">PDF</text>
+    <!-- 본문 줄 -->
+    <rect x="36" y="45" width="24" height="2.4" rx="1.2" fill="#c8d2e6"/>
+    <rect x="36" y="51" width="24" height="2.4" rx="1.2" fill="#c8d2e6"/>
+    <rect x="36" y="57" width="15" height="2.4" rx="1.2" fill="#c8d2e6"/>
+  </g>
+
+  <!-- 절취선 -->
+  <line x1="14" y1="67" x2="82" y2="67" stroke="#7f8fae" stroke-width="1.6"
+        stroke-dasharray="3.5 3.5" stroke-linecap="round"/>
+
+  <!-- 가위 — 절취선을 따라 왼쪽으로 잘라 들어간다 -->
+  <g stroke-linecap="round">
+    <!-- 날: 흰 종이 위에서도 읽히도록 어두운 테두리를 깔고 밝은 날을 얹는다 -->
+    <line x1="30" y1="71" x2="72" y2="60" stroke="#1b2542" stroke-width="5.4"/>
+    <line x1="30" y1="60" x2="72" y2="71" stroke="#1b2542" stroke-width="5.4"/>
+    <line x1="30" y1="71" x2="72" y2="60" stroke="url(#mp-blade)" stroke-width="3"/>
+    <line x1="30" y1="60" x2="72" y2="71" stroke="url(#mp-blade)" stroke-width="3"/>
+    <!-- 나사 -->
+    <circle cx="51" cy="65.5" r="2.5" fill="#1b2542"/>
+    <circle cx="51" cy="65.5" r="1.1" fill="#cdd8ec"/>
+    <!-- 손잡이 -->
+    <circle cx="78" cy="57" r="5" fill="none" stroke="#4c9dff" stroke-width="3"/>
+    <circle cx="78" cy="74" r="5" fill="none" stroke="#4c9dff" stroke-width="3"/>
+  </g>
+
+  </g>
+</svg>
