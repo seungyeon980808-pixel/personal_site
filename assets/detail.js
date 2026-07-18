@@ -165,20 +165,35 @@ function makeFeature(index, feat) {
   const title = el("h2", "feature-title");
   title.dataset.editable = "1";
   title.innerHTML = sanitizeRich(f.title || "");
+  // 슬로건 — 짧고 굵게. 접혀 있을 때 이것만 보인다.
+  const lead = el("p", "feature-lead");
+  lead.dataset.editable = "1";
+  // 예전 글에는 lead 가 없다. 첫 문단을 슬로건으로 올리고 나머지를 본문으로 둔다.
+  const split = splitLegacy(f);
+  lead.innerHTML = split.lead;
+
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.dataset.raw = sanitizeRich(f.desc || "");
-  const more = el("button", "feature-more", "자세히 보기");
+  desc.innerHTML = split.desc;
+
+  // 글자 없는 동그란 버튼 하나. 눌러보고 싶게.
+  const more = el("button", "feature-more");
   more.type = "button";
+  more.setAttribute("aria-label", "자세한 설명 보기");
+  more.setAttribute("aria-expanded", "false");
+  // 펼칠 내용이 없으면 버튼도 없다 (편집 모드에서는 본문을 채워야 하니 항상 보인다)
+  more.hidden = !split.desc.trim();
   more.addEventListener("click", () => {
-    section.classList.toggle("desc-open");
-    more.textContent = section.classList.contains("desc-open") ? "접기" : "자세히 보기";
+    const open = section.classList.toggle("desc-open");
+    more.setAttribute("aria-expanded", String(open));
+    more.setAttribute("aria-label", open ? "설명 접기" : "자세한 설명 보기");
   });
-  paintDesc(desc, more);
+
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
   textCol.appendChild(title);
+  textCol.appendChild(lead);
   textCol.appendChild(desc);
   textCol.appendChild(more);
   textCol.appendChild(remove);
@@ -229,39 +244,18 @@ function makeFeature(index, feat) {
   return section;
 }
 
-/* 기능 설명이 길어 한눈에 안 들어온다. 첫 문단만 보여주고 나머지는 접는다.
-   문단 구분(빈 줄)을 기준으로 나누므로 이미 저장된 글을 그대로 쓸 수 있다.
-   편집 모드에서는 원문 전체를 그대로 둔다 — 안 그러면 편집·저장이 꼬인다.
-   래퍼 span 은 저장 시 sanitizeRich 가 알아서 벗기므로 데이터에 남지 않는다. */
+/* 슬로건(lead)과 본문(desc)은 별개다.
+   예전에 저장된 글에는 lead 가 없으므로, 문단 구분(빈 줄) 기준으로 첫 문단을
+   슬로건으로 올리고 나머지를 본문으로 삼는다. 다음 저장 때 두 항목으로 나뉘어
+   기록되므로 한 번만 일어나는 이관이다. */
 const PARA_SPLIT = /(?:\s*<br\s*\/?>\s*){2,}/i;
-function paintDesc(desc, more) {
-  const raw = desc.dataset.raw || "";
-  if (isEditMode) {
-    desc.innerHTML = raw;
-    if (more) more.hidden = true;
-    return;
-  }
-  const i = raw.search(PARA_SPLIT);
-  if (i < 0) {                       // 문단이 하나뿐이면 접을 게 없다
-    desc.innerHTML = raw;
-    if (more) more.hidden = true;
-    return;
-  }
-  const lead = raw.slice(0, i);
-  const rest = raw.replace(PARA_SPLIT, "<br><br>").slice(lead.length);
-  desc.innerHTML = lead + '<span class="fd-rest">' + rest + "</span>";
-  if (more) more.hidden = false;
-}
-
-/* 편집을 켜고 끌 때 설명을 다시 그린다 */
-function repaintDescs() {
-  document.querySelectorAll("#featureList .feature").forEach((sec) => {
-    const d = sec.querySelector(".feature-desc");
-    const m = sec.querySelector(".feature-more");
-    if (d) paintDesc(d, m);
-    sec.classList.remove("desc-open");
-    if (m) m.textContent = "자세히 보기";
-  });
+function splitLegacy(f) {
+  const rawLead = sanitizeRich(f.lead || "");
+  const rawDesc = sanitizeRich(f.desc || "");
+  if (rawLead) return { lead: rawLead, desc: rawDesc };
+  const i = rawDesc.search(PARA_SPLIT);
+  if (i < 0) return { lead: rawDesc, desc: "" };
+  return { lead: rawDesc.slice(0, i), desc: rawDesc.slice(i).replace(PARA_SPLIT, "") };
 }
 
 function renumber() {
@@ -285,7 +279,8 @@ function collectFeatures() {
   document.querySelectorAll("#featureList .feature").forEach((sec) => {
     out.push({
       title: sanitizeRich(sec.querySelector(".feature-title").innerHTML),
-      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),   // 편집 모드에선 DOM 이 원문
+      lead: sanitizeRich(sec.querySelector(".feature-lead").innerHTML),
+      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),
       mediaType: sec.querySelector(".type-btn.active").dataset.type,
       mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
     });
@@ -770,7 +765,6 @@ function applyEditMode(on) {
   isEditMode = on;
   document.body.classList.toggle("edit-mode", on);
   setEditable(on);
-  repaintDescs();
   setFormatBar(on);   // 밑줄·글자색·자간 툴바
   setIconSizeCtl(on); // 아이콘 크기 슬라이더
   if (on) {
