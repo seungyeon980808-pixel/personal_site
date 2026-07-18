@@ -47,6 +47,9 @@ const ADMIN_EMAIL = "seungyeon980808@gmail.com";
 const PROJECT_ID = document.body.dataset.project || "unknown";
 const DOC_ID = "detail-" + PROJECT_ID;
 
+// ?preview=1 로 열린 iframe = 기기 미리보기용 사본. 편집 UI 를 켜지 않는다.
+const IS_PREVIEW = new URLSearchParams(location.search).has("preview");
+
 let app, auth, db;
 // 로그인(권한)과 편집 켜짐(보기 상태)은 다른 것이다.
 // 관리자로 로그인한 채 편집만 꺼서 방문자 화면을 그대로 볼 수 있어야 한다.
@@ -161,10 +164,10 @@ function makeFeature(index, feat) {
   const num = el("div", "feature-num", pad2(index + 1));
   const title = el("h2", "feature-title");
   title.dataset.editable = "1";
-  title.innerHTML = sanitizeBreaks(f.title || "");
+  title.innerHTML = sanitizeRich(f.title || "");
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.innerHTML = sanitizeBreaks(f.desc || "");
+  desc.innerHTML = sanitizeRich(f.desc || "");
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
@@ -238,8 +241,8 @@ function collectFeatures() {
   const out = [];
   document.querySelectorAll("#featureList .feature").forEach((sec) => {
     out.push({
-      title: sanitizeBreaks(sec.querySelector(".feature-title").innerHTML),
-      desc: sanitizeBreaks(sec.querySelector(".feature-desc").innerHTML),
+      title: sanitizeRich(sec.querySelector(".feature-title").innerHTML),
+      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),
       mediaType: sec.querySelector(".type-btn.active").dataset.type,
       mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
     });
@@ -247,36 +250,86 @@ function collectFeatures() {
   return out;
 }
 
-// 편집칸의 줄바꿈(<br>)만 살리고, 나머지 태그(예전 자간 span 등)는 전부 벗긴다.
-// 저장·불러오기 양쪽에서 같은 규칙을 써서, 엔터로 넣은 줄바꿈이 새로고침 후에도 유지된다.
-// (index.html 의 sanitizeBreaks 와 같은 규칙)
+// 편집칸에서 허용하는 서식만 남기고 나머지 태그는 전부 벗긴다.
+//   · <br>  줄바꿈 (엔터)
+//   · <u>   밑줄
+//   · <span style="color:…">          글자색
+//   · <span style="letter-spacing:…"> 자간
+// 그 외(폰트/클래스 등)는 내용만 남기고 제거한다.
+// 저장·불러오기 양쪽에서 같은 규칙을 써서 새로고침 후에도 서식이 그대로 유지된다.
+const COLOR_OK = /^(#[0-9a-f]{3,8}|rgba?\([\d.,\s%]+\)|[a-z]+)$/i;
+// 자간은 em 단위만 받는다 (글자 크기가 달라져도 비율이 유지되어 반응형에 안전)
+const LS_OK = /^-?\d*\.?\d+em$/i;
+
 function unwrapEl(el, before) {
   const kids = Array.from(el.childNodes);
   el.replaceWith.apply(el, before ? [before].concat(kids) : kids);
 }
-function sanitizeBreaks(html) {
+function sanitizeRich(html) {
   const box = document.createElement("div");
   box.innerHTML = html == null ? "" : String(html);
+  // 스크립트/스타일 등은 내용째 버린다(내용만 남기면 코드가 글로 새어 나온다)
+  box.querySelectorAll("script, style, iframe, object, embed, template").forEach((n) => n.remove());
+  // 문단(div/p)은 줄바꿈으로 평탄화 — contenteditable 이 만드는 래퍼 정리. 안쪽부터.
   Array.from(box.querySelectorAll("div, p")).reverse().forEach((blk) => {
     if (!blk.parentNode) return;
     unwrapEl(blk, document.createElement("br"));
   });
+  // 일부 브라우저의 execCommand 는 <font color> 를 만든다 → 색 span 으로 통일
+  Array.from(box.querySelectorAll("font")).forEach((f) => {
+    const span = document.createElement("span");
+    const c = f.getAttribute("color");
+    if (c && COLOR_OK.test(c)) span.style.color = c;
+    while (f.firstChild) span.appendChild(f.firstChild);
+    f.replaceWith(span);
+  });
   Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
     if (!el.parentNode) return;
-    if (el.tagName === "BR") return;
+    const tag = el.tagName;
+    if (tag === "BR") return;
+    if (tag === "U") {
+      el.removeAttribute("style");
+      el.removeAttribute("class");
+      return;
+    }
+    if (tag === "SPAN") {
+      const color = el.style.color;
+      const spacing = el.style.letterSpacing;
+      const underlined = /underline/.test(el.style.textDecoration || el.style.textDecorationLine || "");
+      el.removeAttribute("class");
+      el.removeAttribute("style");
+      if (color && COLOR_OK.test(color)) el.style.color = color;
+      if (spacing && LS_OK.test(spacing.trim())) el.style.letterSpacing = spacing.trim();
+      if (underlined) el.style.textDecoration = "underline";
+      if (!el.getAttribute("style")) unwrapEl(el); // 남길 서식이 없으면 태그째 제거
+      return;
+    }
     unwrapEl(el);
   });
-  return box.innerHTML.replace(/^(?:<br\s*\/?>)+/, "").replace(/(?:<br\s*\/?>)+$/, "").trim();
+  return collapseBlankLines(box.innerHTML);
+}
+
+// 문단 사이 빈 줄은 최대 하나로 통일한다.
+//   저장된 본문은 문단마다 <br><br><br> (빈 줄 2개 = 44.8px) 로 쌓여 있어 간격이 너무 벌어진다.
+//   빈 줄 높이는 부모의 line-height(1.6 × 14px = 22.4px)로 고정이라 CSS 로는 못 줄인다
+//   — <br> 에 건 display/height/line-height 는 브라우저가 무시한다. 줄 개수로만 조절된다.
+//   앞뒤로 붙은 빈 줄은 그대로 제거한다.
+function collapseBlankLines(html) {
+  return String(html)
+    .replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, "<br><br>") // 빈 줄 2개 이상 → 1개
+    .replace(/^(?:\s*<br\s*\/?>)+/i, "")
+    .replace(/(?:<br\s*\/?>\s*)+$/i, "")
+    .trim();
 }
 
 // ---- serialization (hero fields + links + features) ----------------------
 function collectData() {
-  const data = { fields: {}, links: {}, features: collectFeatures() };
+  const data = { fields: {}, links: {}, features: collectFeatures(), iconScale };
   document.querySelectorAll("[data-field]").forEach((elm) => {
     if (elm.classList.contains("status")) {
       data.fields[elm.getAttribute("data-field")] = elm.getAttribute("data-status");
     } else {
-      data.fields[elm.getAttribute("data-field")] = sanitizeBreaks(elm.innerHTML); // 줄바꿈 보존
+      data.fields[elm.getAttribute("data-field")] = sanitizeRich(elm.innerHTML); // 줄바꿈 보존
     }
   });
   document.querySelectorAll("a[data-link]").forEach((a) => {
@@ -292,10 +345,11 @@ function applyData(data) {
       const elm = document.querySelector('[data-field="' + key + '"]');
       if (!elm) return;
       if (elm.classList.contains("status")) {
-        elm.setAttribute("data-status", val);
-        elm.textContent = val;
+        const st = normalizeStatus(val); // 예전 한글 값도 영문으로 바꿔 보여준다
+        elm.setAttribute("data-status", st);
+        elm.textContent = st;
       } else {
-        elm.innerHTML = sanitizeBreaks(val); // 줄바꿈만 살리고 나머지 태그 제거
+        elm.innerHTML = sanitizeRich(val); // 줄바꿈만 살리고 나머지 태그 제거
       }
     });
   }
@@ -305,7 +359,334 @@ function applyData(data) {
       if (a && href) a.setAttribute("href", href);
     });
   }
+  applyIconScale(typeof data.iconScale === "number" ? data.iconScale : ICON_SCALE_DEFAULT);
+  syncCtaVisibility();
+  syncCtaInputs();
   renderFeatures(data.features);
+}
+
+// ---- 아이콘 크기 조절 (편집 모드 전용) ------------------------------------
+// 저장값은 배율(--icon-scale). clamp 로 잡힌 반응형 크기에 곱해지므로 화면이 좁아져도 안 깨진다.
+const ICON_SCALE_MIN = 0.6, ICON_SCALE_MAX = 3, ICON_SCALE_DEFAULT = 1;
+let iconScale = ICON_SCALE_DEFAULT;
+let iconCtl = null;
+
+function applyIconScale(v) {
+  const n = Number(v);
+  iconScale = Math.min(ICON_SCALE_MAX, Math.max(ICON_SCALE_MIN, isNaN(n) ? ICON_SCALE_DEFAULT : n));
+  const icon = document.querySelector(".detail-icon");
+  if (icon) icon.style.setProperty("--icon-scale", String(iconScale));
+  if (iconCtl) {
+    const range = iconCtl.querySelector("input");
+    if (range && Number(range.value) !== iconScale) range.value = String(iconScale);
+    const out = iconCtl.querySelector(".icon-size-val");
+    if (out) out.textContent = Math.round(iconScale * 100) + "%";
+  }
+}
+
+function setIconSizeCtl(on) {
+  const headline = document.querySelector(".detail-headline");
+  if (!headline || !headline.querySelector(".detail-icon")) return;
+  if (on) {
+    if (iconCtl) { applyIconScale(iconScale); return; }
+    iconCtl = document.createElement("label");
+    iconCtl.className = "icon-size-ctl";
+    iconCtl.innerHTML =
+      "<span>아이콘 크기</span>" +
+      '<input type="range" min="' + ICON_SCALE_MIN + '" max="' + ICON_SCALE_MAX + '" step="0.05" />' +
+      '<span class="icon-size-val"></span>';
+    iconCtl.querySelector("input").addEventListener("input", (e) => applyIconScale(e.target.value));
+    headline.insertAdjacentElement("afterend", iconCtl);
+    applyIconScale(iconScale);
+  } else if (iconCtl) {
+    iconCtl.remove();
+    iconCtl = null;
+  }
+}
+
+// ---- CTA 링크 편집 (라이브 / GitHub) --------------------------------------
+// 상세 페이지에는 버튼만 있고 URL 을 넣을 곳이 없었다. 편집 모드에서 .cta-row 아래에
+// 입력칸을 붙여 a[data-link] 의 href 를 직접 고친다. 저장은 collectData 가 이미
+// a[data-link] 를 훑으므로 별도 처리가 없다.
+const CTA_LABELS = { live: "라이브", github: "GitHub" };
+let ctaEditBox = null;
+
+// href 가 비었거나 "#" 이면 방문자 화면에서는 버튼을 감춘다.
+function syncCtaVisibility() {
+  const links = Array.from(document.querySelectorAll("a[data-link]"));
+  links.forEach((a) => {
+    const href = (a.getAttribute("href") || "").trim();
+    if (!href || href === "#") a.setAttribute("data-link-empty", "1");
+    else a.removeAttribute("data-link-empty");
+  });
+  // 버튼이 하나도 안 남으면 줄 자체를 접는다 — 스택·상태와 한 줄을 쓰므로
+  // 빈 채로 두면 gap 만큼 어색한 공백이 생긴다.
+  const row = document.querySelector(".cta-row");
+  if (row) {
+    const anyVisible = isEditMode || links.some((a) => !a.hasAttribute("data-link-empty"));
+    row.hidden = !anyVisible;
+  }
+}
+
+function buildCtaEditor() {
+  const row = document.querySelector(".cta-row");
+  if (!row || ctaEditBox) return;
+  const links = Array.from(document.querySelectorAll("a[data-link]"));
+  if (!links.length) return;
+
+  ctaEditBox = document.createElement("div");
+  ctaEditBox.className = "cta-link-edit";
+  links.forEach((a) => {
+    const key = a.getAttribute("data-link");
+    const label = document.createElement("label");
+    const name = document.createElement("span");
+    name.textContent = CTA_LABELS[key] || key;
+    const input = document.createElement("input");
+    input.type = "url";
+    input.placeholder = "https://…  (비워두면 버튼이 숨겨집니다)";
+    const cur = a.getAttribute("href") || "";
+    input.value = cur === "#" ? "" : cur;
+    input.addEventListener("input", () => {
+      a.setAttribute("href", input.value.trim() || "#");
+      syncCtaVisibility();
+    });
+    label.appendChild(name);
+    label.appendChild(input);
+    ctaEditBox.appendChild(label);
+  });
+  row.insertAdjacentElement("afterend", ctaEditBox);
+}
+
+// 저장된 href 를 불러온 뒤 입력칸에도 반영한다
+function syncCtaInputs() {
+  if (!ctaEditBox) return;
+  Array.from(document.querySelectorAll("a[data-link]")).forEach((a, i) => {
+    const input = ctaEditBox.querySelectorAll("input")[i];
+    if (!input) return;
+    const cur = a.getAttribute("href") || "";
+    input.value = cur === "#" ? "" : cur;
+  });
+}
+
+// ---- 글자 서식 툴바: 밑줄 · 글자색 · 자간 (편집 모드 전용) ------------------
+// 선택 영역에 브라우저 내장 execCommand 로 적용해 코드를 가볍게 유지한다.
+// 저장 때 sanitizeRich 가 <u> 와 색 span 만 남기므로 새로고침해도 서식이 유지된다.
+const FMT_COLORS = ["#e6edf3", "#4c9dff", "#3fb950", "#d29922", "#ff7b72", "#d2a8ff"];
+let fmtBar = null;
+let savedRange = null; // 툴바를 누르는 사이 선택이 풀려도 되살리기 위해
+
+function fmtField() {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  const n = sel.getRangeAt(0).commonAncestorContainer;
+  const elm = n.nodeType === 1 ? n : n.parentElement;
+  return elm && elm.closest ? elm.closest("[data-editable]") : null;
+}
+function restoreRange() {
+  if (!savedRange) return false;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+  return true;
+}
+function fmtExec(cmd, value, useCSS) {
+  const sel = window.getSelection();
+  // 색 선택기 등으로 포커스가 옮겨가 선택이 풀렸으면 되살린다
+  if (!fmtField() || !sel || sel.isCollapsed) {
+    if (!restoreRange()) return;
+  }
+  try {
+    document.execCommand("styleWithCSS", false, !!useCSS);
+    document.execCommand(cmd, false, value);
+  } catch (e) {
+    console.error("[detail] format failed", e);
+  }
+  fmtSync();
+}
+// ---- 자간 (letter-spacing) ----------------------------------------------
+// execCommand 에는 자간 명령이 없다. 선택 영역을 직접 <span style="letter-spacing">
+// 으로 감싸고, 되돌릴 때는 선택 안의 자간 span 을 벗긴다.
+// (이 기능이 그동안 동작하지 않았던 이유: 툴바에 버튼만 없었던 게 아니라
+//  sanitizeRich 가 자간 span 을 저장 시점에 통째로 벗겨내고 있었다. 둘 다 고쳤다.)
+// 조작 방식은 한글(HWP) 과 같다 — [−][값][+] 로 눌러서 조금씩 좁히고 넓힌다.
+// 고정 단계가 아니라 누적 증감이라, 줄 끝에서 넘어간 단어 하나를 끌어올릴 때까지
+// 필요한 만큼만 좁힐 수 있다.
+const LS_STEP = 0.01;   // 한 번 누를 때 0.01em (본문 14px 기준 약 0.14px)
+const LS_MIN = -0.2;
+const LS_MAX = 0.5;
+
+function stripSpacingIn(root) {
+  Array.from(root.querySelectorAll("span")).forEach((s) => {
+    if (!s.style.letterSpacing) return;
+    s.style.letterSpacing = "";
+    if (!s.getAttribute("style")) unwrapEl(s);
+  });
+}
+
+// 지금 선택 영역에 걸려 있는 자간(em). 없으면 0.
+// 선택을 감싸고 있는 가장 가까운 자간 span 을 편집칸 경계까지 거슬러 찾는다.
+function currentLetterSpacing() {
+  const sel = window.getSelection();
+  const r = sel && sel.rangeCount && !sel.isCollapsed ? sel.getRangeAt(0) : savedRange;
+  if (!r) return 0;
+  // 선택이 자간 span 하나를 통째로 감싸고 있는 경우 (−/+ 를 연달아 누를 때의 상태).
+  // 이때 commonAncestorContainer 는 span 의 부모라, 그냥 거슬러 올라가면 값을 놓친다.
+  if (r.startContainer === r.endContainer && r.endOffset - r.startOffset === 1) {
+    const only = r.startContainer.childNodes[r.startOffset];
+    if (only && only.nodeType === 1 && only.style && only.style.letterSpacing) {
+      return parseFloat(only.style.letterSpacing) || 0;
+    }
+  }
+  const n = r.commonAncestorContainer;
+  let elm = n.nodeType === 1 ? n : n.parentElement;
+  while (elm && elm.nodeType === 1) {
+    if (elm.style && elm.style.letterSpacing) return parseFloat(elm.style.letterSpacing) || 0;
+    if (elm.hasAttribute && elm.hasAttribute("data-editable")) break;
+    elm = elm.parentElement;
+  }
+  return 0;
+}
+
+// −/+ 한 칸. 현재 값을 읽어 누적으로 더하고 뺀다.
+function nudgeLetterSpacing(delta) {
+  if (!window.getSelection().rangeCount && !savedRange) return;
+  const next = Math.max(LS_MIN, Math.min(LS_MAX,
+    Math.round((currentLetterSpacing() + delta) * 100) / 100));
+  applyLetterSpacing(next === 0 ? null : next.toFixed(2) + "em");
+}
+
+function lsReadout() {
+  return fmtBar ? fmtBar.querySelector(".et-ls-val") : null;
+}
+function syncLsReadout() {
+  const out = lsReadout();
+  if (!out) return;
+  const v = currentLetterSpacing();
+  // 부호를 붙여 기본값(0)과 좁힘/넓힘이 한눈에 구분되게
+  out.textContent = v === 0 ? "0" : (v > 0 ? "+" : "") + v.toFixed(2);
+  out.classList.toggle("is-set", v !== 0);
+}
+
+function applyLetterSpacing(value) {
+  const sel = window.getSelection();
+  if (!fmtField() || !sel || sel.isCollapsed) {
+    if (!restoreRange()) return;
+  }
+  const s = window.getSelection();
+  if (!s || !s.rangeCount || s.isCollapsed) return;
+  const field = fmtField();
+  if (!field) return;
+
+  const range = s.getRangeAt(0);
+  let frag;
+  try {
+    frag = range.extractContents();
+  } catch (e) {
+    console.error("[detail] letter-spacing failed", e);
+    return;
+  }
+  // 선택 안에 이미 걸려 있던 자간은 먼저 걷어낸다 (중첩 방지)
+  const holder = document.createElement("div");
+  holder.appendChild(frag);
+  stripSpacingIn(holder);
+
+  let inserted;
+  if (value == null) {
+    // '기본' = 자간 제거. 내용만 그대로 되돌려 넣는다.
+    inserted = document.createDocumentFragment();
+    const first = holder.firstChild, last = holder.lastChild;
+    while (holder.firstChild) inserted.appendChild(holder.firstChild);
+    range.insertNode(inserted);
+    if (first && last) {
+      const r = document.createRange();
+      r.setStartBefore(first);
+      r.setEndAfter(last);
+      s.removeAllRanges();
+      s.addRange(r);
+      savedRange = r.cloneRange();
+    }
+  } else {
+    const span = document.createElement("span");
+    span.style.letterSpacing = value;
+    while (holder.firstChild) span.appendChild(holder.firstChild);
+    range.insertNode(span);
+    // 선택은 span '안쪽'이 아니라 span '바깥쪽'을 감싸도록 잡는다.
+    // −/+ 를 연달아 누르면 다음 번 extractContents 가 이 span 을 통째로 꺼내
+    // stripSpacingIn 이 벗겨내므로, 껍데기 span 이 겹겹이 쌓이지 않는다.
+    const r = document.createRange();
+    r.setStartBefore(span);
+    r.setEndAfter(span);
+    s.removeAllRanges();
+    s.addRange(r);
+    savedRange = r.cloneRange();
+  }
+  field.normalize();
+  fmtSync();
+}
+
+function fmtSync() {
+  if (!fmtBar) return;
+  const sel = window.getSelection();
+  if (fmtField() && sel && sel.rangeCount && !sel.isCollapsed) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  const active = !!savedRange;
+  fmtBar.querySelectorAll("button, input").forEach((b) => { b.disabled = !active; });
+  const label = fmtBar.querySelector(".et-label");
+  if (label) label.textContent = active ? "선택 글자에 적용" : "글자를 드래그하세요";
+  syncLsReadout(); // 선택이 바뀌면 자간 표시도 그 자리 값으로 따라간다
+}
+function setFormatBar(on) {
+  if (on) {
+    if (fmtBar) { fmtSync(); return; }
+    fmtBar = document.createElement("div");
+    fmtBar.className = "edit-toolbar";
+    fmtBar.innerHTML =
+      '<span class="et-label">글자를 드래그하세요</span>' +
+      '<button class="et-btn" type="button" data-cmd="underline" title="밑줄 넣기/빼기"><u>밑줄</u></button>' +
+      '<span class="et-sep"></span>' +
+      FMT_COLORS.map((c) =>
+        '<button class="et-swatch" type="button" data-color="' + c +
+        '" title="글자색" style="background:' + c + '"></button>'
+      ).join("") +
+      '<input type="color" class="et-swatch et-color" title="색 직접 고르기" value="#4c9dff" />' +
+      '<span class="et-sep"></span>' +
+      '<span class="et-group">자간' +
+      '<button class="et-btn et-ls" type="button" data-ls-step="-1" title="자간 좁히기 (0.01em 씩)">−</button>' +
+      '<button class="et-ls-val" type="button" title="눌러서 기본값(0)으로">0</button>' +
+      '<button class="et-btn et-ls" type="button" data-ls-step="1" title="자간 넓히기 (0.01em 씩)">+</button>' +
+      "</span>" +
+      '<span class="et-sep"></span>' +
+      '<button class="et-btn" type="button" data-cmd="removeFormat" title="밑줄·색 지우기">지우기</button>';
+
+    // 버튼을 눌러도 드래그한 선택이 풀리지 않게 (색 선택기는 열려야 하므로 제외)
+    fmtBar.querySelectorAll("button").forEach((b) => {
+      b.addEventListener("mousedown", (e) => e.preventDefault());
+      b.addEventListener("click", () => {
+        if (b.dataset.color) fmtExec("foreColor", b.dataset.color, true);
+        else if (b.dataset.lsStep) nudgeLetterSpacing(Number(b.dataset.lsStep) * LS_STEP);
+        else if (b.classList.contains("et-ls-val")) applyLetterSpacing(null);
+        else if (b.dataset.cmd === "underline") fmtExec("underline", null, false);
+        else if (b.dataset.cmd === "removeFormat") {
+          fmtExec("removeFormat", null, true);
+          applyLetterSpacing(null); // removeFormat 은 자간 span 을 못 지운다
+        }
+      });
+    });
+    const colorInput = fmtBar.querySelector(".et-color");
+    colorInput.addEventListener("input", () => fmtExec("foreColor", colorInput.value, true));
+
+    const badge = document.querySelector(".topbar .edit-badge");
+    if (badge && badge.parentNode) badge.parentNode.insertBefore(fmtBar, badge);
+    else document.body.appendChild(fmtBar);
+    document.addEventListener("selectionchange", fmtSync);
+    fmtSync();
+  } else if (fmtBar) {
+    document.removeEventListener("selectionchange", fmtSync);
+    fmtBar.remove();
+    fmtBar = null;
+    savedRange = null;
+  }
 }
 
 // ---- edit mode -----------------------------------------------------------
@@ -346,6 +727,13 @@ function applyEditMode(on) {
   isEditMode = on;
   document.body.classList.toggle("edit-mode", on);
   setEditable(on);
+  setFormatBar(on);   // 밑줄·글자색·자간 툴바
+  setIconSizeCtl(on); // 아이콘 크기 슬라이더
+  if (on) {
+    buildCtaEditor(); // 라이브·GitHub URL 입력칸
+    syncCtaInputs();
+  }
+  syncCtaVisibility();
   if (on) {
     // Reveal everything so the admin can edit blocks below the fold.
     document.querySelectorAll(".reveal, .feature").forEach((elm) => elm.classList.add("is-visible"));
@@ -355,6 +743,9 @@ function applyEditMode(on) {
 }
 
 function enableEditMode(email) {
+  // 미리보기 iframe 안에서는 로그인 세션이 살아 있어도 편집 UI 를 켜지 않는다.
+  // 방문자가 보는 화면을 확인하려는 것이므로 편집 흔적이 섞이면 안 된다.
+  if (IS_PREVIEW) { disableEditMode(); return; }
   canEdit = true;
   const btn = document.getElementById("adminBtn");
   const emailEl = document.getElementById("userEmail");
@@ -372,7 +763,15 @@ function disableEditMode() {
   applyEditMode(false);
 }
 
-const STATUS_CYCLE = ["live", "개발중", "기획중"];
+// 상태 표시는 전부 영문 소문자로 통일한다. beta 를 포함해 4단계 순환.
+const STATUS_CYCLE = ["planned", "in progress", "beta", "live"];
+// 이전에 한글로 저장된 문서를 그대로 읽어도 영문으로 보이게 하는 변환표
+const STATUS_ALIAS = { "기획중": "planned", "개발중": "in progress", "베타": "beta", "라이브": "live" };
+function normalizeStatus(v) {
+  const s = String(v == null ? "" : v).trim();
+  if (STATUS_ALIAS[s]) return STATUS_ALIAS[s];
+  return STATUS_CYCLE.indexOf(s) >= 0 ? s : "planned";
+}
 
 // ---- Firestore: detail content load/save ---------------------------------
 async function loadDoc() {
@@ -533,6 +932,92 @@ async function replyComment(id, text) {
   }
 }
 
+// ---- 기기 미리보기 --------------------------------------------------------
+// 같은 페이지를 ?preview=1 로 iframe 에 띄운다. iframe 은 자기 폭이 곧 뷰포트라
+// 미디어 쿼리가 실제 모바일처럼 걸린다. (CSS 로 폭만 좁히면 미디어 쿼리는 그대로다)
+// 저장하지 않은 편집 내용도 보이도록 현재 DOM 상태를 postMessage 로 넘겨 덮어씌운다.
+function initDevicePreview() {
+  const btn = document.getElementById("dpBtn");
+  const overlay = document.getElementById("dpOverlay");
+  const stage = document.getElementById("dpStage");
+  const frame = document.getElementById("dpFrame");
+  const iframe = document.getElementById("dpIframe");
+  const note = document.getElementById("dpNote");
+  const closeBtn = document.getElementById("dpClose");
+  if (!btn || !overlay || !iframe) return;
+
+  let size = { w: 375, h: 812 };
+
+  // 기기 폭이 화면보다 크면 통째로 축소해서 보여준다 (레이아웃은 기기 폭 그대로).
+  function fit() {
+    frame.style.width = size.w + "px";
+    frame.style.height = size.h + "px";
+    const availW = stage.clientWidth - 8;
+    const availH = stage.clientHeight - 8;
+    // 오버레이를 막 띄운 직후엔 아직 레이아웃이 안 잡혀 0 이 나온다.
+    // 그대로 계산하면 배율이 음수가 되어 화면이 뒤집힌다 — 다음 프레임에 다시 잰다.
+    if (availW <= 0 || availH <= 0) { requestAnimationFrame(fit); return; }
+    const scale = Math.min(1, availW / size.w, availH / size.h);
+    frame.style.transform = "scale(" + scale + ")";
+    note.textContent = size.w + "×" + size.h + (scale < 1 ? " · " + Math.round(scale * 100) + "%" : "");
+  }
+
+  function pushData() {
+    try {
+      iframe.contentWindow.postMessage(
+        { type: "site-preview-data", data: collectData() },
+        location.origin
+      );
+    } catch (e) { /* 아직 로드 전이면 load 이벤트에서 다시 보낸다 */ }
+  }
+
+  function open() {
+    overlay.hidden = false;
+    void overlay.offsetHeight; // 페이드 시작 상태를 굳힌다
+    overlay.classList.add("open");
+    iframe.src = location.pathname + "?preview=1";
+    fit();
+  }
+  function close() {
+    overlay.classList.remove("open");
+    setTimeout(() => {
+      overlay.hidden = true;
+      iframe.src = "about:blank"; // 뒤에서 계속 돌지 않게
+    }, 200);
+  }
+
+  btn.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hidden) close();
+  });
+  iframe.addEventListener("load", () => {
+    // 미리보기 쪽도 자기 Firestore 를 한 번 읽으므로, 그 뒤에 덮어써야 한다.
+    pushData();
+    setTimeout(pushData, 700);
+  });
+  window.addEventListener("resize", () => { if (!overlay.hidden) fit(); });
+
+  overlay.querySelectorAll(".dp-size").forEach((b) => {
+    b.addEventListener("click", () => {
+      overlay.querySelectorAll(".dp-size").forEach((o) => o.classList.remove("active"));
+      b.classList.add("active");
+      size = { w: Number(b.dataset.w), h: Number(b.dataset.h) };
+      fit();
+    });
+  });
+}
+
+// 미리보기 iframe 쪽: 부모가 보낸 현재 편집 내용을 받아 그대로 그린다.
+function initPreviewReceiver() {
+  window.addEventListener("message", (e) => {
+    if (e.origin !== location.origin) return;
+    if (!e.data || e.data.type !== "site-preview-data") return;
+    applyData(e.data.data);
+  });
+}
+
 // ---- Scroll reveal -------------------------------------------------------
 function initReveal() {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -599,6 +1084,10 @@ async function boot() {
 
   // Status badge cycle (edit mode only).
   document.querySelectorAll(".status").forEach((cell) => {
+    // HTML 에 남아 있는 한글 기본값도 영문으로 맞춘다
+    const init = normalizeStatus(cell.getAttribute("data-status"));
+    cell.setAttribute("data-status", init);
+    cell.textContent = init;
     cell.addEventListener("click", () => {
       if (!isEditMode) return;
       const cur = cell.getAttribute("data-status");
@@ -694,6 +1183,8 @@ async function boot() {
   await loadDoc();
   initReveal();
   initComments();
+  if (IS_PREVIEW) initPreviewReceiver();
+  else initDevicePreview();
 
   // Auth listener: edit mode ONLY for the admin email.
   onAuthStateChanged(auth, (user) => {

@@ -80,6 +80,20 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* 한글은 기본 규칙(break-word)으로 두면 단어 중간에서 잘려, 화면 폭이 바뀔 때마다
+   줄바꿈 위치가 제멋대로 달라진다. 어절 단위로만 끊어 데스크톱·모바일의
+   텍스트 레이아웃을 같은 모양으로 유지한다. */
+h1, h2, h3, p, span, a, li, td, th, .detail-title, .detail-tagline {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;   /* 마지막 줄에 한 단어만 남는 것(고아 줄)을 브라우저가 알아서 막는다 */
+}
+/* 제목처럼 짧은 덩어리는 balance — 여러 줄이 될 때 줄 길이를 스스로 고르게 나눈다.
+   폭이 바뀌어도 매번 알아서 다시 계산하므로 기기별로 손볼 일이 없다. */
+.detail-title, .detail-tagline, .feature-title, .fi-card-title, .comments h2, .fi-head h2 {
+  text-wrap: balance;
+}
+
 a { color: inherit; }
 
 /* ===== TOP BAR ===== */
@@ -89,8 +103,12 @@ a { color: inherit; }
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px clamp(16px, 5vw, 40px);
+  /* 편집 모드에서는 서식 툴바·자간 스테퍼·미리보기 버튼까지 붙어서 한 줄에 안 들어간다.
+     항상 접히게 두어야 데스크톱에서도 넘쳐 잘리지 않는다. */
+  flex-wrap: wrap;
+  row-gap: 8px;
+  gap: 10px;
+  padding: 10px clamp(16px, 5vw, 40px);
   background: var(--surface);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: saturate(180%) blur(12px);
@@ -112,8 +130,16 @@ a { color: inherit; }
 .topbar .spacer { flex: 1; }
 
 /* Admin controls (mirror index.html behavior) */
-.admin-area { display: flex; align-items: center; gap: 10px; }
-.user-email { font-size: 12px; color: var(--muted-soft); }
+.admin-area { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.user-email {
+  font-size: 12px;
+  color: var(--muted-soft);
+  /* 계정 주소가 길어도 상단바를 밀어내지 않게 */
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .admin-btn, .save-btn {
   font: inherit;
   font-size: 13px;
@@ -176,6 +202,209 @@ body.edit-mode .save-btn { display: inline-block; }
 }
 .edit-badge.is-off:hover { color: var(--main); border-color: var(--main); background: var(--tint); }
 
+/* ===== 편집 도구 (편집 모드 전용) =====
+   detail.js 가 상단바의 '편집 모드' 배지 왼쪽에 끼워넣는다.
+   글자를 드래그해 선택한 뒤 밑줄/색을 적용한다. */
+.edit-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.edit-toolbar .et-btn {
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.edit-toolbar .et-btn:hover:not(:disabled) { border-color: var(--main); color: var(--main); background: var(--tint); }
+.edit-toolbar .et-btn:disabled,
+.edit-toolbar .et-swatch:disabled { opacity: 0.35; cursor: default; }
+.edit-toolbar .et-sep { width: 1px; height: 16px; background: var(--divider); }
+/* 자간 묶음 — 라벨 + 단계 버튼 */
+.edit-toolbar .et-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted-soft);
+  white-space: nowrap;
+}
+/* −/+ 스테퍼 (한글의 자간 조절과 같은 조작) */
+.edit-toolbar .et-ls {
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 현재 자간 값 — 누르면 기본값(0)으로 되돌린다 */
+.edit-toolbar .et-ls-val {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  min-width: 38px;
+  text-align: center;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-soft);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.edit-toolbar .et-ls-val.is-set { color: var(--main); background: var(--tint); border-color: var(--main); }
+.edit-toolbar .et-ls-val:hover:not(:disabled) { border-color: var(--main); color: var(--main); }
+.edit-toolbar .et-ls-val:disabled { opacity: 0.35; cursor: default; }
+.edit-toolbar .et-swatch {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+}
+.edit-toolbar .et-swatch:hover:not(:disabled) { transform: scale(1.18); }
+/* 서식 툴바는 늘 아랫줄로 내려 한 줄을 통째로 쓴다 — 버튼이 많아 가로로 끼면 다 깨진다 */
+.edit-toolbar { order: 10; flex-wrap: wrap; row-gap: 4px; }
+@media (max-width: 760px) {
+  .topbar .crumb { display: none; } /* 좁은 화면에서는 경로 표시를 접는다 */
+  /* 편집 모드에서는 툴바까지 붙어 상단바가 두세 줄이 된다. 좁은 화면에서 그걸 계속
+     붙박아두면 화면의 1/4 을 잡아먹으므로, 이때만 고정을 푼다(스크롤하면 올라간다). */
+  body.edit-mode .topbar { position: static; }
+}
+
+/* 아이콘 크기 조절 — 편집 모드에서 헤드라인 바로 아래에 붙는다 */
+.icon-size-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--muted-soft);
+}
+.icon-size-ctl input[type="range"] { width: 140px; }
+.icon-size-ctl .icon-size-val {
+  font-family: "IBM Plex Mono", monospace;
+  min-width: 42px;
+}
+
+/* ===== DEVICE PREVIEW (편집 모드 전용) =====
+   같은 페이지를 지정한 폭의 iframe 으로 띄운다. 폭만 CSS 로 좁히면 미디어 쿼리는
+   여전히 데스크톱 폭을 보기 때문에 모바일 레이아웃이 나오지 않는다. iframe 은
+   자기 폭이 곧 뷰포트라 미디어 쿼리가 실제로 모바일로 걸린다. */
+.dp-btn {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--main);
+  background: var(--tint);
+  color: var(--main);
+  cursor: pointer;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.dp-btn:hover { background: var(--main); color: #fff; }
+body:not(.edit-mode) .dp-btn { display: none; }
+
+.dp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px 24px;
+  background: rgba(3, 7, 18, 0.78);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease);
+}
+.dp-overlay[hidden] { display: none; }
+.dp-overlay.open { opacity: 1; pointer-events: auto; }
+
+.dp-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 10px 8px 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  flex: none;
+}
+.dp-label { font-size: 13px; font-weight: 600; }
+.dp-note {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--muted-soft);
+  white-space: nowrap;
+}
+.dp-size {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.dp-size:hover { border-color: var(--main); color: var(--main); }
+.dp-size.active { background: var(--main); border-color: var(--main); color: #fff; }
+.dp-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dp-close:hover { color: var(--main); border-color: var(--main); }
+
+/* 기기 폭이 화면보다 크면 JS 가 transform: scale 로 줄인다 (레이아웃은 그대로) */
+.dp-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.dp-frame {
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.7);
+  transform-origin: center center;
+  flex: none;
+}
+.dp-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
 /* ===== LAYOUT ===== */
 .wrap {
   max-width: var(--maxw);
@@ -210,7 +439,9 @@ body.edit-mode .save-btn { display: inline-block; }
 }
 .detail-icon {
   flex: 0 0 auto;
-  width: clamp(52px, 6vw, 76px);
+  /* 편집모드에서 슬라이더로 --icon-scale 을 바꾼다(저장값). 기본 1 = 원래 크기.
+     clamp 를 그대로 곱하므로 화면 크기에 따른 반응형은 유지된다. */
+  width: calc(clamp(76px, 8.5vw, 116px) * var(--icon-scale, 1));
   height: auto;
   /* 아이콘 SVG 자체가 rx=20/96 로 둥글다. 그림자가 그 윤곽을 따라가도록 같은 비율. */
   border-radius: 21%;
@@ -227,11 +458,7 @@ body.edit-mode .save-btn { display: inline-block; }
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin: 0 0 14px;
-  width: fit-content;
   max-width: 100%;
-  /* classiq 스타일 형광펜 밑줄 — 마지막 줄 하단에 은은한 틸 밴드 */
-  background-image: linear-gradient(to top, color-mix(in srgb, var(--sub) 22%, transparent) 0.22em, transparent 0.22em);
-  background-repeat: no-repeat;
 }
 .detail-tagline {
   font-size: clamp(14px, 1.3vw, 17px);
@@ -240,12 +467,21 @@ body.edit-mode .save-btn { display: inline-block; }
   margin: 0 0 26px;
   line-height: 1.5;
 }
+/* 스택·상태와 라이브·GitHub 버튼을 한 줄에 둔다.
+   버튼을 따로 아래 줄에 두면 오른쪽이 통째로 비어 히어로가 헐거워진다.
+   좁아지면 버튼 묶음이 아랫줄로 접힌다. */
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  margin-bottom: 28px;
+}
 .detail-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 16px;
-  margin-bottom: 28px;
 }
 .detail-meta .stack {
   font-family: "IBM Plex Mono", monospace;
@@ -260,18 +496,52 @@ body.edit-mode .save-btn { display: inline-block; }
   border: 1px solid var(--divider);
   color: var(--muted);
 }
-.detail-meta .status[data-status="live"]   { color: var(--sub);  border-color: var(--sub);  background: rgba(14, 116, 144, 0.06); }
-.detail-meta .status[data-status="개발중"] { color: var(--main); border-color: var(--main); background: var(--tint); }
+/* 상태값은 전부 영문 소문자로 통일한다: planned → in progress → beta → live */
+.detail-meta .status[data-status="live"]        { color: var(--sub);  border-color: var(--sub);  background: rgba(14, 116, 144, 0.06); }
+.detail-meta .status[data-status="beta"]        { color: #d29922; border-color: #d29922; background: rgba(210, 153, 34, 0.08); }
+.detail-meta .status[data-status="in progress"] { color: var(--main); border-color: var(--main); background: var(--tint); }
+.detail-meta .status[data-status="planned"]     { color: var(--muted); }
 
-.cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+/* 링크가 비어 있으면 방문자에게는 버튼 자체를 숨긴다 (편집 모드에서는 보인다) */
+body:not(.edit-mode) .cta[data-link-empty] { display: none; }
+/* 버튼이 하나도 없으면 줄 자체를 없앤다 — 안 그러면 빈 flex 항목이 gap 만큼 자리를 먹는다 */
+.cta-row[hidden] { display: none; }
+
+/* CTA 링크 입력 (편집 모드 전용) — detail.js 가 .cta-row 아래에 붙인다 */
+/* URL 입력칸은 .detail-actions 의 flex 항목이 되므로 한 줄을 통째로 차지하게 한다 */
+.cta-link-edit { display: none; gap: 8px; flex-basis: 100%; flex-direction: column; max-width: 520px; }
+body.edit-mode .cta-link-edit { display: flex; }
+.cta-link-edit label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--muted-soft);
+}
+.cta-link-edit label > span { flex: 0 0 66px; }
+.cta-link-edit input {
+  flex: 1;
+  min-width: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 7px 11px;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+.cta-link-edit input:focus { outline: none; border-color: var(--main); }
 .cta {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  /* 옆에 놓인 스택·상태 글자(12px)와 균형이 맞도록 살짝 줄였다 */
+  font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-  padding: 10px 20px;
+  padding: 8px 18px;
   border-radius: 999px;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease);
 }
@@ -279,6 +549,116 @@ body.edit-mode .save-btn { display: inline-block; }
 .cta.primary:hover { background: var(--main-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .cta.ghost { border: 1px solid var(--divider); color: var(--muted); }
 .cta.ghost:hover { border-color: var(--main); color: var(--main); transform: translateY(-2px); }
+
+/* ===== 히어로 키네틱 타이포 (오버레이) =====
+   옆에 나란히 두면 제목을 가리므로, 아예 히어로 전체를 덮게 한다.
+   한 번 재생되고 끝나면 사라지면서 본래 히어로에 자리를 넘긴다.
+   애니메이션의 마지막 그림은 hero-5e.js 가 실제 로고·제목 위치에 맞춰 놓는다. */
+/* 무대 높이(약 720px)에 맞춰 히어로가 커지므로, 내용을 세로 가운데에 둔다.
+   위쪽에 붙여두면 애니메이션 마지막 그림도 따라 올라가 위로 치우쳐 보인다. */
+.detail-hero.has-hero-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* 재생이 끝나면 JS 가 min-height 를 놓아준다. 그때 툭 줄지 않게 부드럽게. */
+  transition: min-height 0.6s var(--ease);
+  /* 재생이 끝난 뒤 CTA 줄과 기능 섹션 사이가 84px 이나 떠서 허전했다.
+     히어로 아래 패딩을 줄여 42px 로 (절반) 맞춘다. */
+  padding-bottom: 8px;
+}
+.detail-hero.has-hero-media + .features { padding-top: 10px; }
+.detail-hero.has-hero-media > .wrap { width: 100%; }
+.hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  transition: opacity 0.7s var(--ease);
+}
+/* 무대를 오버레이 한가운데에 둔다. 좌표계를 660×372 로 못 박아야
+   내부 위치 계산(px 고정)이 어긋나지 않는다.
+   무대는 비율(660:372)을 지키므로 창 비율에 따라 좌우나 위아래에 띠가 생긴다.
+   가로를 꽉 채우려면 세로를 잘라야 하는데 그러면 캡션·진행바가 날아간다.
+   그래서 자르지 않고, 오버레이 배경을 무대와 같은 톤으로 깔아 띠를 안 보이게 한다. */
+.hero-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #06070a;
+}
+.hero-media .k5 {
+  width: 660px;
+  height: 372px;
+  aspect-ratio: auto;
+  flex: none;
+  transform-origin: center center;
+}
+/* 재생이 끝나면 오버레이는 사라지고 본래 히어로가 드러난다 */
+.detail-hero.k5-done .hero-media { opacity: 0; pointer-events: none; }
+/* 재생 중에는 본래 히어로 내용을 감춰 겹쳐 보이지 않게 */
+.detail-hero.has-hero-media .hero-left { opacity: 0; transition: opacity 0.7s var(--ease); }
+.detail-hero.k5-done .hero-left { opacity: 1; }
+
+/* 다시 보기 — 오른쪽 가운데 */
+.k5-replay {
+  /* 화면 기준 고정. 히어로 기준으로 두면 무대가 레터박스될 때
+     버튼이 좌우 빈 띠 안으로 들어가 보이지 않는다. */
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 16px 9px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  animation: k5ReplayIn 0.5s var(--ease) 0.35s forwards;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.k5-replay[hidden] { display: none; }
+.k5-replay:hover { color: var(--main); border-color: var(--main); }
+.k5-replay-ico { font-size: 15px; line-height: 1; }
+@keyframes k5ReplayIn { to { opacity: 1; } }
+
+/* 건너뛰기 — 재생 중에만. 페이지를 붙잡아 두므로 빠져나갈 길을 항상 열어둔다 */
+.k5-skip {
+  /* 화면 기준 고정 (재생 중에는 스크롤이 잠겨 있어 안전하다) */
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 60;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 13, 20, 0.55);
+  backdrop-filter: blur(8px);
+  color: #cfd8e6;
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.k5-skip[hidden] { display: none; }
+.k5-skip:hover { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
+
+/* 좁은 화면에서는 오버레이를 쓰지 않는다 — 축소되면 글자가 안 읽히고 영상도 무겁다 */
+@media (max-width: 900px) {
+  .hero-media, .k5-replay { display: none; }
+  .detail-hero.has-hero-media .hero-left { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-media { display: none; }
+  .detail-hero.has-hero-media .hero-left { opacity: 1; }
+}
 
 /* ===== FEATURE SECTIONS ===== */
 .features { padding: clamp(12px, 2vw, 24px) 0 clamp(32px, 5vw, 56px); }
@@ -792,25 +1172,59 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
 }
 .reveal.is-visible { opacity: 1; transform: none; }
 
-/* Feature halves slide in from opposite sides, media scales up */
-.feature .feature-text  { opacity: 0; transform: translateX(-36px); transition: opacity 0.7s var(--ease) 0.05s, transform 0.7s var(--ease) 0.05s; }
-.feature .feature-media { opacity: 0; transform: translateX(36px) scale(0.96); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
-.feature:nth-child(even) .feature-text  { transform: translateX(36px); }
-.feature:nth-child(even) .feature-media { transform: translateX(-36px) scale(0.96); }
-.feature.is-visible .feature-text,
-.feature.is-visible .feature-media { opacity: 1; transform: none; }
+/* 기능 카드 등장 모션 — "양쪽에서 미끄러져 들어오며 초점이 잡힌다"
+   · 미디어: 반대편에서 밀려오며 살짝 확대 + blur 해제 (사진에 초점이 맞는 느낌)
+   · 텍스트: 번호 → 제목 → 설명 순으로 0.08s 씩 늦게 올라온다 (stagger)
+   과하지 않게 한 번만 재생되고(IntersectionObserver 가 unobserve), 이후엔 정지 상태다. */
+.feature .feature-media {
+  opacity: 0;
+  transform: translateX(44px) scale(0.94);
+  filter: blur(8px);
+  transition: opacity 0.75s var(--ease), transform 0.85s var(--ease), filter 0.75s var(--ease);
+  will-change: opacity, transform, filter;
+}
+.feature:nth-child(even) .feature-media { transform: translateX(-44px) scale(0.94); }
+.feature.is-visible .feature-media { opacity: 1; transform: none; filter: none; }
+
+.feature .feature-text > * {
+  opacity: 0;
+  transform: translate3d(-26px, 14px, 0);
+  transition: opacity 0.6s var(--ease), transform 0.7s var(--ease);
+}
+.feature:nth-child(even) .feature-text > * { transform: translate3d(26px, 14px, 0); }
+.feature.is-visible .feature-text > * { opacity: 1; transform: none; }
+.feature.is-visible .feature-text > *:nth-child(1) { transition-delay: 0.06s; }
+.feature.is-visible .feature-text > *:nth-child(2) { transition-delay: 0.14s; }
+.feature.is-visible .feature-text > *:nth-child(3) { transition-delay: 0.22s; }
+.feature.is-visible .feature-text > *:nth-child(4) { transition-delay: 0.30s; }
+
+/* 번호 앞의 짧은 선이 좌에서 우로 그어진다 — 카드가 "열리는" 신호 */
+.feature-num { position: relative; }
+.feature-num::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 0;
+  background: var(--main);
+  border-radius: 2px;
+  transition: width 0.6s var(--ease) 0.3s;
+}
+.feature.is-visible .feature-num::before { width: 34px; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 720px) {
   .feature { grid-template-columns: 1fr; gap: 22px; }
   .feature:nth-child(even) .feature-media { order: 0; }
   .feature:nth-child(even) .feature-text  { order: 0; }
-  .feature .feature-text,
+  /* 좁은 화면에서는 좌우 슬라이드 대신 위로만 올라오게 (가로 스크롤 방지) */
   .feature .feature-media,
-  .feature:nth-child(even) .feature-text,
-  .feature:nth-child(even) .feature-media { transform: translateY(24px); }
-  .feature.is-visible .feature-text,
-  .feature.is-visible .feature-media { transform: none; }
+  .feature:nth-child(even) .feature-media { transform: translateY(26px) scale(0.96); }
+  .feature .feature-text > *,
+  .feature:nth-child(even) .feature-text > * { transform: translate3d(0, 16px, 0); }
+  .feature.is-visible .feature-media,
+  .feature.is-visible .feature-text > * { transform: none; }
 }
 
 /* ===== REDUCED MOTION ===== */
@@ -820,8 +1234,10 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
-  .reveal, .feature .feature-text, .feature .feature-media {
+  .reveal, .feature .feature-text > *, .feature .feature-media {
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
   }
+  .feature-num::before { width: 34px !important; }
 }

@@ -44,6 +44,7 @@
     <button class="edit-badge" type="button" hidden>편집 모드 · 끄기</button>
     <div class="admin-area">
       <span class="user-email" id="userEmail"></span>
+      <button id="dpBtn" class="dp-btn" type="button">📱 기기 미리보기</button>
       <button class="save-btn" id="saveBtn" type="button">저장</button>
       <button class="admin-btn" id="adminBtn" type="button">관리자 로그인</button>
     </div>
@@ -58,13 +59,16 @@
         <h1 class="detail-title" data-editable data-field="hero.title">ModiPdf</h1>
       </div>
       <p class="detail-tagline" data-editable data-field="hero.tagline">한 줄 소개 — 이 도구가 무엇을 해결하는지 적어주세요.</p>
-      <div class="detail-meta">
-        <span class="stack" data-editable data-field="hero.stack">스택</span>
-        <span class="status" data-status="기획중" data-field="hero.status">기획중</span>
-      </div>
-      <div class="cta-row">
-        <a class="cta primary" href="#" target="_blank" rel="noopener" data-link="live">라이브 열기 ↗</a>
-        <a class="cta ghost" href="#" target="_blank" rel="noopener" data-link="github">GitHub ↗</a>
+      <!-- 설명 옆으로: 스택·상태와 버튼을 한 줄에 둔다 (좁아지면 접힘) -->
+      <div class="detail-actions">
+        <div class="detail-meta">
+          <span class="stack" data-editable data-field="hero.stack">스택</span>
+          <span class="status" data-status="planned" data-field="hero.status">planned</span>
+        </div>
+        <div class="cta-row">
+          <a class="cta primary" href="#" target="_blank" rel="noopener" data-link="live">라이브 열기 ↗</a>
+          <a class="cta ghost" href="#" target="_blank" rel="noopener" data-link="github">GitHub ↗</a>
+        </div>
       </div>
     </div>
   </header>
@@ -102,6 +106,21 @@
       <span class="mono">박승연 · 2026</span>
     </div>
   </footer>
+
+  <!-- ===== DEVICE PREVIEW (편집 모드 전용) — detail.js 가 제어 ===== -->
+  <div class="dp-overlay" id="dpOverlay" hidden>
+    <div class="dp-bar">
+      <span class="dp-label">기기 미리보기</span>
+      <button class="dp-size active" type="button" data-w="375" data-h="812">모바일 375</button>
+      <button class="dp-size" type="button" data-w="768" data-h="1024">태블릿 768</button>
+      <button class="dp-size" type="button" data-w="1280" data-h="800">데스크톱 1280</button>
+      <span class="dp-note" id="dpNote"></span>
+      <button class="dp-close" id="dpClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="dp-stage" id="dpStage">
+      <div class="dp-frame" id="dpFrame"><iframe id="dpIframe" title="기기 미리보기"></iframe></div>
+    </div>
+  </div>
 
   <!-- Theme toggle -->
   <button id="themeToggle" class="theme-toggle" type="button" aria-label="라이트/다크 전환">
