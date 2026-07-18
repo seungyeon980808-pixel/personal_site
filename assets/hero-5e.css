@@ -67,7 +67,10 @@
   .k5-dot { width: 14px; height: 2px; border-radius: 1px; background: rgba(255,255,255,0.16); }
   .k5-dot i { display: block; height: 100%; width: 0; border-radius: 1px; }
 
-  /* ---- 바람개비로 날아가는 E (색은 JS 가 넣는다) ---- */
+  /* ---- 바람개비로 날아가는 E (색은 JS 가 넣는다) ----
+     글자는 JS 가 인라인 SVG 패스로 채운다(glyphs-5e.js). Georgia 가 없는
+     기기에서 다른 폰트로 대체되는 것을 막기 위해서다. font-* 는 스크립트가
+     못 뜬 경우의 대비이자, SVG 높이가 em 기준이라 크기를 정하는 역할도 한다. */
   .k5-e {
     font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 600;
     font-size: 34px; opacity: 0; margin: -24px 0 0 -12px;
@@ -78,8 +81,10 @@
     font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 600;
     font-size: 88px; color: #fff; opacity: 0; white-space: nowrap;
     margin: -62px 0 0 -80px; width: 160px; text-align: center;
-    text-shadow: 0 0 44px rgba(90,162,255,0.85);
+    /* 패스에는 text-shadow 가 안 먹는다 — 같은 번짐을 filter 로 */
+    filter: drop-shadow(0 0 44px rgba(90,162,255,0.85));
   }
+  .k5-e svg, .k5-count svg { vertical-align: baseline; overflow: visible; }
 
   /* ---- 최종 5E (150px) ---- */
   /* 마크는 CSS 로 흉내 내지 않고 실제 로고 SVG 를 그대로 쓴다.

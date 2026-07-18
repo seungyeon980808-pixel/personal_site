@@ -219,8 +219,11 @@ function build() {
     const b = w.querySelector("b"); if (b) b.style.color = EC[i];
   });
   document.querySelectorAll(".k5-e").forEach((e, i) => {
+    // 글자가 아니라 패스로 그린다 — 폰트 없는 기기에서도 모양이 같다
+    if (window.k5glyph) e.innerHTML = window.k5glyph("E");
     e.style.color = EC[i];
-    e.style.textShadow = "0 0 26px " + EC[i] + "88";
+    // 패스에는 text-shadow 가 안 먹으므로 같은 번짐을 filter 로 낸다
+    e.style.filter = "drop-shadow(0 0 26px " + EC[i] + "88)";
   });
   document.querySelectorAll(".k5-ring").forEach((r, i) => { r.style.color = EC[i]; });
   document.querySelectorAll(".k5-dot i").forEach((b, i) => { b.style.background = EC[i % 5]; });
@@ -536,7 +539,9 @@ function syncCount(ms) {
   let n = 0;
   for (let i = 0; i < N; i++) if (s >= MERGE_T(i) + 0.16) n = i + 1;
   const txt = n <= 1 ? "E" : n + "E";
-  if (cnt.textContent !== txt) cnt.textContent = txt;
+  if (cnt.dataset.txt === txt) return;
+  cnt.dataset.txt = txt;
+  cnt.innerHTML = window.k5glyph ? window.k5glyph(txt) : txt;
 }
 
 function syncIdx(ms) {
