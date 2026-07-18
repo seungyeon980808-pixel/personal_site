@@ -937,17 +937,30 @@
     body.edit-mode .status { box-shadow: 0 0 0 1px var(--main) inset; }
     body:not(.edit-mode) .status { cursor: default; }
 
+    /* 편집 모드 토글. 관리자로 로그인했을 때만 보이며(JS 가 hidden 을 벗긴다),
+       꺼도 배지는 남아 있어야 다시 켤 수 있다. */
     .edit-badge {
-      display: none;
       font-family: "IBM Plex Mono", monospace;
       font-size: 12px;
       color: #fff;
       background: var(--main);
+      border: 1px solid var(--main);
       border-radius: 999px;
       padding: 3px 10px;
       margin-left: 8px;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
     }
-    body.edit-mode .edit-badge { display: inline-block; }
+    .edit-badge[hidden] { display: none; }
+    .edit-badge:hover { background: var(--main-strong); border-color: var(--main-strong); }
+    /* 편집을 끈 상태 = 방문자에게 보이는 화면. 배지도 조용하게. */
+    .edit-badge.is-off {
+      background: transparent;
+      color: var(--muted-soft);
+      border-color: var(--divider);
+    }
+    .edit-badge.is-off:hover { color: var(--main); border-color: var(--main); background: var(--tint); }
 
     /* Save button (edit mode only) */
     .save-btn {
@@ -1097,7 +1110,7 @@
         <span class="user-email" id="userEmail"></span>
         <button id="adminBtn" class="admin-btn" type="button">관리자 로그인</button>
       </div>
-      <span class="edit-badge" id="editBadge">편집 모드</span>
+      <button class="edit-badge" id="editBadge" type="button" hidden>편집 모드 · 끄기</button>
       <span class="status-pill hero-item" style="animation-delay:0.05s"><span class="dot"></span> Open to share · 자유 배포</span>
       <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
       <p class="role hero-item" style="animation-delay:0.5s" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
@@ -1796,26 +1809,62 @@
       const saveBtn = document.getElementById("saveBtn");
 
       // ---- Edit-mode state -------------------------------------------------
-      let isEditMode = false;
+      // 로그인(권한)과 편집 켜짐(보기 상태)은 다른 것이다.
+      // 관리자로 로그인한 채 편집만 꺼서 방문자 화면을 그대로 볼 수 있어야 한다.
+      const EDIT_PREF = "editModeOn"; // 페이지를 옮겨다녀도 유지되게 저장
+      let canEdit = false;            // 관리자로 로그인했나
+      let isEditMode = false;         // 지금 편집이 켜져 있나
+      const editBadge = document.getElementById("editBadge");
+
+      function prefOn() {
+        try { return localStorage.getItem(EDIT_PREF) !== "off"; } catch (e) { return true; }
+      }
+      function setPref(on) {
+        try { localStorage.setItem(EDIT_PREF, on ? "on" : "off"); } catch (e) {}
+      }
+
+      function applyEditMode(on) {
+        isEditMode = on;
+        document.body.classList.toggle("edit-mode", on);
+        makeEditableFieldsEditable(on);
+        setChannelLinksEditable(on);
+        if (window.SiteReorder) window.SiteReorder.setEnabled(on);
+        syncEditBadge();
+      }
+      // 배지가 곧 토글 버튼이다 (관리자일 때만 보인다)
+      function syncEditBadge() {
+        if (!editBadge) return;
+        editBadge.hidden = !canEdit;
+        editBadge.textContent = isEditMode ? "편집 모드 · 끄기" : "미리보기 · 편집 켜기";
+        editBadge.classList.toggle("is-off", !isEditMode);
+        editBadge.setAttribute("aria-pressed", String(isEditMode));
+        editBadge.title = isEditMode
+          ? "편집을 끄고 방문자에게 보이는 화면으로 봅니다"
+          : "편집을 켭니다 (로그인 상태는 그대로)";
+      }
 
       function enableEditMode(email) {
-        isEditMode = true;
-        document.body.classList.add("edit-mode");
+        canEdit = true;
         adminBtn.textContent = "로그아웃";
         userEmailEl.textContent = email || "";
-        makeEditableFieldsEditable(true);
-        setChannelLinksEditable(true);
-        if (window.SiteReorder) window.SiteReorder.setEnabled(true);
+        applyEditMode(prefOn()); // 지난번에 꺼뒀으면 꺼진 채로 시작
       }
 
       function disableEditMode() {
-        isEditMode = false;
-        document.body.classList.remove("edit-mode");
+        canEdit = false;
         adminBtn.textContent = "관리자 로그인";
         userEmailEl.textContent = "";
-        makeEditableFieldsEditable(false);
-        setChannelLinksEditable(false);
-        if (window.SiteReorder) window.SiteReorder.setEnabled(false);
+        applyEditMode(false);
+      }
+
+      if (editBadge) {
+        editBadge.hidden = true;
+        editBadge.addEventListener("click", () => {
+          if (!canEdit) return;
+          const next = !isEditMode;
+          setPref(next);
+          applyEditMode(next);
+        });
       }
 
       function makeEditableFieldsEditable(on) {
@@ -1868,7 +1917,8 @@
       // ---- Admin button: Google login / logout -----------------------------
       adminBtn.addEventListener("click", async function () {
         try {
-          if (isEditMode) {
+          // 편집을 꺼둔 채 로그인 상태일 수 있으므로 isEditMode 가 아니라 canEdit 으로 판단한다.
+          if (canEdit) {
             // Logout path -> reverts to display mode (via onChange + here).
             await window.Site.auth.signOut();
             disableEditMode();

@@ -125,7 +125,22 @@ a { color: inherit; }
   cursor: pointer;
   transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
 }
-.admin-btn:hover { border-color: var(--main); color: var(--main); }
+/* 관리자 전용 — 평소엔 묻어 있다가 가져다 대면 드러난다 (메인의 admin-btn 과 같은 규칙) */
+.admin-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted-soft);
+  opacity: 0.45;
+  transition: opacity 0.2s var(--ease), border-color 0.2s var(--ease),
+              color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.admin-btn:hover,
+.admin-btn:focus-visible {
+  opacity: 1;
+  border-color: var(--divider);
+  color: var(--main);
+  background: var(--tint);
+}
 .save-btn {
   border-color: var(--main);
   color: #fff;
@@ -135,8 +150,10 @@ a { color: inherit; }
 .save-btn:hover { background: var(--main-strong); }
 body.edit-mode .save-btn { display: inline-block; }
 
+/* 편집 모드 토글. 관리자로 로그인했을 때만 보이며(detail.js 가 hidden 을 벗긴다),
+   꺼도 배지는 남아 있어야 다시 켤 수 있다. */
 .edit-badge {
-  display: none;
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
   color: var(--main);
@@ -144,8 +161,20 @@ body.edit-mode .save-btn { display: inline-block; }
   border: 1px solid var(--main);
   border-radius: 999px;
   padding: 3px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
-body.edit-mode .edit-badge { display: inline-block; }
+.edit-badge[hidden] { display: none; }
+.edit-badge:hover { background: var(--main); color: #fff; }
+/* 편집을 끈 상태 = 방문자에게 보이는 화면. 배지도 조용하게. */
+.edit-badge.is-off {
+  background: transparent;
+  color: var(--muted-soft);
+  border-color: var(--divider);
+  font-weight: 400;
+}
+.edit-badge.is-off:hover { color: var(--main); border-color: var(--main); background: var(--tint); }
 
 /* ===== LAYOUT ===== */
 .wrap {

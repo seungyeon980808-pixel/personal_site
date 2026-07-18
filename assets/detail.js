@@ -48,7 +48,11 @@ const PROJECT_ID = document.body.dataset.project || "unknown";
 const DOC_ID = "detail-" + PROJECT_ID;
 
 let app, auth, db;
+// 로그인(권한)과 편집 켜짐(보기 상태)은 다른 것이다.
+// 관리자로 로그인한 채 편집만 꺼서 방문자 화면을 그대로 볼 수 있어야 한다.
 let isEditMode = false;
+let canEdit = false;
+const EDIT_PREF = "editModeOn"; // index.html 과 같은 키 — 페이지를 옮겨다녀도 유지된다
 
 const DEFAULT_FEATURES = [
   { title: "대표 기능 1", desc: "이 기능이 무엇을 하는지, 어떻게 쓰는지 설명을 적어주세요.", mediaType: "video", mediaUrl: "" },
@@ -157,10 +161,10 @@ function makeFeature(index, feat) {
   const num = el("div", "feature-num", pad2(index + 1));
   const title = el("h2", "feature-title");
   title.dataset.editable = "1";
-  title.textContent = f.title || "";
+  title.textContent = stripTags(f.title || "");
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.textContent = f.desc || "";
+  desc.textContent = stripTags(f.desc || "");
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
@@ -243,6 +247,18 @@ function collectFeatures() {
   return out;
 }
 
+// 예전 서식(자간) 버전이 <span style="letter-spacing…">·<br> 같은 태그를 문자열 그대로
+// 저장해 둔 값이 있다. 상세 페이지도 평문만 다루므로, 불러올 때 태그를 벗겨 순수 텍스트만
+// 남긴다. 태그가 없던 정상 값은 손대지 않고 통과한다. (index.html 의 stripTags 와 같은 규칙)
+function stripTags(s) {
+  if (s == null) return "";
+  const str = String(s);
+  if (str.indexOf("<") === -1) return str;
+  const box = document.createElement("div");
+  box.innerHTML = str;
+  return (box.textContent || "").trim();
+}
+
 // ---- serialization (hero fields + links + features) ----------------------
 function collectData() {
   const data = { fields: {}, links: {}, features: collectFeatures() };
@@ -269,7 +285,7 @@ function applyData(data) {
         elm.setAttribute("data-status", val);
         elm.textContent = val;
       } else {
-        elm.textContent = val;
+        elm.textContent = stripTags(val); // 예전에 박힌 서식 태그 제거
       }
     });
   }
@@ -298,28 +314,52 @@ function setEditable(on) {
   });
 }
 
+function editPrefOn() {
+  try { return localStorage.getItem(EDIT_PREF) !== "off"; } catch (e) { return true; }
+}
+function setEditPref(on) {
+  try { localStorage.setItem(EDIT_PREF, on ? "on" : "off"); } catch (e) {}
+}
+// 배지가 곧 토글 버튼이다 (관리자일 때만 보인다) — index.html 과 동일 규칙
+function syncEditBadge() {
+  const badge = document.querySelector(".edit-badge");
+  if (!badge) return;
+  badge.hidden = !canEdit;
+  badge.textContent = isEditMode ? "편집 모드 · 끄기" : "미리보기 · 편집 켜기";
+  badge.classList.toggle("is-off", !isEditMode);
+  badge.setAttribute("aria-pressed", String(isEditMode));
+  badge.title = isEditMode
+    ? "편집을 끄고 방문자에게 보이는 화면으로 봅니다"
+    : "편집을 켭니다 (로그인 상태는 그대로)";
+}
+function applyEditMode(on) {
+  isEditMode = on;
+  document.body.classList.toggle("edit-mode", on);
+  setEditable(on);
+  if (on) {
+    // Reveal everything so the admin can edit blocks below the fold.
+    document.querySelectorAll(".reveal, .feature").forEach((elm) => elm.classList.add("is-visible"));
+  }
+  syncEditBadge();
+  renderComments(); // 삭제 버튼 표시/숨김
+}
+
 function enableEditMode(email) {
-  isEditMode = true;
-  document.body.classList.add("edit-mode");
-  setEditable(true);
-  // Reveal everything so the admin can edit blocks below the fold.
-  document.querySelectorAll(".reveal, .feature").forEach((elm) => elm.classList.add("is-visible"));
+  canEdit = true;
   const btn = document.getElementById("adminBtn");
   const emailEl = document.getElementById("userEmail");
   if (btn) btn.textContent = "로그아웃";
   if (emailEl) emailEl.textContent = email || "";
-  renderComments(); // re-render to show delete buttons
+  applyEditMode(editPrefOn()); // 지난번에 꺼뒀으면 꺼진 채로 시작
 }
 
 function disableEditMode() {
-  isEditMode = false;
-  document.body.classList.remove("edit-mode");
-  setEditable(false);
+  canEdit = false;
   const btn = document.getElementById("adminBtn");
   const emailEl = document.getElementById("userEmail");
   if (btn) btn.textContent = "관리자 로그인";
   if (emailEl) emailEl.textContent = "";
-  renderComments(); // re-render to hide delete buttons
+  applyEditMode(false);
 }
 
 const STATUS_CYCLE = ["live", "개발중", "기획중"];
@@ -579,12 +619,24 @@ async function boot() {
     });
   }
 
+  // 편집 모드 토글 — 로그인은 그대로 두고 편집만 켜고 끈다.
+  const editBadgeBtn = document.querySelector(".edit-badge");
+  if (editBadgeBtn) {
+    editBadgeBtn.addEventListener("click", () => {
+      if (!canEdit) return;
+      const next = !isEditMode;
+      setEditPref(next);
+      applyEditMode(next);
+    });
+  }
+
   // Admin login / logout.
   const adminBtn = document.getElementById("adminBtn");
   if (adminBtn) {
     adminBtn.addEventListener("click", async () => {
       try {
-        if (isEditMode) {
+        // 편집을 꺼둔 채 로그인 상태일 수 있으므로 isEditMode 가 아니라 canEdit 으로 판단한다.
+        if (canEdit) {
           await signOut(auth);
           disableEditMode();
           return;
