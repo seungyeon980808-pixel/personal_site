@@ -177,6 +177,20 @@
       padding: 56px 20px 80px;
     }
 
+    /* 한글은 기본 규칙으로 두면 단어 중간에서 잘려, 화면 폭이 바뀔 때마다 줄바꿈 위치가
+       제멋대로 달라진다. 어절 단위로만 끊어 데스크톱·모바일의 텍스트 레이아웃을 같은
+       모양으로 유지한다. (크기·비율은 달라져도 되지만 문장이 흐트러지면 안 된다) */
+    h1, h2, h3, p, span, a, li, summary, td, th {
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      text-wrap: pretty;   /* 마지막 줄에 한 단어만 남는 것(고아 줄)을 브라우저가 알아서 막는다 */
+    }
+    /* 제목처럼 짧은 덩어리는 balance — 여러 줄이 될 때 줄 길이를 스스로 고르게 나눈다.
+       폭이 바뀌어도 매번 알아서 다시 계산하므로 기기별로 손볼 일이 없다. */
+    .name, .intro, .section > summary, .proj-name a, .proj-modal-name, .now-text {
+      text-wrap: balance;
+    }
+
     a { color: var(--main); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
@@ -205,13 +219,25 @@
       background: linear-gradient(90deg, var(--divider), rgba(230, 232, 235, 0));
     }
 
+    /* 관리자 컨트롤 한 줄. 방문자에게는 흐릿한 '관리자 로그인' 하나뿐이라 히어로 위에
+       겹쳐 둬도 되지만, 편집 모드에서는 버튼이 늘어나므로 헤더 위쪽에 자리를 비워준다
+       (아래 body.edit-mode .site-header 규칙). 좁아지면 아랫줄로 접힌다. */
     .admin-bar {
       position: absolute;
       top: 0;
       right: 0;
       display: flex;
       align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
       gap: 8px;
+      max-width: 100%;
+      z-index: 5;
+    }
+    /* 편집 모드에서만 관리자 바 높이만큼 헤더 상단을 비운다 — 방문자 화면은 그대로. */
+    body.edit-mode .site-header { padding-top: 46px; }
+    @media (max-width: 620px) {
+      body.edit-mode .site-header { padding-top: 84px; } /* 두 줄로 접힐 때 */
     }
 
     .user-email {
@@ -219,6 +245,11 @@
       font-size: 12px;
       color: var(--muted);
       line-height: 1.4;
+      /* 계정 주소가 길어도 바를 밀어내지 않게 */
+      max-width: 26ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* 관리자 전용 버튼 — 평소엔 배경에 묻어 있다가 가져다 대면 드러난다.
@@ -308,6 +339,15 @@
       border-left: 2px solid var(--sub);
       padding: 2px 0 2px 14px;
       margin: 0;
+    }
+
+    /* 좁은 화면에서는 본문 활자를 조금 줄여 한 줄에 들어가는 글자 수를 데스크톱에
+       가깝게 맞춘다. 폭이 절반이 되는데 글자 크기가 그대로면 줄 수가 두 배로 늘어
+       레이아웃이 전혀 다른 글처럼 보인다. (키우는 게 아니라 줄이는 방향이다) */
+    @media (max-width: 560px) {
+      .name  { font-size: clamp(30px, 8.5vw, 38px); }
+      .intro { font-size: 16px; }
+      .notice, .now-text { font-size: 14px; }
     }
 
     /* ===== SECTIONS (collapsible) ===== */
@@ -623,9 +663,11 @@
       color: var(--main);
     }
 
-    /* ===== PROJECT ICON-ONLY VIEW (default, non-edit mode) ===== */
-    /* 기본은 아이콘만 보이는 6칸 그리드. 클릭하면 모달로 확대(JS). 편집모드에서는 기존 전체 카드로 되돌아간다. */
-    body:not(.edit-mode) .proj-grid {
+    /* ===== PROJECT ICON-ONLY VIEW ===== */
+    /* 그리드는 항상 아이콘만 보이는 6칸이다. 클릭하면 모달이 열린다(JS).
+       편집 모드에서도 같은 화면을 쓰고, 수정은 모달 안에서 한다
+       — 방문자가 보는 것과 똑같은 화면에서 고치는 게 실수가 적다. */
+    .proj-grid {
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 14px;
     }
@@ -633,19 +675,19 @@
     body:not(.edit-mode) .proj-card-hidden { display: none; }
     body.edit-mode .proj-card-hidden { opacity: 0.55; }
     @media (max-width: 640px) {
-      body:not(.edit-mode) .proj-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .proj-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
-    body:not(.edit-mode) .proj-card {
+    .proj-card {
       border-color: transparent;
       background: transparent;
       cursor: pointer;
     }
-    body:not(.edit-mode) .proj-card:hover {
+    .proj-card:hover {
       box-shadow: none;
       transform: none;
       border-color: transparent;
     }
-    body:not(.edit-mode) .proj-preview {
+    .proj-preview {
       position: relative;
       aspect-ratio: 1 / 1;
       width: 64px;
@@ -656,12 +698,12 @@
       overflow: visible;
       transition: border-color 0.25s var(--ease);
     }
-    body:not(.edit-mode) .proj-preview-logo { overflow: hidden; border-radius: inherit; }
-    body:not(.edit-mode) .proj-preview-logo img { width: 92%; }
-    body:not(.edit-mode) .proj-preview-empty { display: none; }
-    body:not(.edit-mode) .proj-preview-fallback { display: flex; overflow: hidden; border-radius: inherit; }
+    .proj-preview-logo { overflow: hidden; border-radius: inherit; }
+    .proj-preview-logo img { width: 92%; }
+    .proj-preview-empty { display: none; }
+    .proj-preview-fallback { display: flex; overflow: hidden; border-radius: inherit; }
     /* 마우스를 올리면 테두리가 밝아지고, 그 주위로 빛이 빙글빙글 도는 링이 나타난다 */
-    body:not(.edit-mode) .proj-preview::before {
+    .proj-preview::before {
       content: "";
       position: absolute;
       inset: -4px;
@@ -676,8 +718,8 @@
       transition: opacity 0.25s var(--ease);
     }
     @keyframes proj-icon-spin { to { transform: rotate(360deg); } }
-    body:not(.edit-mode) .proj-card:hover .proj-preview { border-color: var(--main); }
-    body:not(.edit-mode) .proj-card:hover .proj-preview::before {
+    .proj-card:hover .proj-preview { border-color: var(--main); }
+    .proj-card:hover .proj-preview::before {
       opacity: 1;
       animation: proj-icon-spin 2.2s linear infinite;
     }
@@ -687,19 +729,19 @@
       50% { transform: rotate(5deg) scale(1.09); }
       75% { transform: rotate(-3deg) scale(1.05); }
     }
-    body:not(.edit-mode) .proj-card:hover .proj-preview-logo,
-    body:not(.edit-mode) .proj-card:hover .proj-preview-fallback {
+    .proj-card:hover .proj-preview-logo,
+    .proj-card:hover .proj-preview-fallback {
       animation: proj-icon-wiggle 0.5s var(--ease);
     }
-    body:not(.edit-mode) .proj-body {
+    .proj-body {
       padding: 8px 4px 0;
       align-items: center;
       text-align: center;
       gap: 2px;
     }
-    body:not(.edit-mode) .proj-head { justify-content: center; max-width: 100%; }
-    body:not(.edit-mode) .proj-name { max-width: 100%; overflow: hidden; }
-    body:not(.edit-mode) .proj-name a {
+    .proj-head { justify-content: center; max-width: 100%; }
+    .proj-name { max-width: 100%; overflow: hidden; }
+    .proj-name a {
       font-size: 12px;
       display: block;
       max-width: 100%;
@@ -708,12 +750,13 @@
       text-overflow: ellipsis;
     }
     /* 아이콘 뷰에서는 카드 본문을 숨긴다.
-       — .proj-card 로 범위를 좁혀야 한다. 안 그러면 모달 안에 넣는 같은 클래스까지 같이 숨는다. */
-    body:not(.edit-mode) .proj-card .proj-head .status,
-    body:not(.edit-mode) .proj-card .proj-why,
-    body:not(.edit-mode) .proj-card .proj-desc,
-    body:not(.edit-mode) .proj-card .proj-stack,
-    body:not(.edit-mode) .proj-card .proj-foot {
+       — .proj-card 로 범위를 좁혀야 한다. 모달은 .proj-body 를 카드 밖으로 옮겨서
+         보여주므로(JS), 이 규칙에 걸리지 않고 그대로 드러난다. */
+    .proj-card .proj-head .status,
+    .proj-card .proj-why,
+    .proj-card .proj-desc,
+    .proj-card .proj-stack,
+    .proj-card .proj-foot {
       display: none;
     }
 
@@ -860,6 +903,139 @@
       color: var(--muted-soft);
     }
 
+    /* ---- 모달 안으로 옮겨온 실제 카드 본문 ----
+       JS 가 .proj-body 노드를 통째로 카드에서 꺼내 모달에 넣는다. 그래서 편집 모드에서는
+       모달 안에서 바로 contenteditable 로 고칠 수 있고, 저장 로직([data-field] 전수 조회)도
+       위치와 무관하게 그대로 동작한다. 닫으면 원래 자리로 돌려놓는다. */
+    .proj-modal .proj-body {
+      padding: 0;
+      align-items: stretch;
+      text-align: left;
+      gap: 10px;
+      max-height: min(52vh, 460px);
+      overflow-y: auto;
+    }
+    .proj-modal .proj-head { justify-content: space-between; }
+    .proj-modal .proj-name a {
+      font-size: 16px;
+      font-weight: 700;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+    .proj-modal .proj-why,
+    .proj-modal .proj-desc {
+      font-size: 13.5px;
+      line-height: 1.7;
+      word-break: keep-all;
+      text-wrap: pretty;
+    }
+    /* 모달 안에서는 본문 요소들이 보여야 한다 (카드에서는 숨겨져 있다) */
+    .proj-modal .proj-foot { display: flex; }
+    .proj-modal .proj-foot a { font-size: 12.5px; }
+    /* 모달이 열려 있는 동안 원래 카드 자리는 아이콘만 남는다 */
+    .proj-card.is-open .proj-preview { border-color: var(--main); }
+
+    /* ===== DEVICE PREVIEW (edit mode only) ===== */
+    .dp-btn {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--main);
+      background: var(--tint);
+      color: var(--main);
+      cursor: pointer;
+      line-height: 1.4;
+      white-space: nowrap;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease);
+    }
+    .dp-btn:hover { background: var(--main); color: #fff; }
+    body:not(.edit-mode) .dp-btn { display: none; }
+
+    .dp-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 16px 24px;
+      background: rgba(3, 7, 18, 0.78);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s var(--ease);
+    }
+    .dp-overlay[hidden] { display: none; }
+    .dp-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .dp-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 8px 10px 8px 16px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      flex: none;
+    }
+    .dp-label { font-size: 13px; font-weight: 600; }
+    .dp-note {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--muted-soft);
+      white-space: nowrap;
+    }
+    .dp-size {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--divider);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+    }
+    .dp-size:hover { border-color: var(--main); color: var(--main); }
+    .dp-size.active { background: var(--main); border-color: var(--main); color: #fff; }
+    .dp-close {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--divider);
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .dp-close:hover { color: var(--main); border-color: var(--main); }
+
+    /* 기기 폭이 화면보다 크면 JS 가 transform: scale 로 줄인다 (레이아웃은 그대로) */
+    .dp-stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .dp-frame {
+      background: var(--bg);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.7);
+      transform-origin: center center;
+      flex: none;
+    }
+    .dp-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
     /* ===== PROJECT REORDER (edit mode only) ===== */
     /* 손잡이를 잡아야만 드래그가 시작된다 — 카드 안의 링크·본문 편집과 안 겹치게. */
     .drag-handle {
@@ -908,9 +1084,11 @@
       user-select: none;
       transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
     }
-    .status[data-status="live"]   { color: var(--sub);  border-color: var(--sub);  background: rgba(14, 116, 144, 0.06); }
-    .status[data-status="개발중"] { color: var(--main); border-color: var(--main); background: var(--tint); }
-    .status[data-status="기획중"] { color: var(--muted); }
+    /* 상태값은 전부 영문 소문자로 통일: planned → in progress → beta → live */
+    .status[data-status="live"]        { color: var(--sub);  border-color: var(--sub);  background: rgba(14, 116, 144, 0.06); }
+    .status[data-status="beta"]        { color: #d29922; border-color: #d29922; background: rgba(210, 153, 34, 0.08); }
+    .status[data-status="in progress"] { color: var(--main); border-color: var(--main); background: var(--tint); }
+    .status[data-status="planned"]     { color: var(--muted); }
 
     /* ===== CONTACT ===== */
     .contact-list { margin: 0; padding: 0; list-style: none; }
@@ -947,9 +1125,9 @@
       border: 1px solid var(--main);
       border-radius: 999px;
       padding: 3px 10px;
-      margin-left: 8px;
       cursor: pointer;
       line-height: 1.4;
+      white-space: nowrap;
       transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
     }
     .edit-badge[hidden] { display: none; }
@@ -963,11 +1141,13 @@
     .edit-badge.is-off:hover { color: var(--main); border-color: var(--main); background: var(--tint); }
 
     /* Save button (edit mode only) */
+    /* 우측 하단은 테마 토글(44px, right:18px)이 이미 쓰고 있다.
+       그 왼쪽으로 비켜 앉힌다 — 안 그러면 두 버튼이 겹친다. */
     .save-btn {
       display: none;
       position: fixed;
-      right: 24px;
-      bottom: 24px;
+      right: 74px;
+      bottom: 22px;
       z-index: 50;
       font-family: "IBM Plex Sans KR", sans-serif;
       font-size: 14px;
@@ -1106,11 +1286,15 @@
     <!-- ===== HEADER ===== -->
     <header class="site-header">
       <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <!-- 관리자 컨트롤은 전부 이 한 줄 안에 둔다.
+           밖에 두면 .site-header 가 flex column 이라 버튼이 가로 전체로 늘어나
+           관리자 바와 겹친다. -->
       <div class="admin-bar">
+        <button class="edit-badge" id="editBadge" type="button" hidden>편집 모드 · 끄기</button>
+        <button id="dpBtn" class="dp-btn" type="button">📱 기기 미리보기</button>
         <span class="user-email" id="userEmail"></span>
         <button id="adminBtn" class="admin-btn" type="button">관리자 로그인</button>
       </div>
-      <button class="edit-badge" id="editBadge" type="button" hidden>편집 모드 · 끄기</button>
       <span class="status-pill hero-item" style="animation-delay:0.05s"><span class="dot"></span> Open to share · 자유 배포</span>
       <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
       <p class="role hero-item" style="animation-delay:0.5s" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
@@ -1141,7 +1325,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/physics-draw.html" data-editable data-field="project.1.name">5E</a>
                 </span>
-                <span class="status" data-status="개발중" data-field="project.1.status">개발중</span>
+                <span class="status" data-status="in progress" data-field="project.1.status">in progress</span>
               </div>
               <p class="proj-why" data-editable data-field="project.1.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.1.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1166,7 +1350,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/hwp-palette.html" data-editable data-field="project.3.name">HwpPalette</a>
                 </span>
-                <span class="status" data-status="기획중" data-field="project.3.status">기획중</span>
+                <span class="status" data-status="planned" data-field="project.3.status">planned</span>
               </div>
               <p class="proj-why" data-editable data-field="project.3.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.3.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1191,7 +1375,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/everykey.html" data-editable data-field="project.4.name">EveryKey</a>
                 </span>
-                <span class="status" data-status="기획중" data-field="project.4.status">기획중</span>
+                <span class="status" data-status="planned" data-field="project.4.status">planned</span>
               </div>
               <p class="proj-why" data-editable data-field="project.4.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.4.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1216,7 +1400,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/docfinder.html" data-editable data-field="project.5.name">DocFinder</a>
                 </span>
-                <span class="status" data-status="기획중" data-field="project.5.status">기획중</span>
+                <span class="status" data-status="planned" data-field="project.5.status">planned</span>
               </div>
               <p class="proj-why" data-editable data-field="project.5.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.5.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1241,7 +1425,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/modipdf.html" data-editable data-field="project.6.name">ModiPdf</a>
                 </span>
-                <span class="status" data-status="기획중" data-field="project.6.status">기획중</span>
+                <span class="status" data-status="planned" data-field="project.6.status">planned</span>
               </div>
               <p class="proj-why" data-editable data-field="project.6.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.6.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1290,7 +1474,7 @@
                 <span class="proj-name">
                   <a class="proj-detail" href="projects/myfine.html" data-editable data-field="project.2.name">K-마이파인</a>
                 </span>
-                <span class="status" data-status="개발중" data-field="project.2.status">개발중</span>
+                <span class="status" data-status="in progress" data-field="project.2.status">in progress</span>
               </div>
               <p class="proj-why" data-editable data-field="project.2.why">왜 만들었는지 한 줄로 적기</p>
               <p class="proj-desc" data-editable data-field="project.2.desc">무엇을 하는 도구인지 한 줄</p>
@@ -1312,6 +1496,24 @@
       <div class="proj-modal" role="dialog" aria-modal="true" aria-label="프로젝트 상세">
         <button class="proj-modal-close" id="projModalClose" type="button" aria-label="닫기">×</button>
         <div class="proj-modal-body" id="projModalBody"></div>
+      </div>
+    </div>
+
+    <!-- ===== DEVICE PREVIEW (편집 모드 전용) =====
+         같은 페이지를 지정한 폭의 iframe 으로 띄운다. 폭만 CSS 로 좁히면 미디어 쿼리는
+         여전히 데스크톱 폭을 보기 때문에 모바일 레이아웃이 나오지 않는다. iframe 은
+         자기 폭이 곧 뷰포트라 미디어 쿼리가 실제로 모바일로 걸린다. -->
+    <div class="dp-overlay" id="dpOverlay" hidden>
+      <div class="dp-bar">
+        <span class="dp-label">기기 미리보기</span>
+        <button class="dp-size active" type="button" data-w="375" data-h="812">모바일 375</button>
+        <button class="dp-size" type="button" data-w="768" data-h="1024">태블릿 768</button>
+        <button class="dp-size" type="button" data-w="1280" data-h="800">데스크톱 1280</button>
+        <span class="dp-note" id="dpNote"></span>
+        <button class="dp-close" id="dpClose" type="button" aria-label="닫기">×</button>
+      </div>
+      <div class="dp-stage" id="dpStage">
+        <div class="dp-frame" id="dpFrame"><iframe id="dpIframe" title="기기 미리보기"></iframe></div>
       </div>
     </div>
 
@@ -1566,12 +1768,16 @@
           W = host.clientWidth; H = host.clientHeight;
           canvas.width = W * dpr; canvas.height = H * dpr;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          var count = Math.round((W * H) / 14000);
-          count = Math.min(count, window.innerWidth < 640 ? 30 : 72);
+          // 입자 밀도 ↑ (면적 14000px² 당 1개 → 3800px² 당 1개, 약 3.7배).
+          // 상한도 함께 올려 넓은 화면에서 더 촘촘하게.
+          var count = Math.round((W * H) / 3800);
+          count = Math.min(count, window.innerWidth < 640 ? 60 : 150);
           pts = [];
           for (var i = 0; i < count; i++) {
             pts.push({ x: Math.random() * W, y: Math.random() * H,
-              vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35 });
+              vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+              // 크기를 조금씩 다르게 줘서 깊이감을 만든다
+              r: 1.2 + Math.random() * 1.3 });
           }
         }
         function step() {
@@ -1581,21 +1787,31 @@
             p.x += p.vx; p.y += p.vy;
             if (p.x < 0 || p.x > W) p.vx *= -1;
             if (p.y < 0 || p.y > H) p.vy *= -1;
+            // 커서 중력 — 반경 150→260, 세기 0.45→1.6.
+            // 가까울수록 강해지도록 거리에 따라 감쇠시켜, 커서 주변에 뭉치는 게 눈에 띈다.
             var mx = mouse.x - p.x, my = mouse.y - p.y, md = Math.hypot(mx, my);
-            if (md < 150 && md > 0.1) { p.x += (mx / md) * 0.45; p.y += (my / md) * 0.45; }
+            if (md < 260 && md > 0.1) {
+              var pull = 1.6 * (1 - md / 260);
+              p.x += (mx / md) * pull; p.y += (my / md) * pull;
+              // 너무 가까우면 살짝 밀어내 한 점에 뭉쳐 뭉개지는 것을 막는다
+              if (md < 22) { p.x -= (mx / md) * 1.1; p.y -= (my / md) * 1.1; }
+            }
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(76,157,255,0.55)";
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            // 커서에 가까운 입자일수록 밝게 — 중력이 "보이게" 한다
+            var glow = md < 260 ? 0.55 + 0.4 * (1 - md / 260) : 0.55;
+            ctx.fillStyle = "rgba(76,157,255," + glow.toFixed(2) + ")";
             ctx.fill();
           }
           for (var a = 0; a < pts.length; a++) {
             for (var b = a + 1; b < pts.length; b++) {
               var dx = pts[a].x - pts[b].x, dy = pts[a].y - pts[b].y, d = Math.hypot(dx, dy);
-              if (d < 120) {
+              // 입자가 촘촘해진 만큼 연결선은 짧고 옅게 — 안 그러면 그물처럼 뭉갠다
+              if (d < 96) {
                 ctx.beginPath();
                 ctx.moveTo(pts[a].x, pts[a].y);
                 ctx.lineTo(pts[b].x, pts[b].y);
-                ctx.strokeStyle = "rgba(9,105,218," + (0.15 * (1 - d / 120)).toFixed(3) + ")";
+                ctx.strokeStyle = "rgba(9,105,218," + (0.11 * (1 - d / 96)).toFixed(3) + ")";
                 ctx.lineWidth = 1;
                 ctx.stroke();
               }
@@ -1802,11 +2018,23 @@
       "use strict";
 
       const ADMIN_EMAIL = "seungyeon980808@gmail.com";
-      const STATUS_CYCLE = ["live", "개발중", "기획중"];
+      // 상태 표시는 전부 영문 소문자로 통일한다. beta 를 포함해 4단계 순환.
+      const STATUS_CYCLE = ["planned", "in progress", "beta", "live"];
+      // 이전에 한글로 저장된 문서를 그대로 읽어도 영문으로 보이게 하는 변환표
+      const STATUS_ALIAS = { "기획중": "planned", "개발중": "in progress", "베타": "beta", "라이브": "live" };
+      window.Site = window.Site || {};
+      window.Site.normalizeStatus = function (v) {
+        const s = String(v == null ? "" : v).trim();
+        if (STATUS_ALIAS[s]) return STATUS_ALIAS[s];
+        return STATUS_CYCLE.indexOf(s) >= 0 ? s : "planned";
+      };
 
       const adminBtn = document.getElementById("adminBtn");
       const userEmailEl = document.getElementById("userEmail");
       const saveBtn = document.getElementById("saveBtn");
+
+      // ?preview=1 로 열린 iframe = 기기 미리보기용 사본. 편집 UI 를 켜지 않는다.
+      const IS_PREVIEW = new URLSearchParams(location.search).has("preview");
 
       // ---- Edit-mode state -------------------------------------------------
       // 로그인(권한)과 편집 켜짐(보기 상태)은 다른 것이다.
@@ -1844,6 +2072,9 @@
       }
 
       function enableEditMode(email) {
+        // 미리보기 iframe 안에서는 로그인 세션이 그대로 살아 있어도 편집 UI 를 켜지 않는다.
+        // 방문자가 보는 화면을 확인하려는 것이므로 편집 흔적이 섞이면 안 된다.
+        if (IS_PREVIEW) { disableEditMode(); return; }
         canEdit = true;
         adminBtn.textContent = "로그아웃";
         userEmailEl.textContent = email || "";
@@ -1903,6 +2134,11 @@
         });
         // Generic [data-link] anchors (project URL / GitHub): input goes after.
         document.querySelectorAll("a[data-link]").forEach((a) => {
+          // 편집 중에는 링크를 눌러도 이동하지 않는다 (모달 안에서 URL 을 고치는 중이므로)
+          if (!a.__editGuard) {
+            a.__editGuard = true;
+            a.addEventListener("click", (e) => { if (isEditMode) e.preventDefault(); });
+          }
           const sib = a.nextElementSibling;
           const existing = sib && sib.classList.contains("href-input") ? sib : null;
           if (on) {
@@ -1985,49 +2221,42 @@
       const projModalBody = document.getElementById("projModalBody");
       const projModalClose = document.getElementById("projModalClose");
 
+      // 모달은 카드의 .proj-body 노드를 "빌려온다". 복사본을 만들지 않으므로
+      //   · 편집 모드에서 모달 안에서 고친 내용이 곧 카드의 내용이고,
+      //   · 저장(collectData 의 [data-field] 전수 조회)도 손댈 필요가 없다.
+      // 닫을 때 남겨둔 자리표시자(주석 노드)에 되돌려 놓는다.
+      let openCard = null;
+      let bodySlot = null;
+
       function openProjModal(card) {
+        if (openCard) return;
+        const body = card.querySelector(".proj-body");
+        if (!body) return;
+
         const name = card.querySelector(".proj-name a")?.textContent.trim() || "";
-        const status = card.querySelector(".status");
-        const why = card.querySelector(".proj-why")?.textContent.trim() || "";
-        const desc = card.querySelector(".proj-desc")?.textContent.trim() || "";
-        const stack = card.querySelector(".proj-stack")?.textContent.trim() || "";
         const detailHref = card.querySelector("a.proj-detail")?.getAttribute("href") || "#";
-        const ver = card.querySelector(".ver")?.textContent.trim() || "";
         const logoImg = card.querySelector(".proj-preview-logo img");
 
         const iconHtml = logoImg
           ? '<span class="proj-modal-icon"><img src="' + logoImg.getAttribute("src") + '" alt=""></span>'
           : '<span class="proj-modal-fallback">' + (name ? name.charAt(0) : "?") + "</span>";
 
-        const statusHtml = status
-          ? '<span class="status" data-status="' + status.getAttribute("data-status") + '">' + status.textContent + "</span>"
-          : "";
+        projModalBody.innerHTML = '<div class="proj-modal-top">' + iconHtml + "</div>";
 
-        const stackHtml = stack
-          ? '<div class="proj-modal-stack">' + stack.split("·").map((s) => s.trim()).filter(Boolean).map((s) => "<span>" + s + "</span>").join("") + "</div>"
-          : "";
+        // 본문을 카드에서 꺼내 모달로 옮긴다 (자리표시자를 남긴다)
+        bodySlot = document.createComment("proj-body");
+        body.replaceWith(bodySlot);
+        projModalBody.appendChild(body);
+        openCard = card;
+        card.classList.add("is-open");
 
-        const ctaHtml = detailHref && detailHref !== "#"
-          ? '<a class="proj-modal-cta" href="' + detailHref + '">자세히 보기 →</a>'
-          : '';
-
-        const emptyHtml = !why && !desc
-          ? '<p class="proj-desc">아직 소개 문구가 없어요 · 편집모드에서 채워주세요</p>'
-          : "";
-
-        projModalBody.innerHTML =
-          '<div class="proj-modal-top">' +
-            iconHtml +
-            '<div class="proj-modal-titles">' +
-              '<span class="proj-modal-name">' + name + "</span>" +
-              '<div class="proj-modal-meta">' + statusHtml + (ver ? '<span class="ver">' + ver + "</span>" : "") + "</div>" +
-            "</div>" +
-          "</div>" +
-          (why ? '<p class="proj-why">' + why + "</p>" : "") +
-          (desc ? '<p class="proj-desc">' + desc + "</p>" : "") +
-          emptyHtml +
-          stackHtml +
-          ctaHtml;
+        if (detailHref && detailHref !== "#") {
+          const cta = document.createElement("a");
+          cta.className = "proj-modal-cta";
+          cta.href = detailHref;
+          cta.textContent = "자세히 보기 →";
+          projModalBody.appendChild(cta);
+        }
 
         projModalOverlay.hidden = false;
         // display:none -> flex 직후 곧바로 .open 을 붙이면 시작 상태(opacity:0)가
@@ -2037,14 +2266,27 @@
       }
 
       function closeProjModal() {
+        // 본문을 원래 카드 자리로 되돌린다. 페이드가 끝나기 전에 옮기면 사라지는 게 보이므로
+        // 되돌리기는 트랜지션이 끝난 뒤에 한다.
         projModalOverlay.classList.remove("open");
-        setTimeout(() => { projModalOverlay.hidden = true; }, 200);
+        const card = openCard, slot = bodySlot;
+        openCard = null;
+        bodySlot = null;
+        setTimeout(() => {
+          const body = projModalBody.querySelector(".proj-body");
+          if (body && slot && slot.parentNode) slot.replaceWith(body);
+          else if (body && card) card.appendChild(body);
+          if (card) card.classList.remove("is-open");
+          projModalBody.innerHTML = "";
+          projModalOverlay.hidden = true;
+        }, 200);
       }
 
       if (projModalOverlay && projModalBody && projModalClose) {
         document.querySelectorAll(".proj-card").forEach((card) => {
           card.addEventListener("click", (e) => {
-            if (isEditMode) return;
+            // 편집 모드에서도 모달을 연다 — 단, 순서 변경 손잡이는 그대로 둔다.
+            if (e.target.closest(".drag-handle")) return;
             e.preventDefault();
             openProjModal(card);
           });
@@ -2055,6 +2297,93 @@
         });
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape" && !projModalOverlay.hidden) closeProjModal();
+        });
+      }
+
+      // ---- 기기 미리보기 --------------------------------------------------
+      // 같은 페이지를 ?preview=1 로 iframe 에 띄운다. iframe 은 자기 폭이 곧 뷰포트라
+      // 미디어 쿼리가 실제 모바일처럼 걸린다. (CSS 로 폭만 좁히면 미디어 쿼리는 그대로다)
+      // 저장하지 않은 편집 내용도 보이도록, 현재 DOM 상태를 postMessage 로 넘겨 덮어씌운다.
+      (function () {
+        const btn = document.getElementById("dpBtn");
+        const overlay = document.getElementById("dpOverlay");
+        const stage = document.getElementById("dpStage");
+        const frame = document.getElementById("dpFrame");
+        const iframe = document.getElementById("dpIframe");
+        const note = document.getElementById("dpNote");
+        const closeBtn = document.getElementById("dpClose");
+        if (!btn || !overlay || !iframe) return;
+
+        let size = { w: 375, h: 812 };
+
+        // 기기 폭이 화면보다 크면 통째로 축소해서 보여준다 (레이아웃은 기기 폭 그대로).
+        function fit() {
+          frame.style.width = size.w + "px";
+          frame.style.height = size.h + "px";
+          const availW = stage.clientWidth - 8;
+          const availH = stage.clientHeight - 8;
+          // 오버레이를 막 띄운 직후엔 아직 레이아웃이 안 잡혀 0 이 나온다.
+          // 그대로 계산하면 배율이 음수가 되어 화면이 뒤집힌다 — 다음 프레임에 다시 잰다.
+          if (availW <= 0 || availH <= 0) { requestAnimationFrame(fit); return; }
+          const scale = Math.min(1, availW / size.w, availH / size.h);
+          frame.style.transform = "scale(" + scale + ")";
+          note.textContent = size.w + "×" + size.h + (scale < 1 ? " · " + Math.round(scale * 100) + "%" : "");
+        }
+
+        // 저장 전 내용까지 그대로 보이게 현재 DOM 상태를 넘긴다.
+        function pushData() {
+          try {
+            iframe.contentWindow.postMessage(
+              { type: "site-preview-data", data: window.Site._collectData() },
+              location.origin
+            );
+          } catch (e) { /* 아직 로드 전이면 load 이벤트에서 다시 보낸다 */ }
+        }
+
+        function open() {
+          overlay.hidden = false;
+          void overlay.offsetHeight; // 페이드 시작 상태를 굳힌다
+          overlay.classList.add("open");
+          iframe.src = location.pathname + "?preview=1";
+          fit();
+        }
+        function close() {
+          overlay.classList.remove("open");
+          setTimeout(() => {
+            overlay.hidden = true;
+            iframe.src = "about:blank"; // 뒤에서 계속 돌지 않게 (캔버스 애니메이션 포함)
+          }, 200);
+        }
+
+        btn.addEventListener("click", open);
+        closeBtn.addEventListener("click", close);
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !overlay.hidden) close();
+        });
+        iframe.addEventListener("load", () => {
+          // 미리보기 쪽도 자기 Firestore 를 한 번 읽으므로, 그 뒤에 덮어써야 한다.
+          pushData();
+          setTimeout(pushData, 700);
+        });
+        window.addEventListener("resize", () => { if (!overlay.hidden) fit(); });
+
+        overlay.querySelectorAll(".dp-size").forEach((b) => {
+          b.addEventListener("click", () => {
+            overlay.querySelectorAll(".dp-size").forEach((o) => o.classList.remove("active"));
+            b.classList.add("active");
+            size = { w: Number(b.dataset.w), h: Number(b.dataset.h) };
+            fit();
+          });
+        });
+      })();
+
+      // 미리보기 iframe 쪽: 부모가 보낸 현재 편집 내용을 받아 그대로 그린다.
+      if (IS_PREVIEW) {
+        window.addEventListener("message", (e) => {
+          if (e.origin !== location.origin) return;
+          if (!e.data || e.data.type !== "site-preview-data") return;
+          if (window.Site && window.Site._applyData) window.Site._applyData(e.data.data);
         });
       }
 
@@ -2356,6 +2685,8 @@
     function sanitizeBreaks(html) {
       const box = document.createElement("div");
       box.innerHTML = html == null ? "" : String(html);
+      // 스크립트/스타일 등은 내용째 버린다(내용만 남기면 코드가 글로 새어 나온다)
+      box.querySelectorAll("script, style, iframe, object, embed, template").forEach((n) => n.remove());
       // 문단(div/p)은 줄바꿈으로 평탄화 — contenteditable 이 만드는 래퍼 정리. 안쪽부터.
       Array.from(box.querySelectorAll("div, p")).reverse().forEach((blk) => {
         if (!blk.parentNode) return;
@@ -2367,7 +2698,14 @@
         if (el.tagName === "BR") return;
         unwrapEl(el);
       });
-      return box.innerHTML.replace(/^(?:<br\s*\/?>)+/, "").replace(/(?:<br\s*\/?>)+$/, "").trim();
+      // 문단 사이 빈 줄은 최대 하나로 통일한다 (detail.js 의 collapseBlankLines 와 같은 규칙).
+      // 빈 줄 높이는 부모의 line-height 로 고정이라 CSS 로는 못 줄인다 — <br> 에 건
+      // display/height/line-height 는 브라우저가 무시한다. 줄 개수로만 조절된다.
+      return box.innerHTML
+        .replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, "<br><br>") // 빈 줄 2개 이상 → 1개
+        .replace(/^(?:\s*<br\s*\/?>)+/i, "")
+        .replace(/(?:<br\s*\/?>\s*)+$/i, "")
+        .trim();
     }
 
     function applyData(data) {
@@ -2379,8 +2717,11 @@
           const el = document.querySelector('[data-field="' + key + '"]');
           if (!el) return;
           if (el.classList.contains("status")) {
-            el.setAttribute("data-status", val);
-            el.textContent = val;
+            // 예전에 한글로 저장된 값도 영문으로 바꿔 보여준다
+            const st = window.Site && window.Site.normalizeStatus
+              ? window.Site.normalizeStatus(val) : String(val || "");
+            el.setAttribute("data-status", st);
+            el.textContent = st;
           } else {
             el.innerHTML = sanitizeBreaks(String(val)); // 줄바꿈만 살리고 나머지 태그 제거
           }
