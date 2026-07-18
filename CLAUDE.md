@@ -7,6 +7,22 @@
 
 ---
 
+## ⚠️ 수정 후 로컬 확인 링크 (묻지 않아도 항상)
+파일을 고쳤으면 **작업 완료 보고에 반드시 로컬 링크를 함께 준다.** 사용자가 요청하기를 기다리지 않는다.
+
+1. `.claude/launch.json` 의 `personal-site` 설정으로 서버를 띄운다 (포트 **4321**)
+   - Claude Code: `preview_start` 도구에 `{name: "personal-site"}`
+   - 수동: `npx -y serve -l 4321 .`
+2. **서버를 끄지 않고 그대로 둔다.** 사용자가 직접 열어봐야 하므로 `preview_stop` 금지
+3. 답변 끝에 링크를 적는다 — 고친 화면을 맨 위에 둔다
+   ```
+   - 홈 — http://localhost:4321/index.html
+   - 상세 — http://localhost:4321/projects/<name>.html
+   ```
+4. 편집 모드에서만 보이는 기능을 고쳤다면 "관리자 로그인 후 보입니다" 를 덧붙인다
+
+---
+
 ## 파일 구조
 ```
 index.html                 메인 허브 (스타일·JS 인라인, 단일 파일 유지)
