@@ -12,7 +12,13 @@
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     STAGE.setAttribute("data-static", "1");   // 모션을 원치 않는 사용자에겐 정지 화면
   }
-  const BASE_W = 660, BASE_H = 372;
+  // 좌표계는 화면 방향에 따라 둘 중 하나를 쓴다.
+  //   가로형 660x372 — 글자 왼쪽 / 영상 오른쪽
+  //   세로형 390x660 — 영상 위 / 글자 아래 (휴대폰)
+  // 무대는 통째로 축소되므로, 가로형을 폰에 그대로 쓰면 캡션이 7px 까지
+  // 줄어 읽을 수가 없다. 그래서 폰에서는 배치 자체를 바꾼다.
+  let BASE_W = 660, BASE_H = 372;
+  const isPortrait = () => window.innerWidth < 760;
 
 /* =======================================================================
    레이아웃 (640×400, 원점 = 중앙)
@@ -27,11 +33,35 @@ const SEC = 17.9, DUR = SEC * 1000;
 //   가장 긴 단어 "Educational" 161px 을 왼쪽 여백 20px 에 붙이면 TEXT_R = -139,
 //   글자와 영상 사이 32px 을 띄우고 오른쪽 여백 20px 을 남기면 프레임은 407px.
 // 실제 영상이 1920×1080(16:9)이라 프레임도 16:9. 16:10 이면 좌우가 잘린다.
-const TEXT_R = -176;
-const FRAME_X = 79, FRAME_W = 462, FRAME_H = 260;
+let TEXT_R = -176;
+let FRAME_X = 79, FRAME_W = 462, FRAME_H = 260;
+let WORD_FS = 25, CAP_FS = 13, IDX_Y = -66, PORT = false;
+
+/* 화면 방향에 맞는 좌표를 잡는다. build() 맨 앞에서 부른다. */
+function layout() {
+  PORT = isPortrait();
+  if (PORT) {
+    BASE_W = 390; BASE_H = 660;
+    FRAME_W = 350; FRAME_H = Math.round(350 * 9 / 16);   // 197
+    FRAME_X = 0;                                          // 가로 가운데
+    TEXT_R = 168;                                         // 글자도 가운데 정렬 기준
+    WORD_FS = 30; CAP_FS = 15; IDX_Y = -300;
+  } else {
+    BASE_W = 660; BASE_H = 372;
+    FRAME_W = 462; FRAME_H = 260; FRAME_X = 79;
+    TEXT_R = -176; WORD_FS = 25; CAP_FS = 13; IDX_Y = -66;
+  }
+  document.querySelectorAll(".k5-word").forEach(el => { el.style.fontSize = WORD_FS + "px"; });
+  document.querySelectorAll(".k5-cap").forEach(el => { el.style.fontSize = CAP_FS + "px"; });
+  const f = document.getElementById("frame");
+  if (f) { f.style.width = FRAME_W + "px"; f.style.height = FRAME_H + "px";
+           f.style.margin = `${-FRAME_H / 2}px 0 0 ${-FRAME_W / 2}px`; }
+  const st = document.getElementById("k5stage") || STAGE;
+  st.style.width = BASE_W + "px"; st.style.height = BASE_H + "px";
+}
 // 프레임 아래에 캡션·진행바가 붙어 덩어리가 아래로 치우친다.
 // 재생 구간 전체를 이만큼 올려 화면 가운데에 맞춘다.
-const PLAY_Y = -24;
+let PLAY_Y = -24;   // 재생 구간 전체의 세로 보정
 
 /* ④ E 다섯 개의 색 — 5E 프로그램의 실제 과목 테마에서 가져왔다.
    출처: 51_5E/5E_hub/css/style.css  :root[data-subject=...] --accent
@@ -164,6 +194,8 @@ function build() {
   // 순서가 중요하다. fit() 이 배율(scale)과 히어로 높이를 확정한 '뒤에' 재야
   // 실제 로고·제목의 화면 좌표를 무대 좌표로 옳게 환산할 수 있다.
   // (먼저 재면 배율을 1 로 착각해 최종 배치가 통째로 어긋난다)
+  layout();
+  PLAY_Y = PORT ? -150 : -24;   // 세로형은 영상을 위쪽으로 올린다
   fit();
   alignToRealHero();
   /* 색 입히기 — 단어의 E 와 날아가는 E 가 같은 색 */
@@ -278,6 +310,7 @@ function build() {
 
   /* ---- 왼쪽 세로선 ---- */
   const RP = `translate(${TEXT_R + 18}px, ${PLAY_Y}px)`;
+  document.getElementById("rule").style.display = PORT ? "none" : "";
   track(document.getElementById("rule"), [
     [0,          { opacity: 0, transform: RP + " scaleY(0.3)" }],
     [V0,         { opacity: 0, transform: RP + " scaleY(0.3)" }, SNAP],
@@ -289,7 +322,8 @@ function build() {
 
   /* ---- 인덱스 ---- */
   const idx = document.getElementById("idx");
-  const iX = TEXT_R - idx.offsetWidth, iY = -66 + PLAY_Y;
+  const iX = PORT ? -idx.offsetWidth / 2 : TEXT_R - idx.offsetWidth;
+  const iY = IDX_Y + PLAY_Y;
   track(idx, [
     [0,          { opacity: 0, transform: `translate(${iX}px, ${iY + 6}px)` }],
     [V0 + 0.2,   { opacity: 0, transform: `translate(${iX}px, ${iY + 6}px)` }, SNAP],
@@ -308,7 +342,9 @@ function build() {
 
   words.forEach((el, i) => {
     const a = vIn(i), b = vOut(i);
-    const X = TEXT_R - wW[i], Y = -wH[i] / 2 + 4 + PLAY_Y;
+    // 가로형: 글자 칼럼 오른쪽 끝에 맞춘다. 세로형: 가운데 + 영상 아래.
+    const X = PORT ? -wW[i] / 2 : TEXT_R - wW[i];
+    const Y = PORT ? (FRAME_H / 2 + 96 + PLAY_Y) : (-wH[i] / 2 + 4 + PLAY_Y);
     const P = `translate(${X}px, ${Y}px)`;
     LEAVE.push(b - 0.34);
     track(el, [
@@ -331,8 +367,8 @@ function build() {
   const OUT_R = 560;
   document.querySelectorAll(".k5-e").forEach((el, i) => {
     const t = LEAVE[i];
-    const sx = TEXT_R - wW[i] + eX[i];
-    const sy = -wH[i] / 2 + 4 + PLAY_Y + eY[i];
+    const sx = (PORT ? -wW[i] / 2 : TEXT_R - wW[i]) + eX[i];
+    const sy = (PORT ? (FRAME_H / 2 + 96 + PLAY_Y) : (-wH[i] / 2 + 4 + PLAY_Y)) + eY[i];
     const ang = (i * 72 - 90) * Math.PI / 180;
     const ox = sx + Math.cos(ang) * OUT_R;   // 출발점 기준
     const oy = sy + Math.sin(ang) * OUT_R;
@@ -541,8 +577,14 @@ function fit() {
   if (!ended) HERO.style.minHeight = availH + "px";
 }
 if ("ResizeObserver" in window) new ResizeObserver(fit).observe(FIT);
-window.addEventListener("resize", fit);
-window.addEventListener("orientationchange", fit);
+// 가로↔세로가 바뀌면 좌표계 자체가 달라지므로 다시 만들어야 한다.
+let wasPortrait = isPortrait();
+function onResize() {
+  if (isPortrait() !== wasPortrait) { wasPortrait = isPortrait(); rebuilds = 0; rebuild(); }
+  else fit();
+}
+window.addEventListener("resize", onResize);
+window.addEventListener("orientationchange", onResize);
 
 /* 화면 밖이거나 탭이 숨겨지면 멈춘다 */
 let seen = false;

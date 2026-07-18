@@ -443,8 +443,8 @@ body:not(.edit-mode) .dp-btn { display: none; }
      clamp 를 그대로 곱하므로 화면 크기에 따른 반응형은 유지된다. */
   width: calc(clamp(76px, 8.5vw, 116px) * var(--icon-scale, 1));
   height: auto;
-  /* 아이콘 SVG 자체가 rx=20/96 로 둥글다. 그림자가 그 윤곽을 따라가도록 같은 비율. */
-  border-radius: 21%;
+  /* SVG 자체가 rx=20/96 으로 둥글다. 여기서 또 깎으면 미세하게 어긋난
+     이중 모서리가 생겨 자리마다 아이콘 모양이 달라 보인다. */
   box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
 }
 .detail-headline .detail-title { margin: 0; }
@@ -651,9 +651,13 @@ body.edit-mode .cta-link-edit { display: flex; }
 .k5-skip:hover { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
 
 /* 좁은 화면에서는 오버레이를 쓰지 않는다 — 축소되면 글자가 안 읽히고 영상도 무겁다 */
-@media (max-width: 900px) {
-  .hero-media, .k5-replay { display: none; }
-  .detail-hero.has-hero-media .hero-left { opacity: 1; }
+/* 예전에는 900px 이하에서 통째로 숨겼다. 무대가 660×372 고정 좌표계라
+   폰에서 통째로 축소되면 캡션이 7px 까지 줄어 못 읽었기 때문이다.
+   지금은 hero-5e.js 가 760px 미만에서 세로형(390×660) 좌표계로 바꿔
+   영상을 위, 글자를 아래로 배치하므로 폰에서도 읽힌다. */
+@media (max-width: 460px) {
+  .k5-skip, .k5-replay { right: 14px; font-size: 12px; }
+  .k5-skip { bottom: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-media { display: none; }
