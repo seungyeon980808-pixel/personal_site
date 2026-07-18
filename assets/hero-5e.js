@@ -556,6 +556,7 @@ const VIDS = [...document.querySelectorAll(".k5-clip video")];
 function syncVideos(ms) {
   const s = ms / 1000;
   VIDS.forEach((v, i) => {
+    v.muted = !soundOn;
     const a = VIN_T[i], b = VOUT_T[i];
     const active = playing && s >= a && s < b + 0.05;
     if (!active) { if (!v.paused) v.pause(); return; }
@@ -633,6 +634,7 @@ function finish() {
   handoff(true);
   replay.hidden = false;
   skip.hidden = true;
+  sound.hidden = true;
 }
 
 /* on=true : 본래 히어로를 보이고 오버레이를 감춘다 */
@@ -649,12 +651,33 @@ function restart() {
   fit();               // 무대 높이를 되살린다
   replay.hidden = true;
   skip.hidden = false;
+  sound.hidden = false;
   lockScroll(true);
   window.scrollTo({ top: 0, behavior: "smooth" });
   anims.forEach(a => { a.currentTime = 0; a.play(); });
   if (anims.length) anims[0].onfinish = finish;
   playing = true;
 }
+
+/* 소리 — 기본 음소거. 브라우저가 소리 있는 자동재생을 막고, 방문자가
+   예고 없이 소리 나는 것을 싫어하기도 한다. 켜고 싶은 사람만 켜게 둔다. */
+let soundOn = false;
+const sound = document.createElement("button");
+sound.type = "button";
+sound.className = "k5-sound";
+sound.setAttribute("aria-pressed", "false");
+function syncSound() {
+  VIDS.forEach(v => { v.muted = !soundOn; });
+  sound.textContent = soundOn ? "🔊 소리 끄기" : "🔇 소리 켜기";
+  sound.setAttribute("aria-pressed", String(soundOn));
+}
+sound.addEventListener("click", () => {
+  soundOn = !soundOn;
+  syncSound();
+  // 사용자가 직접 누른 시점이라 이제 소리 재생이 허용된다
+  const cur = VIDS.find(v => !v.paused);
+  if (cur && soundOn) cur.play().catch(() => {});
+});
 
 /* 건너뛰기 — 재생 중 항상 보인다 */
 const skip = document.createElement("button");
@@ -675,6 +698,8 @@ replay.innerHTML = '<span class="k5-replay-ico">↻</span><span>다시 보기</s
 replay.addEventListener("click", restart);
 HERO.appendChild(replay);
 HERO.appendChild(skip);
+HERO.appendChild(sound);
+syncSound();
 lockScroll(true);   // 재생 시작과 함께 잠근다
 
 let looping = false;

@@ -648,6 +648,28 @@ body.edit-mode .cta-link-edit { display: flex; }
   transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
 .k5-skip[hidden] { display: none; }
+
+/* 소리 켜기 — 건너뛰기 왼쪽. 기본은 음소거다. */
+.k5-sound {
+  position: fixed;
+  right: 132px;
+  bottom: 28px;
+  z-index: 60;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 13, 20, 0.55);
+  backdrop-filter: blur(8px);
+  color: #cfd8e6;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.k5-sound[hidden] { display: none; }
+.k5-sound:hover { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
+.k5-sound[aria-pressed="true"] { color: #fff; border-color: var(--main); }
 .k5-skip:hover { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
 
 /* 좁은 화면에서는 오버레이를 쓰지 않는다 — 축소되면 글자가 안 읽히고 영상도 무겁다 */
@@ -703,6 +725,34 @@ body.edit-mode .cta-link-edit { display: flex; }
   line-height: 1.6;
   margin: 0;
 }
+
+/* 설명 접기 — 첫 문단만 보이고 나머지는 '자세히 보기' 를 눌러야 나온다.
+   글이 길어 한눈에 안 들어오는 문제를 줄인다. */
+.fd-rest {
+  display: block;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s var(--ease), opacity 0.25s var(--ease);
+}
+.feature.desc-open .fd-rest { max-height: 40em; opacity: 1; }
+
+.feature-more {
+  margin-top: 10px;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 13px 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.feature-more[hidden] { display: none; }
+.feature-more::after { content: " ↓"; }
+.feature.desc-open .feature-more::after { content: " ↑"; }
+.feature-more:hover { color: var(--main); border-color: var(--main); background: var(--tint); }
 
 /* Media (video facade OR image) */
 .feature-media { min-width: 0; }

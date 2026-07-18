@@ -167,12 +167,20 @@ function makeFeature(index, feat) {
   title.innerHTML = sanitizeRich(f.title || "");
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.innerHTML = sanitizeRich(f.desc || "");
+  desc.dataset.raw = sanitizeRich(f.desc || "");
+  const more = el("button", "feature-more", "자세히 보기");
+  more.type = "button";
+  more.addEventListener("click", () => {
+    section.classList.toggle("desc-open");
+    more.textContent = section.classList.contains("desc-open") ? "접기" : "자세히 보기";
+  });
+  paintDesc(desc, more);
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
   textCol.appendChild(title);
   textCol.appendChild(desc);
+  textCol.appendChild(more);
   textCol.appendChild(remove);
 
   section.appendChild(mediaCol);
@@ -221,6 +229,41 @@ function makeFeature(index, feat) {
   return section;
 }
 
+/* 기능 설명이 길어 한눈에 안 들어온다. 첫 문단만 보여주고 나머지는 접는다.
+   문단 구분(빈 줄)을 기준으로 나누므로 이미 저장된 글을 그대로 쓸 수 있다.
+   편집 모드에서는 원문 전체를 그대로 둔다 — 안 그러면 편집·저장이 꼬인다.
+   래퍼 span 은 저장 시 sanitizeRich 가 알아서 벗기므로 데이터에 남지 않는다. */
+const PARA_SPLIT = /(?:\s*<br\s*\/?>\s*){2,}/i;
+function paintDesc(desc, more) {
+  const raw = desc.dataset.raw || "";
+  if (isEditMode) {
+    desc.innerHTML = raw;
+    if (more) more.hidden = true;
+    return;
+  }
+  const i = raw.search(PARA_SPLIT);
+  if (i < 0) {                       // 문단이 하나뿐이면 접을 게 없다
+    desc.innerHTML = raw;
+    if (more) more.hidden = true;
+    return;
+  }
+  const lead = raw.slice(0, i);
+  const rest = raw.replace(PARA_SPLIT, "<br><br>").slice(lead.length);
+  desc.innerHTML = lead + '<span class="fd-rest">' + rest + "</span>";
+  if (more) more.hidden = false;
+}
+
+/* 편집을 켜고 끌 때 설명을 다시 그린다 */
+function repaintDescs() {
+  document.querySelectorAll("#featureList .feature").forEach((sec) => {
+    const d = sec.querySelector(".feature-desc");
+    const m = sec.querySelector(".feature-more");
+    if (d) paintDesc(d, m);
+    sec.classList.remove("desc-open");
+    if (m) m.textContent = "자세히 보기";
+  });
+}
+
 function renumber() {
   document.querySelectorAll("#featureList .feature").forEach((sec, i) => {
     sec.dataset.featureIndex = String(i);
@@ -242,7 +285,7 @@ function collectFeatures() {
   document.querySelectorAll("#featureList .feature").forEach((sec) => {
     out.push({
       title: sanitizeRich(sec.querySelector(".feature-title").innerHTML),
-      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),
+      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),   // 편집 모드에선 DOM 이 원문
       mediaType: sec.querySelector(".type-btn.active").dataset.type,
       mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
     });
@@ -727,6 +770,7 @@ function applyEditMode(on) {
   isEditMode = on;
   document.body.classList.toggle("edit-mode", on);
   setEditable(on);
+  repaintDescs();
   setFormatBar(on);   // 밑줄·글자색·자간 툴바
   setIconSizeCtl(on); // 아이콘 크기 슬라이더
   if (on) {
