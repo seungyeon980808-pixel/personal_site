@@ -33,6 +33,7 @@
     rel="stylesheet"
   />
   <link rel="stylesheet" href="../assets/detail.css" />
+  <link rel="stylesheet" href="../assets/hero-5e.css" />
 </head>
 <body data-project="physics-draw">
 
@@ -44,27 +45,98 @@
     <button class="edit-badge" type="button" hidden>편집 모드 · 끄기</button>
     <div class="admin-area">
       <span class="user-email" id="userEmail"></span>
+      <button id="dpBtn" class="dp-btn" type="button">📱 기기 미리보기</button>
       <button class="save-btn" id="saveBtn" type="button">저장</button>
       <button class="admin-btn" id="adminBtn" type="button">관리자 로그인</button>
     </div>
   </div>
 
   <!-- ===== HERO ===== -->
-  <header class="detail-hero reveal">
+  <!-- reveal 은 빼둔다. 키네틱 타이포 자체가 진입 연출이고,
+       reveal 의 translateY(28px) 때문에 무대가 화면 중앙에서 아래로 밀린다. -->
+  <header class="detail-hero has-hero-media">
     <div class="wrap">
-      <span class="eyebrow"><span class="dot"></span> PROJECT</span>
-      <div class="detail-headline">
-        <img class="detail-icon" src="../assets/logo-5e.svg" alt="5E 로고" />
-        <h1 class="detail-title" data-editable data-field="hero.title">5E</h1>
+      <!-- 왼쪽: 기존 히어로 내용 그대로 -->
+      <div class="hero-left">
+        <span class="eyebrow"><span class="dot"></span> PROJECT</span>
+        <div class="detail-headline">
+          <img class="detail-icon" src="../assets/logo-5e.svg" alt="5E 로고" />
+          <h1 class="detail-title" data-editable data-field="hero.title">5E</h1>
+        </div>
+        <p class="detail-tagline" data-editable data-field="hero.tagline">한 줄 소개 — 이 도구가 무엇을 해결하는지 적어주세요.</p>
+        <!-- 설명 옆으로: 스택·상태와 버튼을 한 줄에 둔다 (좁아지면 접힘) -->
+        <div class="detail-actions">
+          <div class="detail-meta">
+            <span class="stack" data-editable data-field="hero.stack">HTML · Canvas · JS</span>
+            <span class="status" data-status="in progress" data-field="hero.status">in progress</span>
+          </div>
+          <div class="cta-row">
+            <a class="cta primary" href="#" target="_blank" rel="noopener" data-link="live">라이브 열기 ↗</a>
+            <a class="cta ghost" href="#" target="_blank" rel="noopener" data-link="github">GitHub ↗</a>
+          </div>
+        </div>
       </div>
-      <p class="detail-tagline" data-editable data-field="hero.tagline">한 줄 소개 — 이 도구가 무엇을 해결하는지 적어주세요.</p>
-      <div class="detail-meta">
-        <span class="stack" data-editable data-field="hero.stack">HTML · Canvas · JS</span>
-        <span class="status" data-status="개발중" data-field="hero.status">개발중</span>
-      </div>
-      <div class="cta-row">
-        <a class="cta primary" href="#" target="_blank" rel="noopener" data-link="live">라이브 열기 ↗</a>
-        <a class="cta ghost" href="#" target="_blank" rel="noopener" data-link="github">GitHub ↗</a>
+
+      <!-- 오른쪽: 비어 있던 자리에 키네틱 타이포 (assets/hero-5e.js 가 구동) -->
+      <div class="hero-media">
+        <div class="k5" id="k5stage">
+          <div class="k5-cam" id="cam">
+            <div class="k5-c k5-tint" data-tint="0"></div>
+            <div class="k5-c k5-tint" data-tint="1"></div>
+            <div class="k5-c k5-tint" data-tint="2"></div>
+            <div class="k5-c k5-tint" data-tint="3"></div>
+            <div class="k5-c k5-tint" data-tint="4"></div>
+            <div class="k5-c k5-glow" id="glow"></div>
+            <div class="k5-c k5-rule" id="rule"></div>
+
+            <div class="k5-c k5-frame" id="frame">
+              <div class="k5-clip" data-clip="0"><video src="../assets/demo/01-object-convert.mp4" muted playsinline preload="auto"></video></div>
+              <div class="k5-clip" data-clip="1"><video src="../assets/demo/02-library.mp4" muted playsinline preload="auto"></video></div>
+              <div class="k5-clip" data-clip="2"><video src="../assets/demo/03-graph.mp4" muted playsinline preload="auto"></video></div>
+              <div class="k5-clip" data-clip="3"><video src="../assets/demo/04-snap.mp4" muted playsinline preload="auto"></video></div>
+              <div class="k5-clip" data-clip="4"><video src="../assets/demo/05-slope.mp4" muted playsinline preload="auto"></video></div>
+            </div>
+            <div class="k5-c k5-cap" data-cap="0">오브젝트 변환</div>
+            <div class="k5-c k5-cap" data-cap="1">기출 라이브러리</div>
+            <div class="k5-c k5-cap" data-cap="2">좌표 &amp; 함수</div>
+            <div class="k5-c k5-cap" data-cap="3">오브젝트 스냅</div>
+            <div class="k5-c k5-cap" data-cap="4">경사면 처리</div>
+            <div class="k5-c k5-dots" id="dots">
+              <span class="k5-dot"><i></i></span><span class="k5-dot"><i></i></span><span class="k5-dot"><i></i></span>
+              <span class="k5-dot"><i></i></span><span class="k5-dot"><i></i></span>
+            </div>
+
+            <div class="k5-c k5-idx" id="idx">01 / 05</div>
+            <div class="k5-c k5-word" data-w="0">sci<b>E</b>nce</div>
+            <div class="k5-c k5-word" data-w="1"><b>E</b><span class="post">ducational</span></div>
+            <div class="k5-c k5-word" data-w="2"><b>E</b><span class="post">xam</span></div>
+            <div class="k5-c k5-word" data-w="3"><b>E</b><span class="post">asy</span></div>
+            <div class="k5-c k5-word" data-w="4"><b>E</b><span class="post">ditor</span></div>
+
+            <div class="k5-c k5-e" data-e="0">E</div>
+            <div class="k5-c k5-e" data-e="1">E</div>
+            <div class="k5-c k5-e" data-e="2">E</div>
+            <div class="k5-c k5-e" data-e="3">E</div>
+            <div class="k5-c k5-e" data-e="4">E</div>
+
+            <div class="k5-c k5-count" id="count">E</div>
+            <div class="k5-c k5-ring" data-ring="0"></div>
+            <div class="k5-c k5-ring" data-ring="1"></div>
+            <div class="k5-c k5-ring" data-ring="2"></div>
+            <div class="k5-c k5-ring" data-ring="3"></div>
+            <div class="k5-c k5-ring" data-ring="4"></div>
+            <div class="k5-c k5-final" id="final">5E<span class="k5-sweep" id="sweep"></span></div>
+
+            <div class="k5-c k5-stackword" data-s="0">sci<b>E</b>nce</div>
+            <div class="k5-c k5-stackword" data-s="1"><b>E</b>ducational</div>
+            <div class="k5-c k5-stackword" data-s="2"><b>E</b>xam</div>
+            <div class="k5-c k5-stackword" data-s="3"><b>E</b>asy</div>
+            <div class="k5-c k5-stackword" data-s="4"><b>E</b>ditor</div>
+            <div class="k5-c k5-tag" id="tag">교사를 위한 과학 시험용 그림 에디터</div>
+          </div>
+          <div class="k5-vig"></div>
+          <div class="k5-flash" id="flash"></div>
+        </div>
       </div>
     </div>
   </header>
@@ -123,6 +195,21 @@
     </div>
   </footer>
 
+  <!-- ===== DEVICE PREVIEW (편집 모드 전용) — detail.js 가 제어 ===== -->
+  <div class="dp-overlay" id="dpOverlay" hidden>
+    <div class="dp-bar">
+      <span class="dp-label">기기 미리보기</span>
+      <button class="dp-size active" type="button" data-w="375" data-h="812">모바일 375</button>
+      <button class="dp-size" type="button" data-w="768" data-h="1024">태블릿 768</button>
+      <button class="dp-size" type="button" data-w="1280" data-h="800">데스크톱 1280</button>
+      <span class="dp-note" id="dpNote"></span>
+      <button class="dp-close" id="dpClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="dp-stage" id="dpStage">
+      <div class="dp-frame" id="dpFrame"><iframe id="dpIframe" title="기기 미리보기"></iframe></div>
+    </div>
+  </div>
+
   <!-- Theme toggle -->
   <button id="themeToggle" class="theme-toggle" type="button" aria-label="라이트/다크 전환">
     <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -130,6 +217,8 @@
   </button>
 
   <script type="module" src="../assets/detail.js"></script>
+  <!-- 히어로 키네틱 타이포 (이 페이지 전용) -->
+  <script src="../assets/hero-5e.js" defer></script>
 
   <!-- ===== FEATURE INDEX 데이터 (5E 전용) ===== -->
   <script type="module">
