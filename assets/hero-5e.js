@@ -20,6 +20,19 @@
   let BASE_W = 660, BASE_H = 372;
   const isPortrait = () => window.innerWidth < 760;
 
+  /* 영상 소스 고르기 — 폰에서는 저해상도(720px) 사본을 받는다.
+     폰에서 영상이 실제로 보이는 크기는 약 325x183px 이라 1920 원본은
+     필요한 것의 6배다. 2.27MB → 0.44MB.
+     HTML 에 src 를 두면 브라우저가 즉시 받기 시작해 고르기 전에 이미
+     고해상도를 받아버리므로, data- 로 두고 여기서 하나만 지정한다. */
+  (function pickSources() {
+    const useMobile = isPortrait();
+    document.querySelectorAll(".k5-clip video").forEach((v) => {
+      const src = (useMobile && v.dataset.srcM) || v.dataset.src;
+      if (src && v.getAttribute("src") !== src) v.src = src;
+    });
+  })();
+
 /* =======================================================================
    레이아웃 (640×400, 원점 = 중앙)
      글자 칼럼 오른쪽 끝  x = -112
