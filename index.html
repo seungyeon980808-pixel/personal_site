@@ -2296,6 +2296,18 @@
       return data;
     }
 
+    // 예전 서식(자간) 버전이 <span style="letter-spacing…">·<br> 같은 태그를 문자열
+    // 그대로 저장해 둔 값이 있다. 이 화면은 평문만 다루므로(textContent), 불러올 때
+    // 태그를 벗겨 순수 텍스트만 남긴다. 태그가 없던 정상 값은 손대지 않고 통과한다.
+    function stripTags(s) {
+      if (s == null) return "";
+      const str = String(s);
+      if (str.indexOf("<") === -1) return str; // 태그 없음 → 그대로
+      const box = document.createElement("div");
+      box.innerHTML = str;
+      return (box.textContent || "").trim();
+    }
+
     function applyData(data) {
       if (!data) return;
       // 저장된 카드 순서를 먼저 적용한 뒤 내용을 채운다.
@@ -2308,7 +2320,7 @@
             el.setAttribute("data-status", val);
             el.textContent = val;
           } else {
-            el.textContent = val;
+            el.textContent = stripTags(val); // 예전에 박힌 서식 태그 제거
           }
         });
       }
