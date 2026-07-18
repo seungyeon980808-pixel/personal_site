@@ -161,10 +161,10 @@ function makeFeature(index, feat) {
   const num = el("div", "feature-num", pad2(index + 1));
   const title = el("h2", "feature-title");
   title.dataset.editable = "1";
-  title.textContent = stripTags(f.title || "");
+  title.innerHTML = sanitizeBreaks(f.title || "");
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.textContent = stripTags(f.desc || "");
+  desc.innerHTML = sanitizeBreaks(f.desc || "");
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
@@ -238,8 +238,8 @@ function collectFeatures() {
   const out = [];
   document.querySelectorAll("#featureList .feature").forEach((sec) => {
     out.push({
-      title: (sec.querySelector(".feature-title").textContent || "").trim(),
-      desc: (sec.querySelector(".feature-desc").textContent || "").trim(),
+      title: sanitizeBreaks(sec.querySelector(".feature-title").innerHTML),
+      desc: sanitizeBreaks(sec.querySelector(".feature-desc").innerHTML),
       mediaType: sec.querySelector(".type-btn.active").dataset.type,
       mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
     });
@@ -247,16 +247,26 @@ function collectFeatures() {
   return out;
 }
 
-// 예전 서식(자간) 버전이 <span style="letter-spacing…">·<br> 같은 태그를 문자열 그대로
-// 저장해 둔 값이 있다. 상세 페이지도 평문만 다루므로, 불러올 때 태그를 벗겨 순수 텍스트만
-// 남긴다. 태그가 없던 정상 값은 손대지 않고 통과한다. (index.html 의 stripTags 와 같은 규칙)
-function stripTags(s) {
-  if (s == null) return "";
-  const str = String(s);
-  if (str.indexOf("<") === -1) return str;
+// 편집칸의 줄바꿈(<br>)만 살리고, 나머지 태그(예전 자간 span 등)는 전부 벗긴다.
+// 저장·불러오기 양쪽에서 같은 규칙을 써서, 엔터로 넣은 줄바꿈이 새로고침 후에도 유지된다.
+// (index.html 의 sanitizeBreaks 와 같은 규칙)
+function unwrapEl(el, before) {
+  const kids = Array.from(el.childNodes);
+  el.replaceWith.apply(el, before ? [before].concat(kids) : kids);
+}
+function sanitizeBreaks(html) {
   const box = document.createElement("div");
-  box.innerHTML = str;
-  return (box.textContent || "").trim();
+  box.innerHTML = html == null ? "" : String(html);
+  Array.from(box.querySelectorAll("div, p")).reverse().forEach((blk) => {
+    if (!blk.parentNode) return;
+    unwrapEl(blk, document.createElement("br"));
+  });
+  Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
+    if (!el.parentNode) return;
+    if (el.tagName === "BR") return;
+    unwrapEl(el);
+  });
+  return box.innerHTML.replace(/^(?:<br\s*\/?>)+/, "").replace(/(?:<br\s*\/?>)+$/, "").trim();
 }
 
 // ---- serialization (hero fields + links + features) ----------------------
@@ -266,7 +276,7 @@ function collectData() {
     if (elm.classList.contains("status")) {
       data.fields[elm.getAttribute("data-field")] = elm.getAttribute("data-status");
     } else {
-      data.fields[elm.getAttribute("data-field")] = elm.textContent.trim();
+      data.fields[elm.getAttribute("data-field")] = sanitizeBreaks(elm.innerHTML); // 줄바꿈 보존
     }
   });
   document.querySelectorAll("a[data-link]").forEach((a) => {
@@ -285,7 +295,7 @@ function applyData(data) {
         elm.setAttribute("data-status", val);
         elm.textContent = val;
       } else {
-        elm.textContent = stripTags(val); // 예전에 박힌 서식 태그 제거
+        elm.innerHTML = sanitizeBreaks(val); // 줄바꿈만 살리고 나머지 태그 제거
       }
     });
   }

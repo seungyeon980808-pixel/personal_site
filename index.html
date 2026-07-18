@@ -2332,7 +2332,7 @@
         if (el.classList.contains("status")) {
           data.fields[key] = el.getAttribute("data-status");
         } else {
-          data.fields[key] = el.textContent.trim();
+          data.fields[key] = sanitizeBreaks(el.innerHTML); // 줄바꿈(<br>) 보존
         }
       });
       document.querySelectorAll("[data-channel]").forEach((a) => {
@@ -2346,16 +2346,28 @@
       return data;
     }
 
-    // 예전 서식(자간) 버전이 <span style="letter-spacing…">·<br> 같은 태그를 문자열
-    // 그대로 저장해 둔 값이 있다. 이 화면은 평문만 다루므로(textContent), 불러올 때
-    // 태그를 벗겨 순수 텍스트만 남긴다. 태그가 없던 정상 값은 손대지 않고 통과한다.
-    function stripTags(s) {
-      if (s == null) return "";
-      const str = String(s);
-      if (str.indexOf("<") === -1) return str; // 태그 없음 → 그대로
+    // 편집칸의 줄바꿈(<br>)만 살리고, 나머지 태그(예전 자간 span 등)는 전부 벗긴다.
+    // 저장·불러오기 양쪽에서 같은 규칙을 써서, 엔터로 넣은 줄바꿈이 새로고침 후에도 유지된다.
+    // (예전에 저장된 자간 span 도 여기서 함께 정리된다.)
+    function unwrapEl(el, before) {
+      const kids = Array.from(el.childNodes);
+      el.replaceWith.apply(el, before ? [before].concat(kids) : kids);
+    }
+    function sanitizeBreaks(html) {
       const box = document.createElement("div");
-      box.innerHTML = str;
-      return (box.textContent || "").trim();
+      box.innerHTML = html == null ? "" : String(html);
+      // 문단(div/p)은 줄바꿈으로 평탄화 — contenteditable 이 만드는 래퍼 정리. 안쪽부터.
+      Array.from(box.querySelectorAll("div, p")).reverse().forEach((blk) => {
+        if (!blk.parentNode) return;
+        unwrapEl(blk, document.createElement("br"));
+      });
+      // <br> 만 남기고 나머지 태그는 내용만 남긴다.
+      Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
+        if (!el.parentNode) return;
+        if (el.tagName === "BR") return;
+        unwrapEl(el);
+      });
+      return box.innerHTML.replace(/^(?:<br\s*\/?>)+/, "").replace(/(?:<br\s*\/?>)+$/, "").trim();
     }
 
     function applyData(data) {
@@ -2370,7 +2382,7 @@
             el.setAttribute("data-status", val);
             el.textContent = val;
           } else {
-            el.textContent = stripTags(val); // 예전에 박힌 서식 태그 제거
+            el.innerHTML = sanitizeBreaks(String(val)); // 줄바꿈만 살리고 나머지 태그 제거
           }
         });
       }
