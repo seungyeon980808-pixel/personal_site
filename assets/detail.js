@@ -170,11 +170,11 @@ function makeFeature(index, feat) {
   lead.dataset.editable = "1";
   // 예전 글에는 lead 가 없다. 첫 문단을 슬로건으로 올리고 나머지를 본문으로 둔다.
   const split = splitLegacy(f);
-  lead.innerHTML = split.lead;
+  paintRich(lead, split.lead);
 
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
-  desc.innerHTML = split.desc;
+  paintRich(desc, split.desc);
 
   // 글자 없는 동그란 버튼 하나. 눌러보고 싶게.
   const more = el("button", "feature-more");
@@ -279,8 +279,8 @@ function collectFeatures() {
   document.querySelectorAll("#featureList .feature").forEach((sec) => {
     out.push({
       title: sanitizeRich(sec.querySelector(".feature-title").innerHTML),
-      lead: sanitizeRich(sec.querySelector(".feature-lead").innerHTML),
-      desc: sanitizeRich(sec.querySelector(".feature-desc").innerHTML),
+      lead: readRich(sec.querySelector(".feature-lead")),
+      desc: readRich(sec.querySelector(".feature-desc")),
       mediaType: sec.querySelector(".type-btn.active").dataset.type,
       mediaUrl: (sec.querySelector(".media-url").value || "").trim(),
     });
@@ -360,6 +360,48 @@ function collapseBlankLines(html) {
     .trim();
 }
 
+/* ---- 줄바꿈은 데스크톱 전용 -------------------------------------------------
+   엔터는 "여기서 끊어라"는 절대 명령인데, 데스크톱 텍스트 칸(462px)에서 줄 끝인
+   지점이 모바일(338px)에서는 줄 한복판이다. 손으로 맞추면 한쪽은 반드시 깨진다.
+
+   그래서 엔터 한 번은 '데스크톱에서만 여기서 끊기'로 읽는다. 좁은 화면에서는
+   띄어쓰기로 바꿔 자연스럽게 흘려보낸다. 엔터 두 번(빈 줄)은 문단 구분이므로
+   폭과 무관하게 그대로 둔다.
+
+   원문은 dataset.src 에 남는다 — 화면에 보이는 것은 각색본이고, 저장·편집은
+   항상 원문으로 한다. 편집 중에는 각색하지 않는다(고치는 건 원문이니까). */
+const NARROW = "(max-width: 720px)"; // detail.css 에서 기능 섹션이 1단으로 접히는 폭
+function isNarrow() {
+  return window.matchMedia(NARROW).matches;
+}
+function softenBreaks(html) {
+  return String(html).replace(/(?:\s*<br\s*\/?>\s*)+/gi, (run) =>
+    (run.match(/<br/gi) || []).length >= 2 ? run : " "
+  );
+}
+// 원문을 담고, 지금 화면에 맞는 모습으로 그린다
+function paintRich(elm, html) {
+  const src = sanitizeRich(html);
+  elm.dataset.src = src;
+  elm.innerHTML = isEditMode || !isNarrow() ? src : softenBreaks(src);
+}
+// 저장·수집용. 화면에 보이는 각색본이 아니라 원문을 돌려준다
+function readRich(elm) {
+  if (!elm) return "";
+  return sanitizeRich(isEditMode ? elm.innerHTML : elm.dataset.src || elm.innerHTML);
+}
+// 편집 중 고친 내용을 원문으로 확정한다 (편집 모드를 끄기 직전에 부른다)
+function syncRichSources() {
+  document.querySelectorAll("[data-src]").forEach((elm) => {
+    elm.dataset.src = sanitizeRich(elm.innerHTML);
+  });
+}
+function repaintRich() {
+  document.querySelectorAll("[data-src]").forEach((elm) => {
+    elm.innerHTML = isEditMode || !isNarrow() ? elm.dataset.src : softenBreaks(elm.dataset.src);
+  });
+}
+
 // ---- serialization (hero fields + links + features) ----------------------
 function collectData() {
   const data = { fields: {}, links: {}, features: collectFeatures(), iconScale };
@@ -367,7 +409,7 @@ function collectData() {
     if (elm.classList.contains("status")) {
       data.fields[elm.getAttribute("data-field")] = elm.getAttribute("data-status");
     } else {
-      data.fields[elm.getAttribute("data-field")] = sanitizeRich(elm.innerHTML); // 줄바꿈 보존
+      data.fields[elm.getAttribute("data-field")] = readRich(elm); // 줄바꿈 보존(원문 기준)
     }
   });
   document.querySelectorAll("a[data-link]").forEach((a) => {
@@ -387,7 +429,7 @@ function applyData(data) {
         elm.setAttribute("data-status", st);
         elm.textContent = st;
       } else {
-        elm.innerHTML = sanitizeRich(val); // 줄바꿈만 살리고 나머지 태그 제거
+        paintRich(elm, val); // 줄바꿈만 살리고 나머지 태그 제거 (좁은 화면은 각색)
       }
     });
   }
@@ -762,8 +804,12 @@ function syncEditBadge() {
     : "편집을 켭니다 (로그인 상태는 그대로)";
 }
 function applyEditMode(on) {
+  // 편집을 끄기 전에 고친 내용을 원문으로 확정한다.
+  // 안 그러면 각색본(엔터가 띄어쓰기로 바뀐 것)을 원문으로 착각해 덮어쓴다.
+  if (isEditMode && !on) syncRichSources();
   isEditMode = on;
   document.body.classList.toggle("edit-mode", on);
+  repaintRich(); // 편집 중엔 원문 그대로, 끄면 화면 폭에 맞춘 모습으로
   setEditable(on);
   setFormatBar(on);   // 밑줄·글자색·자간 툴바
   setIconSizeCtl(on); // 아이콘 크기 슬라이더
@@ -1223,6 +1269,9 @@ async function boot() {
   initComments();
   if (IS_PREVIEW) initPreviewReceiver();
   else initDevicePreview();
+
+  // 화면 폭이 경계를 넘나들면 (창 크기 조절·기기 회전) 줄바꿈을 다시 계산한다
+  window.matchMedia(NARROW).addEventListener("change", repaintRich);
 
   // Auth listener: edit mode ONLY for the admin email.
   onAuthStateChanged(auth, (user) => {
