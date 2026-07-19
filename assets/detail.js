@@ -174,28 +174,43 @@ function makeFeature(index, feat) {
 
   const desc = el("p", "feature-desc");
   desc.dataset.editable = "1";
+  desc.dataset.flow = "prose"; // 펼쳐 읽는 본문은 산문 — 줄 끝은 폭이 정한다
   paintRich(desc, split.desc);
 
-  // 글자 없는 동그란 버튼 하나. 눌러보고 싶게.
+  // 글자 없는 동그란 버튼 하나. 제목 줄 오른쪽 끝에 앉는다 (흔한 아코디언 자리).
   const more = el("button", "feature-more");
   more.type = "button";
   more.setAttribute("aria-label", "자세한 설명 보기");
   more.setAttribute("aria-expanded", "false");
   // 펼칠 내용이 없으면 버튼도 없다 (편집 모드에서는 본문을 채워야 하니 항상 보인다)
   more.hidden = !split.desc.trim();
-  more.addEventListener("click", () => {
+
+  function toggleDesc() {
     const open = section.classList.toggle("desc-open");
     more.setAttribute("aria-expanded", String(open));
     more.setAttribute("aria-label", open ? "설명 접기" : "자세한 설명 보기");
+  }
+  more.addEventListener("click", toggleDesc);
+
+  /* 제목 줄 전체가 클릭 영역이다 — 동그라미 하나만 노리게 하면 손이 아프다.
+     편집 모드에서는 제목에 커서를 놓는 클릭이므로 펼치지 않는다. */
+  const head = el("div", "feature-head");
+  head.appendChild(title);
+  head.appendChild(more);
+  head.classList.toggle("no-toggle", more.hidden);
+  head.addEventListener("click", (e) => {
+    if (isEditMode) return;
+    if (more.hidden) return;
+    if (e.target.closest(".feature-more")) return; // 버튼이 스스로 처리한다
+    toggleDesc();
   });
 
   const remove = el("button", "feature-remove", "이 기능 삭제");
   remove.type = "button";
   textCol.appendChild(num);
-  textCol.appendChild(title);
+  textCol.appendChild(head);
   textCol.appendChild(lead);
   textCol.appendChild(desc);
-  textCol.appendChild(more);
   textCol.appendChild(remove);
 
   section.appendChild(mediaCol);
@@ -379,11 +394,20 @@ function softenBreaks(html) {
     (run.match(/<br/gi) || []).length >= 2 ? run : " "
   );
 }
+/* 어떤 모습으로 그릴지 한곳에서 정한다.
+   - 편집 중         : 원문 그대로 (고치는 대상이 원문이니까)
+   - data-flow=prose : 폭과 무관하게 흘린다. 펼쳐 읽는 본문은 산문이지
+                       항목 나열이 아니다 — 줄 끝은 문단 폭이 정할 일이다.
+   - 그 외           : 좁을 때만 흘린다 (엔터는 데스크톱 전용) */
+function renderRich(elm) {
+  const src = elm.dataset.src || "";
+  if (isEditMode) return src;
+  return isNarrow() || elm.dataset.flow === "prose" ? softenBreaks(src) : src;
+}
 // 원문을 담고, 지금 화면에 맞는 모습으로 그린다
 function paintRich(elm, html) {
-  const src = sanitizeRich(html);
-  elm.dataset.src = src;
-  elm.innerHTML = isEditMode || !isNarrow() ? src : softenBreaks(src);
+  elm.dataset.src = sanitizeRich(html);
+  elm.innerHTML = renderRich(elm);
 }
 // 저장·수집용. 화면에 보이는 각색본이 아니라 원문을 돌려준다
 function readRich(elm) {
@@ -398,7 +422,7 @@ function syncRichSources() {
 }
 function repaintRich() {
   document.querySelectorAll("[data-src]").forEach((elm) => {
-    elm.innerHTML = isEditMode || !isNarrow() ? elm.dataset.src : softenBreaks(elm.dataset.src);
+    elm.innerHTML = renderRich(elm);
   });
 }
 

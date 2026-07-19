@@ -721,7 +721,27 @@ body.edit-mode .cta-link-edit { display: flex; }
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
+  margin: 0;
+  flex: 1;
+}
+
+/* 제목 줄 — 제목과 펼침 버튼이 한 줄에 마주 본다.
+   줄 전체가 클릭 영역이라 동그라미 하나만 겨냥할 필요가 없다. */
+.feature-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin: 0 0 14px;
+}
+body:not(.edit-mode) .feature-head:not(.no-toggle) { cursor: pointer; }
+/* 줄 어디에 손을 얹어도 버튼이 반응해서, 여기가 눌리는 곳임을 알린다 */
+body:not(.edit-mode) .feature-head:not(.no-toggle):hover .feature-more {
+  border-color: var(--main);
+  background: var(--tint);
+}
+body:not(.edit-mode) .feature-head:not(.no-toggle):hover .feature-more::before,
+body:not(.edit-mode) .feature-head:not(.no-toggle):hover .feature-more::after {
+  background: var(--main);
 }
 /* 슬로건 — 접혀 있을 때 보이는 한 줄. 본문보다 굵고 크고 밝게 해서
    먼저 눈에 들어오게 한다. 본문과 역할이 다르니 생김새도 달라야 한다. */
@@ -766,7 +786,7 @@ body.edit-mode .feature-desc {
   position: relative;
   width: 34px;
   height: 34px;
-  margin-top: 14px;
+  flex: none;   /* 제목이 길어져도 찌그러지지 않는다 */
   padding: 0;
   border-radius: 50%;
   border: 1px solid var(--divider);
@@ -775,6 +795,8 @@ body.edit-mode .feature-desc {
   transition: border-color 0.2s var(--ease), background 0.2s var(--ease), transform 0.25s var(--ease);
 }
 .feature-more[hidden] { display: none; }
+/* 편집 중에는 본문이 늘 펼쳐져 있다 — 아무 일도 안 하는 버튼은 치운다 */
+body.edit-mode .feature-more { display: none; }
 /* 아래를 향한 갈매기표 */
 .feature-more::before,
 .feature-more::after {
@@ -789,17 +811,16 @@ body.edit-mode .feature-desc {
 }
 .feature-more::before { left: 8px;  transform: translateY(-50%) rotate(45deg); }
 .feature-more::after  { right: 8px; transform: translateY(-50%) rotate(-45deg); }
+/* 방향(⌄/⌃)이 상태를 말하므로 hover 로 위치까지 흔들지 않는다 — 색만 바뀐다 */
 .feature-more:hover {
   border-color: var(--main);
   background: var(--tint);
-  transform: translateY(2px);
 }
 .feature-more:hover::before,
 .feature-more:hover::after { background: var(--main); }
 .feature-more:focus-visible { outline: 2px solid var(--main); outline-offset: 2px; }
 /* 펼치면 화살표가 위를 향한다 */
 .feature.desc-open .feature-more { transform: rotate(180deg); }
-.feature.desc-open .feature-more:hover { transform: rotate(180deg) translateY(2px); }
 
 /* Media (video facade OR image) */
 .feature-media { min-width: 0; }
