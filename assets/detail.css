@@ -251,8 +251,9 @@ body.edit-mode .save-btn { display: inline-block; }
   align-items: center;
   justify-content: center;
 }
-/* 현재 자간 값 — 누르면 기본값(0)으로 되돌린다 */
-.edit-toolbar .et-ls-val {
+/* 현재 자간·크기 값 — 누르면 기본값으로 되돌린다 */
+.edit-toolbar .et-ls-val,
+.edit-toolbar .et-fs-val {
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
   min-width: 38px;
@@ -265,9 +266,12 @@ body.edit-mode .save-btn { display: inline-block; }
   cursor: pointer;
   transition: color 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease);
 }
-.edit-toolbar .et-ls-val.is-set { color: var(--main); background: var(--tint); border-color: var(--main); }
-.edit-toolbar .et-ls-val:hover:not(:disabled) { border-color: var(--main); color: var(--main); }
-.edit-toolbar .et-ls-val:disabled { opacity: 0.35; cursor: default; }
+.edit-toolbar .et-ls-val.is-set,
+.edit-toolbar .et-fs-val.is-set { color: var(--main); background: var(--tint); border-color: var(--main); }
+.edit-toolbar .et-ls-val:hover:not(:disabled),
+.edit-toolbar .et-fs-val:hover:not(:disabled) { border-color: var(--main); color: var(--main); }
+.edit-toolbar .et-ls-val:disabled,
+.edit-toolbar .et-fs-val:disabled { opacity: 0.35; cursor: default; }
 .edit-toolbar .et-swatch {
   width: 16px;
   height: 16px;
@@ -301,6 +305,41 @@ body.edit-mode .save-btn { display: inline-block; }
   font-family: "IBM Plex Mono", monospace;
   min-width: 42px;
 }
+
+/* 포인트 색(라벨·번호) — 아이콘 크기 조절 바로 아래 같은 톤으로 붙는다 */
+.accent-ctl {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--muted-soft);
+}
+.accent-ctl label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.accent-ctl input[type="color"] {
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--divider);
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+}
+.accent-ctl .accent-reset {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--divider);
+  border-radius: 5px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+.accent-ctl .accent-reset:hover { color: var(--text); border-color: var(--muted-soft); }
 
 /* ===== DEVICE PREVIEW (편집 모드 전용) =====
    같은 페이지를 지정한 폭의 iframe 으로 띄운다. 폭만 CSS 로 좁히면 미디어 쿼리는
@@ -422,13 +461,15 @@ body:not(.edit-mode) .dp-btn { display: none; }
   gap: 8px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
-  color: var(--sub);
+  /* 포인트 색은 편집 모드에서 바꿀 수 있다 (detail.js applyAccents).
+     지정하지 않으면 테마 색을 그대로 따른다. */
+  color: var(--eyebrow-color, var(--sub));
   letter-spacing: 0.04em;
   margin-bottom: 18px;
 }
 .detail-hero .eyebrow .dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--sub);
+  background: var(--eyebrow-color, var(--sub));
 }
 /* 앱 아이콘 + 제목을 한 줄로. 아이콘 없는 프로젝트는 이 블록을 빼면 그만이다. */
 .detail-headline {
@@ -704,7 +745,7 @@ body.edit-mode .cta-link-edit { display: flex; }
 .feature-num {
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
-  color: var(--main);
+  color: var(--num-color, var(--main));
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
@@ -1329,7 +1370,7 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
   bottom: -4px;
   height: 2px;
   width: 0;
-  background: var(--main);
+  background: var(--num-color, var(--main));
   border-radius: 2px;
   transition: width 0.6s var(--ease) 0.3s;
 }

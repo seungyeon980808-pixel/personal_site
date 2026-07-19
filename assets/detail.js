@@ -182,8 +182,6 @@ function makeFeature(index, feat) {
   more.type = "button";
   more.setAttribute("aria-label", "자세한 설명 보기");
   more.setAttribute("aria-expanded", "false");
-  // 펼칠 내용이 없으면 버튼도 없다 (편집 모드에서는 본문을 채워야 하니 항상 보인다)
-  more.hidden = !split.desc.trim();
 
   function toggleDesc() {
     const open = section.classList.toggle("desc-open");
@@ -197,7 +195,6 @@ function makeFeature(index, feat) {
   const head = el("div", "feature-head");
   head.appendChild(title);
   head.appendChild(more);
-  head.classList.toggle("no-toggle", more.hidden);
   head.addEventListener("click", (e) => {
     if (isEditMode) return;
     if (more.hidden) return;
@@ -250,13 +247,36 @@ function makeFeature(index, feat) {
     renumber();
   });
 
+  // 본문을 채우거나 지우는 즉시 펼침 버튼의 유무가 따라온다
+  desc.addEventListener("input", () => syncFeatureToggle(section));
+
   // initial media paint
   renderMedia(media, type, f.mediaUrl || "");
+  syncFeatureToggle(section);
   // editable state
   title.contentEditable = isEditMode ? "true" : "false";
   desc.contentEditable = isEditMode ? "true" : "false";
   if (isEditMode) section.classList.add("is-visible");
   return section;
+}
+
+/* 펼침 버튼은 '펼칠 본문이 있을 때'만 존재한다.
+   이 판단을 렌더 시점에 한 번만 하면, 편집 모드에서 본문을 새로 채워 넣어도
+   버튼이 없는 채로 남는다 — 새로고침하기 전까지는 기능이 아예 없는 것처럼 보인다.
+   (HwpPalette 의 새 기능들이 그랬다.) 그래서 본문이 바뀔 때마다 다시 계산한다.
+   편집 모드에서는 CSS 가 본문을 항상 펼쳐 보여주므로 버튼 자체는 감춰 둔다. */
+function syncFeatureToggle(section) {
+  const more = section.querySelector(".feature-more");
+  const desc = section.querySelector(".feature-desc");
+  const head = section.querySelector(".feature-head");
+  if (!more || !desc || !head) return;
+  const hasDesc = !!(desc.textContent || "").trim();
+  more.hidden = !hasDesc;
+  head.classList.toggle("no-toggle", more.hidden);
+  if (!hasDesc) section.classList.remove("desc-open"); // 펼쳐 둘 내용이 없다
+}
+function syncFeatureToggles() {
+  document.querySelectorAll("#featureList .feature").forEach(syncFeatureToggle);
 }
 
 /* 슬로건(lead)과 본문(desc)은 별개다.
@@ -308,11 +328,14 @@ function collectFeatures() {
 //   · <u>   밑줄
 //   · <span style="color:…">          글자색
 //   · <span style="letter-spacing:…"> 자간
+//   · <span style="font-size:…">      글자 크기
 // 그 외(폰트/클래스 등)는 내용만 남기고 제거한다.
 // 저장·불러오기 양쪽에서 같은 규칙을 써서 새로고침 후에도 서식이 그대로 유지된다.
 const COLOR_OK = /^(#[0-9a-f]{3,8}|rgba?\([\d.,\s%]+\)|[a-z]+)$/i;
-// 자간은 em 단위만 받는다 (글자 크기가 달라져도 비율이 유지되어 반응형에 안전)
+// 자간·크기는 em 단위만 받는다. px 로 굳히면 clamp 로 잡아 둔 반응형 크기가 깨진다
+// — em 은 그 자리의 기본 크기에 곱해지므로 화면이 좁아져도 비율이 유지된다.
 const LS_OK = /^-?\d*\.?\d+em$/i;
+const FS_OK = /^\d*\.?\d+em$/i;
 
 function unwrapEl(el, before) {
   const kids = Array.from(el.childNodes);
@@ -348,11 +371,13 @@ function sanitizeRich(html) {
     if (tag === "SPAN") {
       const color = el.style.color;
       const spacing = el.style.letterSpacing;
+      const size = el.style.fontSize;
       const underlined = /underline/.test(el.style.textDecoration || el.style.textDecorationLine || "");
       el.removeAttribute("class");
       el.removeAttribute("style");
       if (color && COLOR_OK.test(color)) el.style.color = color;
       if (spacing && LS_OK.test(spacing.trim())) el.style.letterSpacing = spacing.trim();
+      if (size && FS_OK.test(size.trim())) el.style.fontSize = size.trim();
       if (underlined) el.style.textDecoration = "underline";
       if (!el.getAttribute("style")) unwrapEl(el); // 남길 서식이 없으면 태그째 제거
       return;
@@ -428,7 +453,7 @@ function repaintRich() {
 
 // ---- serialization (hero fields + links + features) ----------------------
 function collectData() {
-  const data = { fields: {}, links: {}, features: collectFeatures(), iconScale };
+  const data = { fields: {}, links: {}, features: collectFeatures(), iconScale, accents };
   document.querySelectorAll("[data-field]").forEach((elm) => {
     if (elm.classList.contains("status")) {
       data.fields[elm.getAttribute("data-field")] = elm.getAttribute("data-status");
@@ -464,6 +489,7 @@ function applyData(data) {
     });
   }
   applyIconScale(typeof data.iconScale === "number" ? data.iconScale : ICON_SCALE_DEFAULT);
+  applyAccents(data.accents);
   syncCtaVisibility();
   syncCtaInputs();
   renderFeatures(data.features);
@@ -505,6 +531,74 @@ function setIconSizeCtl(on) {
   } else if (iconCtl) {
     iconCtl.remove();
     iconCtl = null;
+  }
+}
+
+// ---- 포인트 색 (편집 모드 전용) --------------------------------------------
+// 히어로의 "● PROJECT" 라벨과 기능 번호("02 / 시연" 의 번호·밑선)는 그동안 테마
+// 색(--sub / --main)에 묶여 있어 손댈 수 없었다. CSS 쪽에 var(--eyebrow-color,
+// var(--sub)) 형태로 빠져나갈 구멍을 두고, 여기서 그 변수만 덮어쓴다.
+// 지정하지 않으면 변수가 비어 있어 예전처럼 테마 색을 따라간다 (라이트/다크 모두).
+const ACCENTS = {
+  eyebrow: { css: "--eyebrow-color", fallback: "--sub", label: "라벨 색" },
+  num: { css: "--num-color", fallback: "--main", label: "번호 색" },
+};
+let accents = {};
+let accentCtl = null;
+
+// 지정값이 없을 때 색 선택기에 보여줄 현재 테마 색
+function accentFallback(key) {
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(ACCENTS[key].fallback).trim();
+  return /^#[0-9a-f]{6}$/i.test(v) ? v : "#4c9dff";
+}
+
+function applyAccents(map) {
+  accents = {};
+  Object.keys(ACCENTS).forEach((key) => {
+    const val = map && typeof map[key] === "string" ? map[key].trim() : "";
+    const ok = /^#[0-9a-f]{6}$/i.test(val);
+    if (ok) accents[key] = val;
+    // 빈 값이면 변수를 지운다 → CSS 의 fallback(테마 색)이 되살아난다
+    document.documentElement.style.setProperty(ACCENTS[key].css, ok ? val : "");
+  });
+  syncAccentInputs();
+}
+
+function syncAccentInputs() {
+  if (!accentCtl) return;
+  Object.keys(ACCENTS).forEach((key) => {
+    const input = accentCtl.querySelector('input[data-accent="' + key + '"]');
+    if (input) input.value = accents[key] || accentFallback(key);
+  });
+}
+
+function setAccentCtl(on) {
+  if (on) {
+    if (accentCtl) { syncAccentInputs(); return; }
+    const anchor = iconCtl || document.querySelector(".detail-headline");
+    if (!anchor) return;
+    accentCtl = document.createElement("div");
+    accentCtl.className = "accent-ctl";
+    accentCtl.innerHTML =
+      Object.entries(ACCENTS)
+        .map(([key, cfg]) =>
+          '<label><span>' + cfg.label + '</span>' +
+          '<input type="color" data-accent="' + key + '" /></label>'
+        )
+        .join("") +
+      '<button type="button" class="accent-reset" title="테마 기본색으로 되돌립니다">기본색</button>';
+    accentCtl.querySelectorAll("input[data-accent]").forEach((input) => {
+      input.addEventListener("input", () => {
+        applyAccents(Object.assign({}, accents, { [input.dataset.accent]: input.value }));
+      });
+    });
+    accentCtl.querySelector(".accent-reset").addEventListener("click", () => applyAccents({}));
+    anchor.insertAdjacentElement("afterend", accentCtl);
+    syncAccentInputs();
+  } else if (accentCtl) {
+    accentCtl.remove();
+    accentCtl = null;
   }
 }
 
@@ -607,71 +701,82 @@ function fmtExec(cmd, value, useCSS) {
   }
   fmtSync();
 }
-// ---- 자간 (letter-spacing) ----------------------------------------------
-// execCommand 에는 자간 명령이 없다. 선택 영역을 직접 <span style="letter-spacing">
-// 으로 감싸고, 되돌릴 때는 선택 안의 자간 span 을 벗긴다.
-// (이 기능이 그동안 동작하지 않았던 이유: 툴바에 버튼만 없었던 게 아니라
-//  sanitizeRich 가 자간 span 을 저장 시점에 통째로 벗겨내고 있었다. 둘 다 고쳤다.)
-// 조작 방식은 한글(HWP) 과 같다 — [−][값][+] 로 눌러서 조금씩 좁히고 넓힌다.
+// ---- 자간·글자 크기 (span 스타일) ----------------------------------------
+// execCommand 에는 자간 명령이 없고, fontSize 명령은 1~7 단계 <font> 만 만든다.
+// 그래서 두 가지 모두 선택 영역을 직접 <span style="…"> 으로 감싸는 방식으로 다룬다.
+// 되돌릴 때는 선택 안의 해당 span 을 벗긴다.
+// 조작 방식은 한글(HWP) 과 같다 — [−][값][+] 로 눌러서 조금씩 줄이고 키운다.
 // 고정 단계가 아니라 누적 증감이라, 줄 끝에서 넘어간 단어 하나를 끌어올릴 때까지
-// 필요한 만큼만 좁힐 수 있다.
-const LS_STEP = 0.01;   // 한 번 누를 때 0.01em (본문 14px 기준 약 0.14px)
-const LS_MIN = -0.2;
-const LS_MAX = 0.5;
+// 필요한 만큼만 조절할 수 있다.
+//
+// 두 값 모두 em 이다. px 로 굳히면 clamp 로 잡아 둔 반응형 크기를 덮어써서
+// 좁은 화면에서 글자가 문단을 뚫고 나간다. em 은 그 자리 기본 크기의 배수다.
+const SPAN_STYLES = {
+  // base = 아무것도 안 걸린 상태의 값. 이 값이 되면 span 을 벗긴다.
+  letterSpacing: {
+    key: "ls", step: 0.01, min: -0.2, max: 0.5, base: 0, digits: 2,
+    // 부호를 붙여 기본값(0)과 좁힘/넓힘이 한눈에 구분되게
+    fmt: (v) => (v === 0 ? "0" : (v > 0 ? "+" : "") + v.toFixed(2)),
+  },
+  fontSize: {
+    key: "fs", step: 0.05, min: 0.6, max: 2.5, base: 1, digits: 2,
+    fmt: (v) => Math.round(v * 100) + "%",
+  },
+};
 
-function stripSpacingIn(root) {
+function stripStyleIn(root, prop) {
   Array.from(root.querySelectorAll("span")).forEach((s) => {
-    if (!s.style.letterSpacing) return;
-    s.style.letterSpacing = "";
+    if (!s.style[prop]) return;
+    s.style[prop] = "";
     if (!s.getAttribute("style")) unwrapEl(s);
   });
 }
 
-// 지금 선택 영역에 걸려 있는 자간(em). 없으면 0.
-// 선택을 감싸고 있는 가장 가까운 자간 span 을 편집칸 경계까지 거슬러 찾는다.
-function currentLetterSpacing() {
+// 지금 선택 영역에 걸려 있는 값(em). 없으면 base.
+// 선택을 감싸고 있는 가장 가까운 해당 span 을 편집칸 경계까지 거슬러 찾는다.
+function currentSpanStyle(prop) {
+  const base = SPAN_STYLES[prop].base;
   const sel = window.getSelection();
   const r = sel && sel.rangeCount && !sel.isCollapsed ? sel.getRangeAt(0) : savedRange;
-  if (!r) return 0;
-  // 선택이 자간 span 하나를 통째로 감싸고 있는 경우 (−/+ 를 연달아 누를 때의 상태).
+  if (!r) return base;
+  // 선택이 span 하나를 통째로 감싸고 있는 경우 (−/+ 를 연달아 누를 때의 상태).
   // 이때 commonAncestorContainer 는 span 의 부모라, 그냥 거슬러 올라가면 값을 놓친다.
   if (r.startContainer === r.endContainer && r.endOffset - r.startOffset === 1) {
     const only = r.startContainer.childNodes[r.startOffset];
-    if (only && only.nodeType === 1 && only.style && only.style.letterSpacing) {
-      return parseFloat(only.style.letterSpacing) || 0;
+    if (only && only.nodeType === 1 && only.style && only.style[prop]) {
+      return parseFloat(only.style[prop]) || base;
     }
   }
   const n = r.commonAncestorContainer;
   let elm = n.nodeType === 1 ? n : n.parentElement;
   while (elm && elm.nodeType === 1) {
-    if (elm.style && elm.style.letterSpacing) return parseFloat(elm.style.letterSpacing) || 0;
+    if (elm.style && elm.style[prop]) return parseFloat(elm.style[prop]) || base;
     if (elm.hasAttribute && elm.hasAttribute("data-editable")) break;
     elm = elm.parentElement;
   }
-  return 0;
+  return base;
 }
 
 // −/+ 한 칸. 현재 값을 읽어 누적으로 더하고 뺀다.
-function nudgeLetterSpacing(delta) {
+function nudgeSpanStyle(prop, dir) {
   if (!window.getSelection().rangeCount && !savedRange) return;
-  const next = Math.max(LS_MIN, Math.min(LS_MAX,
-    Math.round((currentLetterSpacing() + delta) * 100) / 100));
-  applyLetterSpacing(next === 0 ? null : next.toFixed(2) + "em");
+  const cfg = SPAN_STYLES[prop];
+  const next = Math.max(cfg.min, Math.min(cfg.max,
+    Math.round((currentSpanStyle(prop) + dir * cfg.step) * 100) / 100));
+  applySpanStyle(prop, next === cfg.base ? null : next.toFixed(cfg.digits) + "em");
 }
 
-function lsReadout() {
-  return fmtBar ? fmtBar.querySelector(".et-ls-val") : null;
-}
-function syncLsReadout() {
-  const out = lsReadout();
+function syncSpanReadout(prop) {
+  if (!fmtBar) return;
+  const cfg = SPAN_STYLES[prop];
+  const out = fmtBar.querySelector(".et-" + cfg.key + "-val");
   if (!out) return;
-  const v = currentLetterSpacing();
-  // 부호를 붙여 기본값(0)과 좁힘/넓힘이 한눈에 구분되게
-  out.textContent = v === 0 ? "0" : (v > 0 ? "+" : "") + v.toFixed(2);
-  out.classList.toggle("is-set", v !== 0);
+  const v = currentSpanStyle(prop);
+  out.textContent = cfg.fmt(v);
+  out.classList.toggle("is-set", v !== cfg.base);
 }
 
-function applyLetterSpacing(value) {
+function applySpanStyle(prop, value) {
   const sel = window.getSelection();
   if (!fmtField() || !sel || sel.isCollapsed) {
     if (!restoreRange()) return;
@@ -686,17 +791,17 @@ function applyLetterSpacing(value) {
   try {
     frag = range.extractContents();
   } catch (e) {
-    console.error("[detail] letter-spacing failed", e);
+    console.error("[detail] span style failed", prop, e);
     return;
   }
-  // 선택 안에 이미 걸려 있던 자간은 먼저 걷어낸다 (중첩 방지)
+  // 선택 안에 이미 걸려 있던 같은 스타일은 먼저 걷어낸다 (중첩 방지)
   const holder = document.createElement("div");
   holder.appendChild(frag);
-  stripSpacingIn(holder);
+  stripStyleIn(holder, prop);
 
   let inserted;
   if (value == null) {
-    // '기본' = 자간 제거. 내용만 그대로 되돌려 넣는다.
+    // '기본' = 스타일 제거. 내용만 그대로 되돌려 넣는다.
     inserted = document.createDocumentFragment();
     const first = holder.firstChild, last = holder.lastChild;
     while (holder.firstChild) inserted.appendChild(holder.firstChild);
@@ -711,12 +816,12 @@ function applyLetterSpacing(value) {
     }
   } else {
     const span = document.createElement("span");
-    span.style.letterSpacing = value;
+    span.style[prop] = value;
     while (holder.firstChild) span.appendChild(holder.firstChild);
     range.insertNode(span);
     // 선택은 span '안쪽'이 아니라 span '바깥쪽'을 감싸도록 잡는다.
     // −/+ 를 연달아 누르면 다음 번 extractContents 가 이 span 을 통째로 꺼내
-    // stripSpacingIn 이 벗겨내므로, 껍데기 span 이 겹겹이 쌓이지 않는다.
+    // stripStyleIn 이 벗겨내므로, 껍데기 span 이 겹겹이 쌓이지 않는다.
     const r = document.createRange();
     r.setStartBefore(span);
     r.setEndAfter(span);
@@ -738,7 +843,8 @@ function fmtSync() {
   fmtBar.querySelectorAll("button, input").forEach((b) => { b.disabled = !active; });
   const label = fmtBar.querySelector(".et-label");
   if (label) label.textContent = active ? "선택 글자에 적용" : "글자를 드래그하세요";
-  syncLsReadout(); // 선택이 바뀌면 자간 표시도 그 자리 값으로 따라간다
+  // 선택이 바뀌면 자간·크기 표시도 그 자리 값으로 따라간다
+  Object.keys(SPAN_STYLES).forEach(syncSpanReadout);
 }
 function setFormatBar(on) {
   if (on) {
@@ -755,25 +861,34 @@ function setFormatBar(on) {
       ).join("") +
       '<input type="color" class="et-swatch et-color" title="색 직접 고르기" value="#4c9dff" />' +
       '<span class="et-sep"></span>' +
-      '<span class="et-group">자간' +
-      '<button class="et-btn et-ls" type="button" data-ls-step="-1" title="자간 좁히기 (0.01em 씩)">−</button>' +
-      '<button class="et-ls-val" type="button" title="눌러서 기본값(0)으로">0</button>' +
-      '<button class="et-btn et-ls" type="button" data-ls-step="1" title="자간 넓히기 (0.01em 씩)">+</button>' +
+      '<span class="et-group">크기' +
+      '<button class="et-btn et-ls" type="button" data-nudge="fontSize" data-dir="-1" title="글씨 작게 (5%씩)">−</button>' +
+      '<button class="et-fs-val" type="button" title="눌러서 기본 크기로">100%</button>' +
+      '<button class="et-btn et-ls" type="button" data-nudge="fontSize" data-dir="1" title="글씨 크게 (5%씩)">+</button>' +
       "</span>" +
       '<span class="et-sep"></span>' +
-      '<button class="et-btn" type="button" data-cmd="removeFormat" title="밑줄·색 지우기">지우기</button>';
+      '<span class="et-group">자간' +
+      '<button class="et-btn et-ls" type="button" data-nudge="letterSpacing" data-dir="-1" title="자간 좁히기 (0.01em 씩)">−</button>' +
+      '<button class="et-ls-val" type="button" title="눌러서 기본값(0)으로">0</button>' +
+      '<button class="et-btn et-ls" type="button" data-nudge="letterSpacing" data-dir="1" title="자간 넓히기 (0.01em 씩)">+</button>' +
+      "</span>" +
+      '<span class="et-sep"></span>' +
+      '<button class="et-btn" type="button" data-cmd="removeFormat" title="밑줄·색·크기 지우기">지우기</button>';
 
     // 버튼을 눌러도 드래그한 선택이 풀리지 않게 (색 선택기는 열려야 하므로 제외)
     fmtBar.querySelectorAll("button").forEach((b) => {
       b.addEventListener("mousedown", (e) => e.preventDefault());
       b.addEventListener("click", () => {
         if (b.dataset.color) fmtExec("foreColor", b.dataset.color, true);
-        else if (b.dataset.lsStep) nudgeLetterSpacing(Number(b.dataset.lsStep) * LS_STEP);
-        else if (b.classList.contains("et-ls-val")) applyLetterSpacing(null);
+        else if (b.dataset.nudge) nudgeSpanStyle(b.dataset.nudge, Number(b.dataset.dir));
+        else if (b.classList.contains("et-ls-val")) applySpanStyle("letterSpacing", null);
+        else if (b.classList.contains("et-fs-val")) applySpanStyle("fontSize", null);
         else if (b.dataset.cmd === "underline") fmtExec("underline", null, false);
         else if (b.dataset.cmd === "removeFormat") {
           fmtExec("removeFormat", null, true);
-          applyLetterSpacing(null); // removeFormat 은 자간 span 을 못 지운다
+          // removeFormat 은 우리가 직접 붙인 span 스타일을 못 지운다
+          applySpanStyle("letterSpacing", null);
+          applySpanStyle("fontSize", null);
         }
       });
     });
@@ -837,6 +952,8 @@ function applyEditMode(on) {
   setEditable(on);
   setFormatBar(on);   // 밑줄·글자색·자간 툴바
   setIconSizeCtl(on); // 아이콘 크기 슬라이더
+  setAccentCtl(on);   // 라벨·번호 포인트 색
+  syncFeatureToggles(); // 펼침 버튼은 편집 중엔 항상 보인다 (본문을 채워야 하니까)
   if (on) {
     buildCtaEditor(); // 라이브·GitHub URL 입력칸
     syncCtaInputs();
