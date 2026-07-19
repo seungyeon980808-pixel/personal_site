@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HwpPalette 인트로 · 미리보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* =====================================================================
+     HwpPalette 인트로 — 18.9초 / 660×372 (5E 인트로와 같은 좌표계)
+
+     구성
+       [붓이 글자 하나를 그린다 1.5s → 기능영상 3.6s] × 3 = 15.3s
+       엔딩 3.6s — 팔레트에 h·w·p 가 박혀 아이콘이 되고, 이름과 슬로건으로
+
+     구간마다 글자가 하나씩이고(H → w → p), 색·배치·붓의 진입/퇴장 방향이
+     전부 다르다. 세 색은 아이콘 물감에서 그대로 가져온다 —
+     파랑(h 자리) · 초록(w 자리) · 빨강(p 자리).
+
+     UI 색은 프로그램이 실제로 쓰는 값이다. 출처는 31_hwp_palette 의
+     palette_ui.py / main.py — 모든 UI 파일이 같은 값을 쓴다.
+
+     좌표계를 5E 와 똑같이 660×372 로 맞춘 이유: tools/render-intro.js 가
+     이 숫자를 기준으로 무대를 확대한다. 바꾸면 렌더러도 같이 고쳐야 한다.
+     ===================================================================== */
+  :root {
+    --accent: #0071e3;          /* 프로그램 강조색 (캡션 번호 등 UI 요소) */
+    --ink: #1d1d1f;
+    --dim: #86868b;
+    --line: #d2d2d7;
+    --bg: #f5f5f7;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px; background: #e6e6ea; color: var(--ink);
+    font-family: "IBM Plex Sans KR", system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  h1 { font-size: 16px; font-weight: 600; margin: 0; }
+  .hint { font-size: 13px; color: var(--dim); margin: 0; text-align: center; line-height: 1.7; }
+  .hint b { color: var(--accent); font-weight: 600; }
+
+  .ctl {
+    display: flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: center;
+    padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  }
+  .ctl button {
+    font: inherit; font-size: 12px; padding: 5px 13px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent; color: var(--dim); cursor: pointer;
+  }
+  .ctl button:hover { border-color: var(--accent); color: var(--accent); }
+  .ctl input[type=range] { width: 320px; }
+  .ctl .t { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--dim); min-width: 92px; text-align: center; }
+
+  /* 엔딩 시안 전환 — ?ending= 으로 다시 연다 */
+  .vars {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  }
+  .vars a {
+    font-size: 12px; padding: 5px 13px; border-radius: 999px; text-decoration: none;
+    border: 1px solid var(--line); color: var(--dim);
+  }
+  .vars a:hover { border-color: var(--accent); color: var(--accent); }
+  .vars a.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+  /* clean=1 이면 무대만 남긴다 (렌더링용) */
+  body.clean { padding: 0; gap: 0; background: #000; justify-content: center; height: 100vh; }
+  body.clean h1, body.clean .hint, body.clean .ctl, body.clean .vars { display: none; }
+
+  /* ===== STAGE ===== */
+  .hp {
+    position: relative; width: min(660px, 94vw); aspect-ratio: 660 / 372;
+    border-radius: 16px; overflow: hidden;
+    background: radial-gradient(120% 100% at 30% 18%, #ffffff 0%, var(--bg) 52%, #e4e4ea 100%);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 60px -28px rgba(0,0,0,0.35);
+    perspective: 1100px;                /* 종이 뒤집기(press 시안)용 */
+  }
+  .hp-c { position: absolute; left: 50%; top: 50%; }   /* 원점 = 무대 중앙 */
+  .hp-flash { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+
+  /* ---- 붓이 그리는 글자 획 (경로는 JS 가 만든다) ---- */
+  .hp-glyph { width: 660px; height: 372px; margin: -186px 0 0 -330px; overflow: visible; }
+  .hp-glyph path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  /* 획 끝에서 튀는 물감 방울 */
+  .hp-glyph circle { transform-box: fill-box; transform-origin: center; opacity: 0; }
+
+  /* ---- 붓 ---- */
+  .hp-brush { width: 96px; height: 96px; margin: -48px 0 0 -48px; opacity: 0; will-change: transform; }
+
+  /* ---- 기능 캡션 ---- */
+  .hp-cap { width: 198px; opacity: 0; text-align: left; }
+  .hp-cap .n {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: 0.18em; margin-bottom: 7px; line-height: 1;
+  }
+  .hp-cap .t { display: block; font-size: 17px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .hp-cap .d { display: block; font-size: 12px; color: var(--dim); margin-top: 7px; line-height: 1.55; }
+
+  /* ---- 기능 영상 프레임 (붓에 끌려 들어온다) ---- */
+  /* 기본은 4:3. 녹화본은 1920×1080 이지만 좌우에 검은 여백이 박혀 있어서,
+     4:3 으로 가운데를 잘라내야 그 여백이 안 보인다.
+     칸 모양은 구간마다 다르다 — 실제 크기는 JS 가 구간별로 지정한다
+     (시험지는 세로 문서라 세로 칸을 쓴다). */
+  .hp-frame {
+    width: 330px; height: 248px; margin: -124px 0 0 -165px;
+    border-radius: 12px; overflow: hidden;
+    background: var(--card); border: 1px solid var(--line);
+    box-shadow: 0 18px 42px -18px rgba(0,0,0,0.32);
+    opacity: 0; will-change: transform;
+  }
+  .hp-clip { position: absolute; inset: 0; opacity: 0; }
+  /* ⚠ position 을 반드시 준다. 자리 표시판(.hp-hold)이 absolute 라, 영상이 정적
+     배치면 DOM 순서와 무관하게 판이 영상 **위**에 그려진다 — 녹화본을 넣었는데도
+     빗금 판만 보이던 원인. */
+  .hp-clip video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover; display: block; background: var(--card);
+  }
+  /* 녹화본이 아직 없을 때 자리를 지키는 판 */
+  .hp-hold {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: repeating-linear-gradient(135deg, #fbfbfd 0 12px, #f2f2f5 12px 24px);
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #b4b4bb; letter-spacing: 0.14em;
+  }
+
+  /* ---- 엔딩 ---- */
+  .hp-logo { width: 200px; height: 200px; margin: -100px 0 0 -100px; opacity: 0; will-change: transform; }
+  .hp-logo svg { width: 100%; height: 100%; display: block; }
+  .hp-stamp {
+    font-family: "IBM Plex Sans KR", system-ui, sans-serif;
+    /* 아이콘 안 글자와 같은 크기. 원본이 96 뷰박스에서 Segoe UI Bold 14px 이므로
+       200px 로 띄우면 14×(200/96) ≈ 29px 이다. 크면 물감 밖으로 삐져나온다. */
+    font-weight: 700; font-size: 29px; line-height: 1;
+    opacity: 0; white-space: pre; will-change: transform;
+  }
+  /* ---- 도장찍기용 종이 (press 시안) ----
+     팔레트를 덮고 한두 번 비빈 뒤 떼면, 종이에 이름이 찍혀 나온다.
+     종이면(sheet)과 찍힌 글자(mark)를 나눠 둔 이유: 마지막에 종이만 사라지고
+     글자는 그대로 남아 제목이 되어야 하기 때문이다. */
+  .hp-paper {
+    /* 두 줄짜리 워드마크가 들어가야 해서 종이를 키웠다 */
+    width: 292px; height: 196px; margin: -98px 0 0 -146px;
+    will-change: transform;
+    transform-style: preserve-3d;       /* 뒤집기(rotateY) 를 위해 */
+    /* ⚠ 이 요소에는 opacity 를 애니메이션하면 안 된다. opacity 가 걸리면 크롬이
+       preserve-3d 를 평면으로 눌러버려 뒤집기가 아예 안 보인다(실측).
+       그래서 나타내고 감추는 건 opacity 가 아니라 '무대 밖 주차'로 한다 —
+       기본값이 무대 밖이라 press 이외의 시안에서는 보이지 않는다. */
+    transform: translate(520px, -46px);
+  }
+  /* 앞면 = 빈 종이, 뒷면 = 찍힌 면. 팔레트에 엎어 눌렀으니 글자는 '아래쪽'에
+     찍힌다 — 그래서 뒤집어야 보인다. backface-visibility 로 한 번에 한 면만 보인다. */
+  .hp-face {
+    position: absolute; inset: 0; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    backface-visibility: hidden;
+  }
+  .hp-face.back { transform: rotateY(180deg); }
+  .hp-sheet {
+    position: absolute; inset: 0; border-radius: 3px;
+    background: linear-gradient(178deg, #ffffff 0%, #fafafc 100%);
+    border: 1px solid #e4e4e9;
+    box-shadow: 0 12px 28px -12px rgba(0,0,0,0.32);
+  }
+  /* 워드마크는 두 줄 — Hwp 위, Palette 아래를 오른쪽으로 물려 쓴다 */
+  .hp-mark {
+    position: relative;                 /* 종이면 위에 얹힌다 */
+    display: flex; flex-direction: column; align-items: flex-start;
+    font-size: 56px; font-weight: 700; line-height: 1.06; letter-spacing: -0.02em;
+    color: var(--ink); opacity: 0; white-space: nowrap;
+  }
+  .hp-mark .l2 { margin-left: 58px; }
+  /* 잉크는 팔레트의 물감에서 왔다 — 글자마다 그 물감 색이어야 한다 */
+  .hp-mark i { font-style: normal; }
+  .hp-mark .h { color: #2f6fd0; }
+  .hp-mark .w { color: #7cb342; }
+  .hp-mark .p { color: #c0442a; }
+
+  .hp-name {
+    font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+    opacity: 0; white-space: nowrap;
+  }
+  .hp-name em { font-style: normal; color: var(--accent); }
+  .hp-slogan { font-size: 15px; color: var(--dim); opacity: 0; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<h1>HwpPalette 인트로 · 미리보기</h1>
+<p class="hint">
+  [붓이 글자 하나를 그린다 1.5초 → 기능영상 3.6초] × 3 = 15.3초, 엔딩 3.6초 — 총 <b>18.9초</b>.<br />
+  기능영상 3칸은 <b>assets/demo-hwp/</b> 에 녹화본을 넣으면 자동으로 채워집니다.
+</p>
+
+<div class="ctl">
+  <button id="btnPlay">일시정지</button>
+  <button id="btnBack">처음부터</button>
+  <input type="range" id="scrub" min="0" max="1000" value="0" />
+  <span class="t" id="tRead">0.00 / --</span>
+</div>
+
+<!-- 엔딩 시안 4종 — 클릭하면 그 시안으로 다시 연다 -->
+<div class="vars" id="vars">
+  <a href="?ending=press">A · 엎어찍기 (제안안)</a>
+  <a href="?ending=wipe">B · 페인트 스윕</a>
+  <a href="?ending=drop">C · 물감 방울</a>
+  <a href="?ending=orbit">D · 궤도 안착</a>
+</div>
+
+<!-- ===== STAGE ===== -->
+<div class="hp" id="hpstage">
+  <!-- 기능 영상 (붓·글자보다 먼저 그려야 그것들이 위를 지나간다) -->
+  <div class="hp-c hp-frame" id="frame">
+    <div class="hp-clip"><div class="hp-hold">FEATURE 01</div><video muted playsinline preload="auto" data-src="assets/demo-hwp/01-special-chars.mp4"></video></div>
+    <div class="hp-clip"><div class="hp-hold">FEATURE 02</div><video muted playsinline preload="auto" data-src="assets/demo-hwp/02-exam.mp4"></video></div>
+    <div class="hp-clip"><div class="hp-hold">FEATURE 03</div><video muted playsinline preload="auto" data-src="assets/demo-hwp/03-template-save.mp4"></video></div>
+    <div class="hp-clip"><div class="hp-hold">FEATURE 04</div><video muted playsinline preload="auto" data-src="assets/demo-hwp/04-format.mp4"></video></div>
+  </div>
+
+  <!-- 두 번째 프레임 — 02 구간에서만 쓴다. 늦게 들어와 첫 영상과 같이 끝난다. -->
+  <div class="hp-c hp-frame" id="frame2">
+    <div class="hp-clip"><div class="hp-hold">FEATURE 02 -b</div><video muted playsinline preload="auto" data-src="assets/demo-hwp/02b-plan.mp4"></video></div>
+  </div>
+
+  <!-- 붓이 그린 글자 획 -->
+  <svg class="hp-c hp-glyph" id="glyphSvg" viewBox="0 0 660 372" aria-hidden="true"></svg>
+
+  <!-- 기능 캡션 (JS 가 채운다) -->
+  <div class="hp-c hp-cap" id="cap"><span class="n"></span><span class="t"></span><span class="d"></span></div>
+
+  <!-- 붓 — 털 색은 구간마다 JS 가 바꾼다 -->
+  <svg class="hp-c hp-brush" id="brush" viewBox="0 0 96 96" aria-hidden="true">
+    <g transform="translate(-16,-10) rotate(-14 62 61)">
+      <path d="M62.5,61.7C68,57 74,50 81.8,53.4L75.3,46.9C70,50 65,55 62.5,61.7Z" fill="#5b6472"/>
+      <path d="M79.4,42.6L118.6,7.3L121.4,10.2L86.1,49.4Z" fill="#8a6236"/>
+      <path id="brushTip" d="M62.5,61.7C66,60 70,58.5 73.8,58.9L69.6,53.2C66.8,56 64.4,58.8 62.5,61.7Z" fill="#2f6fd0"/>
+    </g>
+  </svg>
+
+  <!-- 엔딩: 로고는 JS 가 SVG 를 통째로 심는다 (안의 글자를 하나씩 켜야 하므로) -->
+  <div class="hp-c hp-logo" id="logo"></div>
+
+  <!-- 도장찍기(press 시안)용 종이. 로고보다 뒤에 둬야 팔레트를 덮는다.
+       sheet = 흰 종이면, mark = 찍혀 나오는 글자. 둘을 따로 켜고 끈다. -->
+  <div class="hp-c hp-paper" id="paper">
+    <div class="hp-face"><div class="hp-sheet"></div></div>
+    <div class="hp-face back">
+      <div class="hp-sheet" id="sheet"></div>
+      <span class="hp-mark" id="paperMark">
+        <span class="l1"><i class="h">H</i><i class="w">w</i><i class="p">p</i></span>
+        <span class="l2">Palette</span>
+      </span>
+    </div>
+  </div>
+  <div class="hp-c hp-stamp" id="st0">h</div>
+  <div class="hp-c hp-stamp" id="st1">w</div>
+  <div class="hp-c hp-stamp" id="st2">p</div>
+  <div class="hp-c hp-name" id="name"><em>Hwp</em>Palette</div>
+  <div class="hp-c hp-slogan" id="slogan">내 손에 맞는 도구를, 내가 만들다</div>
+
+  <div class="hp-flash" id="flash"></div>
+</div>
+
+<script src="assets/hero-hwp.js"></script>
+</body>
+</html>

@@ -71,6 +71,7 @@
         </div>
       </div>
     </div>
+
   </header>
 
   <!-- ===== FEATURES (assets/detail.js 가 동적 렌더) ===== -->
@@ -127,6 +128,123 @@
     <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
   </button>
+
+  <!-- ===== 인트로 영상 =====
+       5E(physics-draw)는 DOM 애니메이션을 히어로 안에서 실시간으로 돌린다.
+       이쪽은 렌더해 둔 mp4 를 **화면 전체를 덮어** 튼다 — 인트로가 시연 영상
+       5편을 품고 있어 실시간 재생은 페이지가 무거워지고, 결과는 어차피 같다.
+
+       ⚠ 히어로 안이 아니라 body 바로 아래에 둔다. .reveal 이 transform 을 쓰는데,
+         transform 이 걸린 조상 안에서는 position:fixed 가 화면이 아니라 그 조상을
+         기준으로 잡혀 '전체 화면 덮기'가 깨진다. -->
+  <style>
+    #introOverlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: #f4f5f7; display: flex;
+      align-items: center; justify-content: center;
+      opacity: 1; transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 늘리지 않는다(contain). 배경색이 영상 배경과 같아 남는 여백은 이어져 보인다.
+       크기는 화면의 70% — 꽉 채우면 부담스럽다. 이 숫자만 바꾸면 조절된다. */
+    #introOverlay video {
+      display: block; width: 70%; height: 70%; object-fit: contain;
+    }
+    #introOverlay.gone { opacity: 0; pointer-events: none; }
+    /* 조작 버튼 — 오른쪽 아래 (5E 인트로와 같은 자리) */
+    #introCtl {
+      position: absolute; right: 26px; bottom: 22px;
+      display: flex; gap: 10px;
+    }
+    #introCtl button {
+      font: inherit; font-size: 13px; color: #4b5563;
+      background: rgba(255, 255, 255, 0.86); border: 1px solid #d2d2d7;
+      border-radius: 999px; padding: 9px 16px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      backdrop-filter: blur(6px);
+    }
+    #introCtl button:hover { color: #0071e3; border-color: #0071e3; }
+    /* 인트로가 도는 동안에는 뒤 페이지가 스크롤되지 않게 */
+    body.intro-on { overflow: hidden; }
+    @media (max-width: 760px) { #introOverlay { display: none; } }
+  </style>
+  <div id="introOverlay" hidden>
+    <video id="introVideo" muted playsinline preload="auto"
+           poster="../assets/hwp-intro-poster.jpg"></video>
+    <div id="introCtl">
+      <button id="introSound" type="button">🔊 소리 켜기</button>
+      <button id="introSkip" type="button">건너뛰기 <span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById("introOverlay");
+      var v = document.getElementById("introVideo");
+      var skip = document.getElementById("introSkip");
+      if (!box || !v) return;
+      // 좁은 화면·모션 최소화 설정에서는 인트로를 아예 틀지 않는다 (영상도 안 받는다)
+      var wide = window.matchMedia("(min-width: 761px)");
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (!wide.matches || reduce.matches) { box.remove(); return; }
+
+      var closed = false;
+      function close() {
+        if (closed) return;
+        closed = true;
+        box.classList.add("gone");
+        document.body.classList.remove("intro-on");
+        setTimeout(function () { try { v.pause(); } catch (e) {} }, 620);
+        addReplay();
+      }
+      function addReplay() {
+        if (document.querySelector(".k5-replay")) return;
+        var r = document.createElement("button");
+        r.type = "button";
+        r.className = "k5-replay";
+        r.innerHTML = '<span class="k5-replay-ico">↻</span><span>인트로 다시 보기</span>';
+        r.addEventListener("click", function () {
+          closed = false;
+          box.classList.remove("gone");
+          document.body.classList.add("intro-on");
+          v.currentTime = 0;
+          v.play().catch(close);
+        });
+        document.body.appendChild(r);
+      }
+
+      box.hidden = false;
+      document.body.classList.add("intro-on");
+      v.src = "../assets/hwp-intro.mp4";
+      v.addEventListener("ended", close);
+      v.addEventListener("error", close);
+      skip.addEventListener("click", close);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") close();
+      });
+
+      /* 소리 — 자동재생을 하려면 음소거로 시작할 수밖에 없다(브라우저 정책).
+         음악이 깔려 있으므로 켤 수단을 준다. */
+      var sound = document.getElementById("introSound");
+      sound.addEventListener("click", function () {
+        v.muted = !v.muted;
+        sound.textContent = v.muted ? "🔊 소리 켜기" : "🔇 소리 끄기";
+      });
+
+      /* 재생 시도.
+         ⚠ 탭이 숨겨져 있으면 크롬이 영상을 멈추고 play() 가 실패한다. 이걸
+         '자동재생 불가'로 보고 닫아 버리면, 배경 탭에서 열었다가 나중에 보는
+         사람은 인트로를 통째로 놓친다 → 보이게 될 때 다시 시도한다.
+         화면에 보이는데도 실패하면 그때는 정책상 막힌 것이므로 접는다. */
+      function start() {
+        v.play().catch(function () {
+          if (document.visibilityState === "visible") close();
+        });
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (!closed && document.visibilityState === "visible" && v.paused) start();
+      });
+      if (document.visibilityState === "visible") start();
+    })();
+  </script>
 
   <script type="module" src="../assets/detail.js"></script>
 </body>

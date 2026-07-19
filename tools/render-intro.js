@@ -32,6 +32,10 @@ const WIDTH = even(Number(arg("width", 1920)));
 const HEIGHT = even((WIDTH * 372) / 660); // 무대 좌표계 비율
 const URL = arg("url", "http://localhost:4321/kinetic-preview?clean=1");
 const OUT = path.resolve(arg("out", "out/5e-intro.mp4"));
+// 무대 안에서 트는 영상들이 있는 폴더. 인트로마다 다르다.
+const CLIPS = arg("clips", "assets/demo");
+// 배경음악 WAV (tools/make-music.js 로 만든다). 없으면 무음.
+const AUDIO = arg("audio", null);
 const FRAMES = path.resolve("out/_frames");
 
 /* winget 으로 깐 ffmpeg 은 셸을 새로 열어야 PATH 에 잡힌다.
@@ -70,7 +74,11 @@ function ensureEmpty(dir) {
    '모든 프레임이 키프레임'인 사본을 만들어 렌더에만 쓴다. 웹에 올라가는 원본은
    그대로 두므로 사이트 용량에는 영향이 없다. */
 function prepareSeekCopies(ffmpeg) {
-  const src = path.resolve("assets/demo");
+  const src = path.resolve(CLIPS);
+  if (!fs.existsSync(src)) {
+    console.log(`[render] ${CLIPS} 가 없습니다 — 영상 없이 렌더합니다`);
+    return {};
+  }
   const dst = path.resolve("out/_seek");
   fs.mkdirSync(dst, { recursive: true });
   const files = fs.readdirSync(src).filter((f) => f.endsWith(".mp4")).sort();
@@ -89,7 +97,7 @@ function prepareSeekCopies(ffmpeg) {
         continue;
       }
     }
-    map["assets/demo/" + f] = "/out/_seek/" + f;
+    map[CLIPS + "/" + f] = "/out/_seek/" + f;
   }
   console.log(`[render] seek 사본 ${Object.keys(map).length}개 준비`);
   return map;
@@ -115,9 +123,10 @@ function prepareSeekCopies(ffmpeg) {
 
   // 되감기가 정확한 사본으로 갈아끼운다
   await page.evaluate((map) => {
-    document.querySelectorAll(".k5-clip video").forEach((v) => {
+    document.querySelectorAll(".k5-clip video, .hp-clip video").forEach((v) => {
       const cur = v.getAttribute("src") || "";
-      const key = Object.keys(map).find((k) => cur.endsWith(k.replace("assets/demo/", "")));
+      const base = (k) => k.slice(k.lastIndexOf("/") + 1);
+      const key = Object.keys(map).find((k) => cur.endsWith(base(k)));
       if (key) { v.src = map[key]; v.load(); }
     });
   }, SEEK_MAP);
@@ -125,7 +134,7 @@ function prepareSeekCopies(ffmpeg) {
   // 폰트·영상 메타데이터가 다 준비될 때까지 기다린다
   await page.evaluate(async () => {
     if (document.fonts) await document.fonts.ready;
-    const vs = [...document.querySelectorAll(".k5-clip video")];
+    const vs = [...document.querySelectorAll(".k5-clip video, .hp-clip video")];
     await Promise.all(vs.map(v => v.readyState >= 2 ? Promise.resolve()
       : new Promise(r => { v.addEventListener("loadeddata", r, { once: true }); setTimeout(r, 5000); })));
   });
@@ -139,7 +148,7 @@ function prepareSeekCopies(ffmpeg) {
     document.body.style.cssText =
       "background:#000;margin:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center";
     // 무대 id 는 시안 페이지에서 #stage, 상세 페이지에서 #k5stage 다
-    const st = document.querySelector("#k5stage, #stage, .k5");
+    const st = document.querySelector("#k5stage, #hpstage, #stage, .k5, .hp");
     if (!st) throw new Error("무대(.k5)를 찾지 못했습니다");
     st.style.width = BASE_W + "px";
     st.style.height = BASE_H + "px";
@@ -179,7 +188,8 @@ function prepareSeekCopies(ffmpeg) {
         try { if (a.effect && a.effect.getTiming().duration > 1000) a.currentTime = t; } catch (e) {}
       });
       // 영상도 같은 시각의 프레임으로 정확히 맞춘다
-      if (window.__k5seek) await window.__k5seek(t / 1000);
+      const seek = window.__k5seek || window.__hpseek;
+      if (seek) await seek(t / 1000);
     }, ms, dur);
 
     await page.screenshot({
@@ -196,13 +206,16 @@ function prepareSeekCopies(ffmpeg) {
   console.log("[render] ffmpeg 으로 합치는 중…");
   const FFMPEG = findFfmpeg();
   if (!FFMPEG) { console.error("[render] ffmpeg 을 찾지 못했습니다."); process.exit(1); }
-  const r = spawnSync(FFMPEG, [
-    "-y", "-framerate", String(FPS),
-    "-i", path.join(FRAMES, "%05d.png"),
-    "-c:v", "libx264", "-preset", "slow", "-crf", "18",
-    "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-    OUT,
-  ], { stdio: ["ignore", "ignore", "pipe"], shell: true });
+  const ffArgs = ["-y", "-framerate", String(FPS), "-i", path.join(FRAMES, "%05d.png")];
+  const hasAudio = AUDIO && fs.existsSync(path.resolve(AUDIO));
+  if (AUDIO && !hasAudio) console.log(`[render] 오디오 ${AUDIO} 가 없습니다 — 무음으로 갑니다`);
+  if (hasAudio) ffArgs.push("-i", path.resolve(AUDIO));
+  ffArgs.push("-c:v", "libx264", "-preset", "slow", "-crf", "18",
+    "-pix_fmt", "yuv420p", "-movflags", "+faststart");
+  // -shortest: 음악이 영상보다 길면 영상 끝에서 자른다
+  if (hasAudio) ffArgs.push("-c:a", "aac", "-b:a", "192k", "-shortest");
+  ffArgs.push(OUT);
+  const r = spawnSync(FFMPEG, ffArgs, { stdio: ["ignore", "ignore", "pipe"], shell: true });
 
   if (r.status !== 0) {
     console.error("[render] ffmpeg 실패\n" + String(r.stderr).split("\n").slice(-15).join("\n"));
