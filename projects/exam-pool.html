@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
+      } catch (e) {}
+    })();
+  </script>
+  <title>ExamPool · 박승연</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/logo-exampool.svg" />
+  <meta name="description" content="박승연이 만든 도구 ExamPool — 대표 기능과 시연을 확인하세요." />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="박승연 · personal site" />
+  <meta property="og:title" content="ExamPool · 박승연" />
+  <meta property="og:description" content="박승연이 만든 도구 ExamPool — 대표 기능과 시연을 확인하세요." />
+  <meta property="og:url" content="https://seungyeon980808-pixel.github.io/personal_site/projects/exam-pool.html" />
+  <meta property="og:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ExamPool · 박승연" />
+  <meta name="twitter:description" content="박승연이 만든 도구 ExamPool — 대표 기능과 시연을 확인하세요." />
+  <meta name="twitter:image" content="https://seungyeon980808-pixel.github.io/personal_site/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../assets/detail.css" />
+</head>
+<body data-project="exam-pool">
+
+  <!-- ===== TOP BAR ===== -->
+  <div class="topbar">
+    <a class="home" href="../index.html">← 홈</a>
+    <span class="crumb" id="crumb">projects / ExamPool</span>
+    <span class="spacer"></span>
+    <button class="edit-badge" type="button" hidden>편집 모드 · 끄기</button>
+    <div class="admin-area">
+      <span class="user-email" id="userEmail"></span>
+      <button id="dpBtn" class="dp-btn" type="button">📱 기기 미리보기</button>
+      <button class="save-btn" id="saveBtn" type="button">저장</button>
+      <button class="admin-btn" id="adminBtn" type="button">관리자 로그인</button>
+    </div>
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <header class="detail-hero reveal">
+    <div class="wrap">
+      <span class="eyebrow"><span class="dot"></span> PROJECT</span>
+      <div class="detail-headline">
+        <img class="detail-icon" src="../assets/logo-exampool.svg" alt="ExamPool 로고" />
+        <h1 class="detail-title" data-editable data-field="hero.title">ExamPool</h1>
+      </div>
+      <p class="detail-tagline" data-editable data-field="hero.tagline">시간날 때 던져놓은 문제들을 필요할 때 건져내서 사용하세요.</p>
+      <!-- 설명 옆으로: 스택·상태와 버튼을 한 줄에 둔다 (좁아지면 접힘) -->
+      <div class="detail-actions">
+        <div class="detail-meta">
+          <span class="stack" data-editable data-field="hero.stack">Python · FastAPI · SQLite FTS5</span>
+          <span class="status" data-status="planned" data-field="hero.status">planned</span>
+        </div>
+        <div class="cta-row">
+          <a class="cta primary" href="#" target="_blank" rel="noopener" data-link="live">라이브 열기 ↗</a>
+          <a class="cta ghost" href="#" target="_blank" rel="noopener" data-link="github">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ===== FEATURES (assets/detail.js 가 동적 렌더) ===== -->
+  <main class="features">
+    <div class="wrap">
+      <div id="featureList"></div>
+      <button id="addFeatureBtn" type="button">+ 기능 추가</button>
+    </div>
+  </main>
+
+  <!-- ===== COMMENTS / 후기 ===== -->
+  <section class="comments reveal">
+    <div class="wrap">
+      <h2>후기 · 의견</h2>
+      <p class="sub">이 도구를 써본 후기나 버그·개선 의견을 남겨주세요 · <span id="commentCount">0</span>개</p>
+      <form class="comment-form" id="commentForm">
+        <div class="name-row">
+          <input type="text" id="commentName" placeholder="이름" maxlength="30" autocomplete="off" />
+        </div>
+        <textarea id="commentText" placeholder="후기나 의견을 적어주세요 (최대 500자)" maxlength="500"></textarea>
+        <div class="submit-row">
+          <button type="submit" class="comment-submit">후기 남기기</button>
+        </div>
+      </form>
+      <div class="comment-list" id="commentList"></div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="detail-foot">
+    <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; width:100%;">
+      <a href="../index.html">← 다른 프로젝트 보기</a>
+      <span class="mono">박승연 · 2026</span>
+    </div>
+  </footer>
+
+  <!-- ===== DEVICE PREVIEW (편집 모드 전용) — detail.js 가 제어 ===== -->
+  <div class="dp-overlay" id="dpOverlay" hidden>
+    <div class="dp-bar">
+      <span class="dp-label">기기 미리보기</span>
+      <button class="dp-size active" type="button" data-w="375" data-h="812">모바일 375</button>
+      <button class="dp-size" type="button" data-w="768" data-h="1024">태블릿 768</button>
+      <button class="dp-size" type="button" data-w="1280" data-h="800">데스크톱 1280</button>
+      <span class="dp-note" id="dpNote"></span>
+      <button class="dp-close" id="dpClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="dp-stage" id="dpStage">
+      <div class="dp-frame" id="dpFrame"><iframe id="dpIframe" title="기기 미리보기"></iframe></div>
+    </div>
+  </div>
+
+  <!-- Theme toggle -->
+  <button id="themeToggle" class="theme-toggle" type="button" aria-label="라이트/다크 전환">
+    <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+
+  <!-- ===== 인트로 영상 =====
+       5E(physics-draw)는 DOM 애니메이션을 히어로 안에서 실시간으로 돌린다.
+       이쪽은 렌더해 둔 mp4 를 **화면 전체를 덮어** 튼다 — 인트로가 시연 영상
+       5편을 품고 있어 실시간 재생은 페이지가 무거워지고, 결과는 어차피 같다.
+
+       ⚠ 히어로 안이 아니라 body 바로 아래에 둔다. .reveal 이 transform 을 쓰는데,
+         transform 이 걸린 조상 안에서는 position:fixed 가 화면이 아니라 그 조상을
+         기준으로 잡혀 '전체 화면 덮기'가 깨진다. -->
+  <style>
+    #introOverlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: #010102; display: flex;
+      align-items: center; justify-content: center;
+      opacity: 1; transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 늘리지 않는다(contain). 배경색이 영상 배경과 같아 남는 여백은 이어져 보인다.
+       크기는 화면의 70% — 꽉 채우면 부담스럽다. 이 숫자만 바꾸면 조절된다. */
+    #introOverlay video {
+      display: block; width: 70%; height: 70%; object-fit: contain;
+    }
+    #introOverlay.gone { opacity: 0; pointer-events: none; }
+    /* 조작 버튼 — 오른쪽 아래 (5E 인트로와 같은 자리) */
+    #introCtl {
+      position: absolute; right: 26px; bottom: 22px;
+      display: flex; gap: 10px;
+    }
+    #introCtl button {
+      font: inherit; font-size: 13px; color: #e6edf3;
+      background: rgba(20, 22, 28, 0.82); border: 1px solid #3a3f47;
+      border-radius: 999px; padding: 9px 16px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      backdrop-filter: blur(6px);
+    }
+    #introCtl button:hover { color: #0071e3; border-color: #0071e3; }
+    /* 인트로가 도는 동안에는 뒤 페이지가 스크롤되지 않게 */
+    body.intro-on { overflow: hidden; }
+    @media (max-width: 760px) { #introOverlay { display: none; } }
+  </style>
+  <div id="introOverlay" hidden>
+    <video id="introVideo" muted playsinline preload="auto"
+           poster="../assets/exampool-intro-poster.jpg"></video>
+    <div id="introCtl">
+      <button id="introSound" type="button">🔊 소리 켜기</button>
+      <button id="introSkip" type="button">건너뛰기 <span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById("introOverlay");
+      var v = document.getElementById("introVideo");
+      var skip = document.getElementById("introSkip");
+      if (!box || !v) return;
+      // 좁은 화면·모션 최소화 설정에서는 인트로를 아예 틀지 않는다 (영상도 안 받는다)
+      var wide = window.matchMedia("(min-width: 761px)");
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (!wide.matches || reduce.matches) { box.remove(); return; }
+
+      var closed = false;
+      function close() {
+        if (closed) return;
+        closed = true;
+        box.classList.add("gone");
+        document.body.classList.remove("intro-on");
+        setTimeout(function () { try { v.pause(); } catch (e) {} }, 620);
+        addReplay();
+      }
+      function addReplay() {
+        if (document.querySelector(".k5-replay")) return;
+        var r = document.createElement("button");
+        r.type = "button";
+        r.className = "k5-replay";
+        r.innerHTML = '<span class="k5-replay-ico">↻</span><span>인트로 다시 보기</span>';
+        r.addEventListener("click", function () {
+          closed = false;
+          box.classList.remove("gone");
+          document.body.classList.add("intro-on");
+          v.currentTime = 0;
+          v.play().catch(close);
+        });
+        document.body.appendChild(r);
+      }
+
+      box.hidden = false;
+      document.body.classList.add("intro-on");
+      v.src = "../assets/exampool-intro.mp4";
+      v.addEventListener("ended", close);
+      v.addEventListener("error", close);
+      skip.addEventListener("click", close);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") close();
+      });
+
+      /* 소리 — 자동재생을 하려면 음소거로 시작할 수밖에 없다(브라우저 정책).
+         음악이 깔려 있으므로 켤 수단을 준다. */
+      var sound = document.getElementById("introSound");
+      sound.addEventListener("click", function () {
+        v.muted = !v.muted;
+        sound.textContent = v.muted ? "🔊 소리 켜기" : "🔇 소리 끄기";
+      });
+
+      /* 재생 시도.
+         ⚠ 탭이 숨겨져 있으면 크롬이 영상을 멈추고 play() 가 실패한다. 이걸
+         '자동재생 불가'로 보고 닫아 버리면, 배경 탭에서 열었다가 나중에 보는
+         사람은 인트로를 통째로 놓친다 → 보이게 될 때 다시 시도한다.
+         화면에 보이는데도 실패하면 그때는 정책상 막힌 것이므로 접는다. */
+      function start() {
+        v.play().catch(function () {
+          if (document.visibilityState === "visible") close();
+        });
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (!closed && document.visibilityState === "visible" && v.paused) start();
+      });
+      if (document.visibilityState === "visible") start();
+    })();
+  </script>
+
+  <script type="module" src="../assets/detail.js"></script>
+</body>
+</html>
