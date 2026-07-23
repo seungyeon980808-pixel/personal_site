@@ -1650,6 +1650,9 @@
 
     @media (max-width: 660px) {
       .wf-flow { flex-direction: column; }
+      /* 세로로 쌓을 때 폭을 컨테이너에 묶는다. min-width 가 남아 있으면
+         칸이 컨테이너보다 넓어져 오른쪽이 잘려 나간다. */
+      .wf-step { width: 100%; min-width: 0; flex: none; }
       .wf-arrow { transform: rotate(90deg); align-self: flex-start; margin-left: 24px; }
     }
 
