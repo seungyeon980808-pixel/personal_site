@@ -7,6 +7,8 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react()],
   define: { 'process.env.NODE_ENV': '"production"' },
+  // public/ 의 favicon 등이 산출 폴더로 딸려 들어가지 않게 한다
+  publicDir: false,
   build: {
     outDir: resolve(__dirname, '../assets/shader'),
     emptyOutDir: true,
