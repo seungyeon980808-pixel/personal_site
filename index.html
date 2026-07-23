@@ -102,6 +102,20 @@
     /* 라이트 모드는 쓰지 않는다 (셰이더가 어두운 배경 전용) */
     .theme-toggle { display: none !important; }
 
+    /* 커서 잔상 — 배경과 같은 층. screen 합성이라 검은 부분은 투명해진다 */
+    #cursorTrail {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity .4s var(--ease);
+    }
+    #cursorTrail.on { opacity: .75; }
+    /* 손가락 입력 기기에는 커서가 없다 */
+    @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+      #cursorTrail { display: none; }
+    }
+
     /* 셰이더 위 가독성 스크림 — 가운데는 비우고 가장자리·아래를 눌러준다 */
     #shaderScrim {
       position: fixed;
@@ -1739,6 +1753,10 @@
   <!-- 가독성 스크림. 셰이더 바로 위, 본문 아래에 깔려 가장자리와
        아래쪽을 눌러준다. 이게 없으면 밝은 셰이더 덩어리 위의 글자가 읽히지 않는다. -->
   <div id="shaderScrim" aria-hidden="true"></div>
+  <!-- 커서 잔상. 셰이더와 같은 계열 색이 번졌다 사라진다.
+       셰이더 위(z-index 1)에 얹되 본문(.wrap, z-index 1) 보다는 아래로 두기 위해
+       스크림과 같은 층에 두고 screen 합성으로 배경에 녹인다. -->
+  <canvas id="cursorTrail" aria-hidden="true"></canvas>
 
   <!-- 그라데이션 지정 툴바 — 편집 모드에서 글자를 드래그하면 뜬다 -->
   <div id="gradTool" role="toolbar" aria-label="그라데이션 지정">
@@ -3235,15 +3253,24 @@
             '<div class="th-meta">' +
               '<span' + (editing ? ' contenteditable="true"' : "") +
                 ' data-act="th-at" data-i="' + i + '">' + esc(t.at || "") + "</span>" +
-              (wf ? '<span>·</span><span class="th-link">' + esc(wf.name) + "</span>" : "") +
+              (editing
+                ? '<span>·</span><select class="wf-sel" data-act="th-wf" data-i="' + i + '">' +
+                    '<option value="">프로젝트 연결 없음</option>' +
+                    workflows.map(function (w) {
+                      return '<option value="' + esc(w.id) + '"' +
+                        (w.id === t.workflowId ? " selected" : "") + ">" + esc(w.name) + "</option>";
+                    }).join("") +
+                  "</select>"
+                : (wf ? '<span>·</span><a class="th-link" href="#workflowSection">' + esc(wf.name) + "</a>" : "")) +
             "</div>" +
           "</article>";
         }).join("") + "</div>";
 
         // 등장 효과 연결 (편집 중에는 바로 보이게)
-        thoughtsEl.querySelectorAll(".th-card").forEach(function (c) {
-          if (editing || !thObserver) c.classList.add("in");
-          else thObserver.observe(c);
+        thoughtsEl.querySelectorAll(".th-card").forEach(function (c, n) {
+          if (editing || !thObserver) { c.classList.add("in"); return; }
+          c.style.transitionDelay = (n % 4) * 70 + "ms";   // 차례로 조금씩 늦게
+          thObserver.observe(c);
         });
 
         if (moreBtn) {
@@ -3266,9 +3293,16 @@
           } else return;
           renderThoughts();
         });
+        thoughtsEl.addEventListener("change", function (e) {
+          var sel = e.target.closest('select[data-act="th-wf"]');
+          if (!sel) return;
+          thoughts[parseInt(sel.dataset.i, 10)].workflowId = sel.value || null;
+          renderThoughts();
+        });
         thoughtsEl.addEventListener("blur", function (e) {
           var el = e.target, act = el && el.dataset && el.dataset.act;
           if (!act || act.indexOf("th-") !== 0) return;
+          if (el.tagName === "SELECT") return;
           var t = thoughts[parseInt(el.dataset.i, 10)];
           if (!t) return;
           if (act === "th-title") t.title = el.textContent.trim();
@@ -3998,6 +4032,109 @@
           }
         }
       });
+    })();
+  </script>
+
+  <!-- ===== CURSOR TRAIL =====
+    마우스를 따라 셰이더와 같은 계열 색이 번졌다 사라진다.
+    - 요소를 여러 개 두지 않고 캔버스 한 장에 알파 페이드로 그린다
+    - screen 합성이라 검게 칠하면 그만큼 투명해진다 = 잔상이 사라진다
+    - 데스크톱 전용(CSS 에서 차단), reduced-motion 이면 비활성
+    - 프레임이 밀리면 스스로 꺼진다 (성능 예산: 노트북에서 끊김 없이)
+  -->
+  <script>
+    (function () {
+      var cvs = document.getElementById("cursorTrail");
+      if (!cvs) return;
+      // 커서가 없는 기기·모션 최소화 설정에서는 아예 돌리지 않는다
+      if (window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+
+      var ctx = cvs.getContext("2d", { alpha: true });
+      var W = 0, H = 0, raf = 0, alive = true;
+      // 해상도를 1배로 고정한다. 흐릿한 번짐이라 배율을 올려도 티가 안 난다.
+      function resize() {
+        W = cvs.width = window.innerWidth;
+        H = cvs.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      // 배경 셰이더와 같은 계열
+      var COLORS = [[59,157,255], [125,211,252], [56,189,248], [139,92,246], [14,116,144]];
+
+      var tx = -999, ty = -999;      // 목표(실제 커서)
+      var x = -999, y = -999;        // 따라오는 점
+      var moving = false, idle = 0;
+
+      window.addEventListener("mousemove", function (e) {
+        tx = e.clientX; ty = e.clientY;
+        if (x < -900) { x = tx; y = ty; }   // 첫 진입은 순간이동
+        moving = true; idle = 0;
+        cvs.classList.add("on");
+      }, { passive: true });
+      document.addEventListener("mouseleave", function () {
+        moving = false;
+        cvs.classList.remove("on");
+      });
+
+      var last = 0, slow = 0, frames = 0;
+      function draw(now) {
+        if (!alive) return;
+        var dt = last ? now - last : 16;
+        last = now;
+
+        // 성능 감시 — 60프레임 중 연속으로 밀리면 스스로 끈다
+        if (++frames > 60) {
+          if (dt > 34) slow++; else slow = Math.max(0, slow - 1);
+          if (slow > 30) { alive = false; stop(); return; }   // 한 번 끄면 다시 켜지 않는다
+        }
+
+        // 이전 프레임을 조금씩 검게 덮는다 = screen 합성에서 서서히 사라짐
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "rgba(0,0,0,0.075)";
+        ctx.fillRect(0, 0, W, H);
+
+        if (moving) {
+          x += (tx - x) * 0.18;          // 부드럽게 따라온다
+          y += (ty - y) * 0.18;
+
+          var t = now * 0.0004;
+          var i = Math.floor(t) % COLORS.length;
+          var c = COLORS[i], n = COLORS[(i + 1) % COLORS.length], k = t % 1;
+          var col = [
+            Math.round(c[0] + (n[0] - c[0]) * k),
+            Math.round(c[1] + (n[1] - c[1]) * k),
+            Math.round(c[2] + (n[2] - c[2]) * k)
+          ].join(",");
+
+          var r = 110;
+          var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(0, "rgba(" + col + ",0.30)");
+          g.addColorStop(0.45, "rgba(" + col + ",0.10)");
+          g.addColorStop(1, "rgba(" + col + ",0)");
+          ctx.globalCompositeOperation = "lighter";
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
+
+          // 커서가 멈춰 있으면 잔상만 남기고 그리기를 멈춘다
+          if (Math.abs(tx - x) < 0.5 && Math.abs(ty - y) < 0.5 && ++idle > 90) moving = false;
+        }
+        raf = requestAnimationFrame(draw);
+      }
+      function start() { if (!raf && alive) { last = 0; raf = requestAnimationFrame(draw); } }
+      function stop() {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        cvs.classList.remove("on");
+        ctx.clearRect(0, 0, W, H);
+      }
+      // 탭이 가려지면 돌리지 않는다
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) stop(); else start();
+      });
+      start();
     })();
   </script>
 </body>
