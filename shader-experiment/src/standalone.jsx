@@ -29,6 +29,11 @@ function renderHost(host) {
       noise={num(d.noise, 0.6)}
       rotation={num(d.rotation, 40)}
       speed={num(d.speed, 0.4)}
+      // 성능: 라이브러리 기본값은 2배 해상도(minPixelRatio 2)라 FHD 에서
+      // 프레임마다 800만 픽셀을 그린다. 1배 + 총 픽셀 상한으로 묶는다.
+      // 그레인 특성상 업스케일돼도 거칠어진 티가 거의 안 난다.
+      minPixelRatio={num(d.minPixelRatio, 1)}
+      maxPixelCount={num(d.maxPixels, 1400000)}
     />
   )
 }

@@ -208,11 +208,15 @@
     }
     #gradTool .swatch[aria-pressed="true"] { outline: 2px solid var(--main); outline-offset: 2px; }
 
-    /* 반투명 표면은 블러가 있어야 배경 위에서 '떠 있는' 판으로 읽힌다 */
-    .section,
-    .now {
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+    /* 움직이는 셰이더 위의 backdrop-filter 는 매 프레임 블러를 다시 계산해
+       페이지 전체를 버벅이게 한다 (정지 배경이면 캐시되지만 셰이더는 매 프레임
+       바뀐다). 블러 대신 어두운 반투명 배경으로 판을 세운다.
+       ※ 원본 .section/.now 규칙이 이 블록보다 뒤에 있어 body 를 붙여 이긴다. */
+    body .section,
+    body .now {
+      background: rgba(15, 19, 26, 0.62);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
     /* Cross-page view transitions (smooth navigation where supported) */
@@ -3577,16 +3581,15 @@
         p.removeChild(el);
         p.normalize();
       }
-      function toggleGrad() {
+      // 선택 구간을 grad 로 감싼다. 이미 감싸져 있으면 그대로 둔다(true 반환).
+      function applyGradToSelection() {
         var sel = window.getSelection();
-        if (!sel || !sel.rangeCount) return;
+        if (!sel || !sel.rangeCount) return false;
         var range = sel.getRangeAt(0);
         var host = editableHost(range.commonAncestorContainer);
-        if (!host) return;
-
-        var existing = gradSpanAt(range.commonAncestorContainer);
-        if (existing) { unwrap(existing); hide(); return; }   // 이미 걸려 있으면 해제
-        if (sel.isCollapsed) return;
+        if (!host) return false;
+        if (gradSpanAt(range.commonAncestorContainer)) return true; // 이미 걸린 구간
+        if (sel.isCollapsed) return false;
 
         var span = document.createElement("span");
         span.className = "grad";
@@ -3602,6 +3605,14 @@
         host.normalize();
         sel.removeAllRanges();
         hide();
+        return true;
+      }
+      function toggleGrad() {
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        var existing = gradSpanAt(sel.getRangeAt(0).commonAncestorContainer);
+        if (existing) { unwrap(existing); hide(); return; }   // 이미 걸려 있으면 해제
+        applyGradToSelection();
       }
 
       // ---- 툴바 표시 ----------------------------------------------------
@@ -3680,6 +3691,9 @@
         if (!btn) return;
         if (btn.dataset.act === "toggle") { toggleGrad(); return; }
         if (btn.dataset.preset) {
+          // 색을 고르면 선택 구간에 먼저 적용하고 프리셋을 바꾼다.
+          // (예전엔 프리셋만 바뀌어서 "색을 눌렀는데 아무 일도 없는" 상태였다)
+          applyGradToSelection();
           presetEl.textContent = btn.dataset.preset;
           applyPreset(btn.dataset.preset);
         }
