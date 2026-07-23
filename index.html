@@ -3464,6 +3464,7 @@
           // 자동으로 입힌 강조(grad-auto)는 저장하지 않는다. 저장해 버리면
           // '사용자가 직접 지정한 구간'과 구별이 사라져 되돌릴 수 없다.
           if (el.classList.contains("grad-auto")) { unwrapEl(el); return; }
+          if (!el.textContent) { el.remove(); return; }   // 빈 껍데기는 저장하지 않는다
           // 단어별 색 번호(data-c)만 함께 남긴다. style 을 열어주면 저장 데이터를
           // 통해 임의 CSS 가 페이지로 들어온다.
           var cIdx = el.getAttribute("data-c");
@@ -3645,6 +3646,7 @@
         // 중첩이 생겼으면 바깥쪽을 벗겨 안쪽 단어 단위만 남긴다
         Array.prototype.slice.call(host.querySelectorAll("span.grad")).forEach(function (s) {
           if (s.querySelector("span.grad")) unwrap(s);
+          else if (!s.textContent) s.remove();   // 빈 껍데기가 남지 않게
         });
         host.normalize();
         sel.removeAllRanges();
@@ -3712,15 +3714,7 @@
       // 데스크톱에서는 줄 끝 공백이라 눈에 띄지 않는다.
       function padBreaks() {
         if (!introEl) return;
-        // 편집 중 들어간 &nbsp; 연속은 줄바꿈이 되지 않아 좁은 화면에서 문장이
-        // 흘러가지 못한다. 일반 공백 한 칸으로 눌러준다.
-        var walker = document.createTreeWalker(introEl, NodeFilter.SHOW_TEXT);
-        var texts = [], n;
-        while ((n = walker.nextNode())) texts.push(n);
-        texts.forEach(function (t) {
-          var fixed = t.textContent.replace(/[ \s]+/g, " ");
-          if (fixed !== t.textContent) t.textContent = fixed;
-        });
+        // 사용자가 넣은 공백(&nbsp; 포함)은 건드리지 않는다. 의도한 간격이다.
         Array.prototype.slice.call(introEl.querySelectorAll("br")).forEach(function (br) {
           var prev = br.previousSibling;
           if (prev && prev.nodeType === 3 && /\s$/.test(prev.textContent)) return;
