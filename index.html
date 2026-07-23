@@ -366,7 +366,7 @@
       padding: 4px 0 20px;
       margin-bottom: 24px;
       /* 넓은 화면에서 셰이더가 충분히 드러나도록 히어로를 크게 잡는다 */
-      min-height: clamp(520px, 82vh, 860px);
+      min-height: clamp(364px, 57vh, 602px);
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -1567,6 +1567,56 @@
     .pick-del { position: absolute; top: 10px; right: 10px; }
     .wf-empty { font-size: 13px; color: var(--muted-soft); padding: 4px 0; }
 
+    /* ===== 생각 카드 ===== */
+    .th-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .th-card {
+      position: relative;
+      padding: 18px 20px;
+      border: 1px solid var(--divider); border-radius: 18px;
+      background: rgba(255, 255, 255, .03);
+      /* 스크롤 등장 — 아래에서 살짝 떠오른다 */
+      opacity: 0; transform: translateY(20px);
+      transition: opacity .5s var(--ease), transform .5s var(--ease);
+    }
+    .th-card.in { opacity: 1; transform: none; }
+    .th-card.pin { border-color: rgba(90, 169, 255, .38); }
+    .th-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 7px; }
+    .th-title { font-size: 15px; font-weight: 600; letter-spacing: -.01em; flex: 1; margin: 0; }
+    .th-body { font-size: 13px; line-height: 1.65; color: var(--muted); margin: 0; }
+    .th-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 12px;
+      font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--muted-soft);
+    }
+    .th-pin {
+      font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .05em;
+      padding: 2px 7px; border-radius: 20px;
+      color: var(--main); background: rgba(90, 169, 255, .12);
+      box-shadow: inset 0 0 0 1px rgba(90, 169, 255, .3);
+    }
+    .th-link { color: var(--main); text-decoration: none; }
+    .th-link:hover { text-decoration: underline; }
+    .th-more { margin-top: 14px; }
+    @media (prefers-reduced-motion: reduce) {
+      .th-card { opacity: 1; transform: none; transition: none; }
+    }
+    @media (max-width: 620px) { .th-grid { grid-template-columns: 1fr; } }
+
+    /* 프로젝트 — 문제와 결과 */
+    .wf-problem {
+      font-size: 17px; font-weight: 600; line-height: 1.45; letter-spacing: -.015em;
+      color: var(--text); margin: 0 0 8px;
+    }
+    .wf-outcome {
+      display: flex; align-items: baseline; gap: 9px;
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid var(--divider);
+      font-size: 13px; color: var(--muted);
+    }
+    .wf-outcome::before {
+      content: "→"; flex: none;
+      font-family: "IBM Plex Mono", monospace; color: var(--main);
+    }
+
     /* 프로그램 카드에 붙는 소속 프로젝트 태그 (workflows 에서 파생) */
     .proj-wf-tag {
       display: inline-block; margin-left: 6px; vertical-align: middle;
@@ -1730,6 +1780,21 @@
            [data-field] 라서 기존 저장·불러오기 흐름을 그대로 탄다. -->
       <span id="gradPreset" data-field="gradPreset" hidden>default</span>
     </header>
+
+    <!-- ===== THOUGHTS (생각: 요즘 파고드는 주제) =====
+         이 사이트의 주인공. Firestore main 문서의 thoughts 배열에 저장된다.
+         기본 4개만 펼치고 나머지는 "더 보기"로 접는다. -->
+    <details class="section reveal" id="thoughtsSection" open>
+      <summary><span class="chev">▶</span> 생각</summary>
+      <div class="section-body">
+        <p class="wf-note">요즘 파고드는 주제들입니다.</p>
+        <div id="thoughtList"></div>
+        <button class="wf-btn th-more" type="button" id="thMore" hidden></button>
+        <div class="wf-adminrow" hidden>
+          <button class="wf-btn" type="button" id="thAdd">＋ 생각 추가</button>
+        </div>
+      </div>
+    </details>
 
     <!-- ===== WORKFLOWS (프로젝트: 프로그램을 이어 붙인 작업 흐름) =====
          내용은 Firestore main 문서의 workflows 필드(배열)에 통째로 저장된다.
@@ -2939,6 +3004,29 @@
 
       var workflows = [];
       var picks = [];
+      var thoughts = [];
+
+      // 생각 본문은 <br> 만 남긴다. FIREBASE 쪽 sanitizeBreaks 와 같은 취지지만
+      // 그 함수는 다른 스크립트 블록에 있어 여기서 부르지 않는다.
+      function keepBreaks(html) {
+        var box = document.createElement("div");
+        box.innerHTML = html == null ? "" : String(html);
+        box.querySelectorAll("script, style, iframe, object, embed, template").forEach(function (n) { n.remove(); });
+        Array.prototype.slice.call(box.querySelectorAll("div, p")).reverse().forEach(function (blk) {
+          if (!blk.parentNode) return;
+          var kids = Array.prototype.slice.call(blk.childNodes);
+          blk.replaceWith.apply(blk, [document.createElement("br")].concat(kids));
+        });
+        Array.prototype.slice.call(box.querySelectorAll("*")).reverse().forEach(function (el) {
+          if (!el.parentNode || el.tagName === "BR") return;
+          el.replaceWith.apply(el, Array.prototype.slice.call(el.childNodes));
+        });
+        return box.innerHTML
+          .replace(/(?:\s*<br\s*\/?>\s*){2,}/gi, "<br>")
+          .replace(/^(?:\s*<br\s*\/?>)+/i, "")
+          .replace(/(?:<br\s*\/?>\s*)+$/i, "")
+          .trim();
+      }
       var editing = false;
 
       var listEl  = document.getElementById("workflowList");
@@ -3048,8 +3136,19 @@
               '<h3 class="wf-name"' + (editing ? ' contenteditable="true"' : "") + ' data-act="wf-name" data-wf="' + wi + '">' + esc(wf.name) + "</h3>" +
               (editing ? '<button class="wf-btn danger" type="button" data-act="del-wf" data-wf="' + wi + '">삭제</button>' : "") +
             "</div>" +
+            // 문제를 가장 크게 — 이 프로젝트가 무엇을 풀려는지가 먼저 읽혀야 한다
+            ((wf.problem || editing)
+              ? '<p class="wf-problem"' + (editing ? ' contenteditable="true"' : "") +
+                  ' data-act="wf-problem" data-wf="' + wi + '">' +
+                  esc(wf.problem || "어떤 게 불편했는지 적습니다") + "</p>"
+              : "") +
             '<p class="wf-desc"' + (editing ? ' contenteditable="true"' : "") + ' data-act="wf-desc" data-wf="' + wi + '">' + esc(wf.desc) + "</p>" +
             '<div class="wf-flow">' + steps + "</div>" +
+            ((wf.outcome || editing)
+              ? '<p class="wf-outcome"><span' + (editing ? ' contenteditable="true"' : "") +
+                  ' data-act="wf-outcome" data-wf="' + wi + '">' +
+                  esc(wf.outcome || "그래서 어떻게 됐는지 한 줄로") + "</span></p>"
+              : "") +
             (editing ? '<div class="wf-adminrow"><button class="wf-btn" type="button" data-act="add-step" data-wf="' + wi + '">＋ 칸 추가</button></div>' : "") +
           "</article>";
         }).join("");
@@ -3084,7 +3183,118 @@
         }).join("");
       }
 
-      function renderAll() { renderWorkflows(); renderPicks(); }
+      // ---- 생각 ----------------------------------------------------------
+      var thoughtsEl = document.getElementById("thoughtList");
+      var moreBtn = document.getElementById("thMore");
+      var THOUGHT_FOLD = 4;          // 기본 노출 개수
+      var thExpanded = false;
+
+      // 스크롤 등장 — 화면에 들어온 카드만 켠다
+      var thObserver = "IntersectionObserver" in window
+        ? new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) { e.target.classList.add("in"); thObserver.unobserve(e.target); }
+            });
+          }, { threshold: 0.15 })
+        : null;
+
+      function sortedThoughts() {
+        return thoughts.slice().sort(function (a, b) {
+          if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1;   // 고정이 먼저
+          return String(b.at || "").localeCompare(String(a.at || ""));
+        });
+      }
+
+      function renderThoughts() {
+        if (!thoughtsEl) return;
+        var list = sortedThoughts();
+        if (!list.length) {
+          thoughtsEl.innerHTML = '<p class="wf-empty">아직 등록된 생각이 없습니다.</p>';
+          if (moreBtn) moreBtn.hidden = true;
+          return;
+        }
+        // 편집 중에는 접지 않는다 — 안 보이는 카드를 고칠 수 없다
+        var shown = (editing || thExpanded) ? list : list.slice(0, THOUGHT_FOLD);
+
+        thoughtsEl.innerHTML = '<div class="th-grid">' + shown.map(function (t) {
+          var i = thoughts.indexOf(t);
+          var wf = t.workflowId
+            ? workflows.filter(function (w) { return w.id === t.workflowId; })[0] : null;
+          return '<article class="th-card' + (t.pinned ? " pin" : "") + '" data-i="' + i + '">' +
+            '<div class="th-head">' +
+              '<h3 class="th-title"' + (editing ? ' contenteditable="true"' : "") +
+                ' data-act="th-title" data-i="' + i + '">' + esc(t.title) + "</h3>" +
+              (editing
+                ? '<button class="wf-btn" type="button" data-act="th-pin" data-i="' + i + '">' +
+                    (t.pinned ? "고정 해제" : "고정") + "</button>" +
+                  '<button class="wf-btn danger" type="button" data-act="th-del" data-i="' + i + '">×</button>'
+                : (t.pinned ? '<span class="th-pin">고정</span>' : "")) +
+            "</div>" +
+            '<p class="th-body"' + (editing ? ' contenteditable="true"' : "") +
+              ' data-act="th-body" data-i="' + i + '">' + (t.body || "") + "</p>" +
+            '<div class="th-meta">' +
+              '<span' + (editing ? ' contenteditable="true"' : "") +
+                ' data-act="th-at" data-i="' + i + '">' + esc(t.at || "") + "</span>" +
+              (wf ? '<span>·</span><span class="th-link">' + esc(wf.name) + "</span>" : "") +
+            "</div>" +
+          "</article>";
+        }).join("") + "</div>";
+
+        // 등장 효과 연결 (편집 중에는 바로 보이게)
+        thoughtsEl.querySelectorAll(".th-card").forEach(function (c) {
+          if (editing || !thObserver) c.classList.add("in");
+          else thObserver.observe(c);
+        });
+
+        if (moreBtn) {
+          var hidden = list.length - shown.length;
+          moreBtn.hidden = editing || (!thExpanded && hidden <= 0);
+          moreBtn.textContent = thExpanded ? "접기" : "더 보기 (" + hidden + ")";
+        }
+      }
+
+      if (thoughtsEl) {
+        thoughtsEl.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-act]");
+          if (!btn) return;
+          var i = parseInt(btn.dataset.i, 10);
+          if (btn.dataset.act === "th-del") {
+            if (!confirm("이 생각을 삭제할까요?")) return;
+            thoughts.splice(i, 1);
+          } else if (btn.dataset.act === "th-pin") {
+            thoughts[i].pinned = !thoughts[i].pinned;
+          } else return;
+          renderThoughts();
+        });
+        thoughtsEl.addEventListener("blur", function (e) {
+          var el = e.target, act = el && el.dataset && el.dataset.act;
+          if (!act || act.indexOf("th-") !== 0) return;
+          var t = thoughts[parseInt(el.dataset.i, 10)];
+          if (!t) return;
+          if (act === "th-title") t.title = el.textContent.trim();
+          else if (act === "th-body") t.body = keepBreaks(el.innerHTML);
+          else if (act === "th-at") t.at = el.textContent.trim();
+        }, true);
+      }
+      if (moreBtn) moreBtn.addEventListener("click", function () {
+        thExpanded = !thExpanded;
+        renderThoughts();
+      });
+      var thAdd = document.getElementById("thAdd");
+      if (thAdd) thAdd.addEventListener("click", function () {
+        var d = new Date();
+        thoughts.unshift({
+          id: uid("th"),
+          title: "새 생각",
+          body: "무슨 생각을 하고 있는지 두세 줄로 적습니다.",
+          at: d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),
+          pinned: false,
+          workflowId: null
+        });
+        renderThoughts();
+      });
+
+      function renderAll() { renderThoughts(); renderWorkflows(); renderPicks(); }
 
       // ================= 조작 =================
       listEl.addEventListener("click", function (e) {
@@ -3125,6 +3335,8 @@
         var v = el.textContent.trim();
         if (act === "wf-name") { wf.name = v; paintTags(); }
         else if (act === "wf-desc") wf.desc = v;
+        else if (act === "wf-problem") wf.problem = v;
+        else if (act === "wf-outcome") wf.outcome = v;
         else if (act === "role") wf.steps[parseInt(el.dataset.i, 10)].role = v;
       }, true);
 
@@ -3168,7 +3380,7 @@
       // ================= 외부 연결 =================
       function setEnabled(on) {
         editing = !!on;
-        document.querySelectorAll("#workflowSection .wf-adminrow, #picksSection .wf-adminrow")
+        document.querySelectorAll("#thoughtsSection .wf-adminrow, #workflowSection .wf-adminrow, #picksSection .wf-adminrow")
           .forEach(function (r) { r.hidden = !editing; });
         renderAll();
       }
@@ -3176,12 +3388,17 @@
         return {
           workflows: workflows.map(function (w) {
             return { id: w.id, name: w.name, tag: w.tag, desc: w.desc,
+                   problem: w.problem || "", outcome: w.outcome || "",
                      steps: (w.steps || []).map(function (s) {
                        return { programId: String(s.programId), role: s.role || "" };
                      }) };
           }),
           picks: picks.map(function (p) {
             return { id: p.id, kind: p.kind, name: p.name, by: p.by, desc: p.desc, url: p.url };
+          }),
+          thoughts: thoughts.map(function (t) {
+            return { id: t.id, title: t.title, body: t.body, at: t.at,
+                     pinned: !!t.pinned, workflowId: t.workflowId || null };
           })
         };
       }
@@ -3189,6 +3406,7 @@
         if (!d) return;
         if (Array.isArray(d.workflows)) workflows = d.workflows;
         if (Array.isArray(d.picks)) picks = d.picks;
+        if (Array.isArray(d.thoughts)) thoughts = d.thoughts;
         renderAll();
       }
 
@@ -3433,6 +3651,7 @@
         var wf = window.SiteWorkflows.getData();
         data.workflows = wf.workflows;
         data.picks = wf.picks;
+        data.thoughts = wf.thoughts;
       }
       return data;
     }
@@ -3530,7 +3749,9 @@
       // 프로젝트·소개는 맨 마지막에 그린다. 흐름 안의 프로그램 이름을
       // 카드 DOM 에서 읽으므로, fields 가 채워진 뒤여야 최신 이름이 나온다.
       if (window.SiteWorkflows) {
-        window.SiteWorkflows.applyData({ workflows: data.workflows, picks: data.picks });
+        window.SiteWorkflows.applyData({
+          workflows: data.workflows, picks: data.picks, thoughts: data.thoughts
+        });
       }
     }
 
