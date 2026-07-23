@@ -1755,10 +1755,27 @@
     @media (max-width: 900px) {
       .proj-grid { grid-template-columns: repeat(3, 1fr); }
     }
+    /* 좁은 화면에서는 아이콘 그리드로 돌아간다.
+       카드마다 설명·상태·태그를 다 세우면 한 장이 세로로 길어져
+       스크롤이 끝없이 이어진다. 자세한 내용은 눌렀을 때 모달이 맡는다. */
     @media (max-width: 620px) {
+      .proj-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .proj-card {
+        min-height: 0;
+        padding: 14px 6px 12px;
+        gap: 9px;
+        border-radius: 18px;
+      }
+      .proj-preview { width: 56px; border-radius: 16px; }
+      .proj-card .proj-name a { font-size: 12px; }
+      /* 아이콘과 이름만 남긴다 */
+      .proj-card .proj-why,
+      .proj-card .proj-head .status,
+      .proj-card .proj-wf-tag { display: none; }
+    }
+    /* 아주 좁은 기기에서는 두 칸으로 — 세 칸이면 이름이 뭉개진다 */
+    @media (max-width: 340px) {
       .proj-grid { grid-template-columns: repeat(2, 1fr); }
-      .proj-preview { width: 58px; border-radius: 16px; }
-      .proj-card .proj-why { -webkit-line-clamp: 3; }
     }
   </style>
 </head>
