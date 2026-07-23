@@ -1582,6 +1582,36 @@
     }
     @media (max-width: 620px) { .th-grid { grid-template-columns: 1fr; } }
 
+    /* ===== 개발일지 — 날짜별 세로 타임라인 ===== */
+    .dl-list { display: flex; flex-direction: column; }
+    .dl-item {
+      display: grid; grid-template-columns: 96px 1fr; gap: 18px;
+      padding: 16px 0; border-top: 1px solid var(--divider);
+    }
+    .dl-item:first-child { border-top: 0; padding-top: 4px; }
+    .dl-date {
+      font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--sub);
+      white-space: nowrap; padding-top: 3px;
+    }
+    .dl-date[contenteditable="true"] { color: var(--main); }
+    .dl-body { font-size: 15px; line-height: 1.75; color: var(--text); margin: 0; }
+    .dl-body[contenteditable="true"] {
+      outline: 1px solid var(--divider); border-radius: 8px; padding: 8px 10px;
+      background: rgba(255, 255, 255, .02);
+    }
+    .dl-body[contenteditable="true"]:focus { outline-color: var(--main); }
+    .dl-del {
+      grid-column: 2; justify-self: start; margin-top: 8px;
+    }
+    .dl-more { margin-top: 14px; }
+    /* .wf-btn 의 display:inline-flex 가 [hidden] 을 덮으므로 명시적으로 되돌린다 */
+    .dl-more[hidden] { display: none; }
+    .dl-empty { color: var(--muted-soft); font-size: 14px; }
+    @media (max-width: 560px) {
+      .dl-item { grid-template-columns: 1fr; gap: 4px; }
+      .dl-del { grid-column: 1; }
+    }
+
     /* 프로젝트 — 문제와 결과 */
     .wf-problem {
       font-size: 20px; font-weight: 600; line-height: 1.45; letter-spacing: -.015em;
@@ -1819,6 +1849,22 @@
         <button class="wf-btn th-more" type="button" id="thMore" hidden></button>
         <div class="wf-adminrow" hidden>
           <button class="wf-btn" type="button" id="thAdd">＋ 생각 추가</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== DEVLOG (개발일지: 하루 한 줄씩 쌓는 기록) =====
+         Firestore main 문서의 devlog 배열에 저장된다. 생각 섹션과 같은 편집 방식이라
+         관리자 로그인 → 편집 모드에서 "＋ 오늘 일지"로 그날 칸을 만들고 바로 적는다.
+         최신 날짜가 위. 기본 5개만 보이고 나머지는 "더 보기"로 접는다. -->
+    <details class="section reveal" id="devlogSection" open>
+      <summary><span class="chev">▶</span> 개발일지</summary>
+      <div class="section-body">
+        <p class="wf-note">매일 하나씩, 그날 만들고 배운 것을 남깁니다.</p>
+        <div id="devlogList"></div>
+        <button class="wf-btn dl-more" type="button" id="dlMore" hidden></button>
+        <div class="wf-adminrow" hidden>
+          <button class="wf-btn" type="button" id="dlAdd">＋ 오늘 일지</button>
         </div>
       </div>
     </details>
@@ -3061,6 +3107,7 @@
       var workflows = [];
       var picks = [];
       var thoughts = [];
+      var devlog = [];
 
       // 생각 본문은 <br> 만 남긴다. FIREBASE 쪽 sanitizeBreaks 와 같은 취지지만
       // 그 함수는 다른 스크립트 블록에 있어 여기서 부르지 않는다.
@@ -3366,7 +3413,87 @@
         renderThoughts();
       });
 
-      function renderAll() { renderThoughts(); renderWorkflows(); renderPicks(); }
+      // ---- 개발일지 ------------------------------------------------------
+      // 생각과 같은 방식이되, 하루 한 칸씩 쌓는 세로 타임라인이라 더 단순하다.
+      // 카드는 처음부터 보이게 둔다(별도 IntersectionObserver 를 두지 않는다) —
+      // 섹션 자체가 .reveal 로 떠오르고, 관찰자가 안 뜨는 환경에서도 안전하다.
+      var devlogEl = document.getElementById("devlogList");
+      var dlMoreBtn = document.getElementById("dlMore");
+      var DEVLOG_FOLD = 5;
+      var dlExpanded = false;
+
+      function sortedDevlog() {
+        // 최신 날짜가 위. 같은 날은 나중에 넣은 것이 위(id 로 안정 정렬).
+        return devlog.slice().sort(function (a, b) {
+          var d = String(b.at || "").localeCompare(String(a.at || ""));
+          return d !== 0 ? d : String(b.id || "").localeCompare(String(a.id || ""));
+        });
+      }
+
+      function renderDevlog() {
+        if (!devlogEl) return;
+        var list = sortedDevlog();
+        if (!list.length) {
+          devlogEl.innerHTML = '<p class="dl-empty">아직 일지가 없습니다.</p>';
+          if (dlMoreBtn) dlMoreBtn.hidden = true;
+          return;
+        }
+        var shown = (editing || dlExpanded) ? list : list.slice(0, DEVLOG_FOLD);
+        devlogEl.innerHTML = '<div class="dl-list">' + shown.map(function (e) {
+          var i = devlog.indexOf(e);
+          return '<article class="dl-item" data-i="' + i + '">' +
+            '<time class="dl-date"' + (editing ? ' contenteditable="true"' : "") +
+              ' data-act="dl-at" data-i="' + i + '">' + esc(e.at || "") + "</time>" +
+            '<div>' +
+              '<p class="dl-body"' + (editing ? ' contenteditable="true"' : "") +
+                ' data-act="dl-body" data-i="' + i + '">' + (e.body || "") + "</p>" +
+              (editing
+                ? '<button class="wf-btn danger dl-del" type="button" data-act="dl-del" data-i="' + i + '">이 날 삭제</button>'
+                : "") +
+            "</div>" +
+          "</article>";
+        }).join("") + "</div>";
+
+        if (dlMoreBtn) {
+          var hidden = list.length - shown.length;
+          dlMoreBtn.hidden = editing || (!dlExpanded && hidden <= 0);
+          dlMoreBtn.textContent = dlExpanded ? "접기" : "더 보기 (" + hidden + ")";
+        }
+      }
+
+      if (devlogEl) {
+        devlogEl.addEventListener("click", function (e) {
+          var btn = e.target.closest('button[data-act="dl-del"]');
+          if (!btn) return;
+          if (!confirm("이 날 일지를 삭제할까요?")) return;
+          devlog.splice(parseInt(btn.dataset.i, 10), 1);
+          renderDevlog();
+        });
+        // 편집칸을 벗어날 때 값을 거둔다 (생각과 같은 방식)
+        devlogEl.addEventListener("blur", function (e) {
+          var el = e.target, act = el && el.dataset && el.dataset.act;
+          if (!act || act.indexOf("dl-") !== 0) return;
+          var t = devlog[parseInt(el.dataset.i, 10)];
+          if (!t) return;
+          if (act === "dl-at") t.at = el.textContent.trim();
+          else if (act === "dl-body") t.body = keepBreaks(el.innerHTML);
+        }, true);
+      }
+      if (dlMoreBtn) dlMoreBtn.addEventListener("click", function () {
+        dlExpanded = !dlExpanded;
+        renderDevlog();
+      });
+      var dlAdd = document.getElementById("dlAdd");
+      if (dlAdd) dlAdd.addEventListener("click", function () {
+        var d = new Date();
+        var today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+                    "-" + String(d.getDate()).padStart(2, "0");
+        devlog.unshift({ id: uid("dl"), at: today, body: "오늘 만들고 배운 것을 적습니다." });
+        dlExpanded = true;      // 새로 넣은 칸이 접혀서 안 보이는 일이 없게
+        renderDevlog();
+      });
+
+      function renderAll() { renderThoughts(); renderDevlog(); renderWorkflows(); renderPicks(); }
 
       // ================= 조작 =================
       listEl.addEventListener("click", function (e) {
@@ -3452,7 +3579,7 @@
       // ================= 외부 연결 =================
       function setEnabled(on) {
         editing = !!on;
-        document.querySelectorAll("#thoughtsSection .wf-adminrow, #workflowSection .wf-adminrow, #picksSection .wf-adminrow")
+        document.querySelectorAll("#thoughtsSection .wf-adminrow, #devlogSection .wf-adminrow, #workflowSection .wf-adminrow, #picksSection .wf-adminrow")
           .forEach(function (r) { r.hidden = !editing; });
         renderAll();
       }
@@ -3471,6 +3598,9 @@
           thoughts: thoughts.map(function (t) {
             return { id: t.id, title: t.title, body: t.body, at: t.at,
                      pinned: !!t.pinned, workflowId: t.workflowId || null };
+          }),
+          devlog: devlog.map(function (e) {
+            return { id: e.id, at: e.at, body: e.body };
           })
         };
       }
@@ -3479,6 +3609,7 @@
         if (Array.isArray(d.workflows)) workflows = d.workflows;
         if (Array.isArray(d.picks)) picks = d.picks;
         if (Array.isArray(d.thoughts)) thoughts = d.thoughts;
+        if (Array.isArray(d.devlog)) devlog = d.devlog;
         renderAll();
       }
 
@@ -3724,6 +3855,7 @@
         data.workflows = wf.workflows;
         data.picks = wf.picks;
         data.thoughts = wf.thoughts;
+        data.devlog = wf.devlog;
       }
       return data;
     }
@@ -3822,7 +3954,8 @@
       // 카드 DOM 에서 읽으므로, fields 가 채워진 뒤여야 최신 이름이 나온다.
       if (window.SiteWorkflows) {
         window.SiteWorkflows.applyData({
-          workflows: data.workflows, picks: data.picks, thoughts: data.thoughts
+          workflows: data.workflows, picks: data.picks, thoughts: data.thoughts,
+          devlog: data.devlog
         });
       }
     }
