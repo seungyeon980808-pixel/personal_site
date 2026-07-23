@@ -79,11 +79,160 @@
     }
     body { transition: background-color 0.4s var(--ease), color 0.4s var(--ease); }
 
+    /* ===== 셰이더 전면 배경 톤 =====
+       셰이더가 화면 전체를 덮으므로, 그 위에 얹히는 표면은 전부 반투명이어야
+       한다. 불투명한 --surface 를 그대로 두면 카드가 배경을 가려 위쪽만
+       셰이더가 보이고 아래는 잘린 것처럼 보인다. */
+    :root,
+    :root[data-theme="dark"],
+    :root[data-theme="light"] {
+      --maxw: 1040px;
+      --surface: rgba(255, 255, 255, 0.05);
+      --divider: rgba(255, 255, 255, 0.11);
+      --text: #f2f4f7;
+      --muted: #9aa6b5;
+      --muted-soft: #7c8899;
+      --main: #5aa9ff;
+      --sub: #4fd0da;
+      --tint: rgba(90, 169, 255, 0.12);
+    }
+    html { background: #08090c; }
+    body { background: transparent; color: var(--text); }
+
+    /* 라이트 모드는 쓰지 않는다 (셰이더가 어두운 배경 전용) */
+    .theme-toggle { display: none !important; }
+
+    /* 셰이더 위 가독성 스크림 — 가운데는 비우고 가장자리·아래를 눌러준다 */
+    #shaderScrim {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      /* 색을 최대한 살리되 글자 뒤쪽만 눌러준다. 투명 구간을 넓게 잡고
+         가장자리 농도를 낮춰, 셰이더 색이 화면을 더 많이 차지하게 한다. */
+      background:
+        radial-gradient(125% 85% at 50% 6%,
+          rgba(8, 9, 12, 0) 48%,
+          rgba(8, 9, 12, 0.3) 80%,
+          rgba(8, 9, 12, 0.62) 100%),
+        linear-gradient(to bottom,
+          rgba(8, 9, 12, 0) 55%,
+          rgba(8, 9, 12, 0.38) 82%,
+          rgba(8, 9, 12, 0.72) 100%);
+    }
+
+    /* ---- 배경에 맞춘 레이아웃 리듬 ----
+       셰이더가 화면을 꽉 채우므로, 카드가 다닥다닥 붙으면 배경이 끊겨 보인다.
+       간격을 넓혀 배경이 카드 사이로 흐르게 한다.
+       ※ 원본 .wrap/.section/.now 규칙이 이 블록보다 아래에 있어 같은 특이도로는
+         덮이지 않는다. body 를 붙여 특이도를 한 단계 올린다. */
+    body .wrap { padding: 64px 24px 140px; }
+    body .section {
+      margin-bottom: 18px;
+      border-radius: 16px;
+      box-shadow: 0 18px 50px -28px rgba(0, 0, 0, 0.9);
+    }
+    body .now {
+      border-radius: 16px;
+      margin: 4px 0 48px;
+      box-shadow: 0 18px 50px -28px rgba(0, 0, 0, 0.9);
+    }
+    /* 카드 위쪽에 옅은 하이라이트 — 유리판처럼 읽히게 한다.
+       원본 .now 는 background 단축 속성이라 background-image 를 지운다. */
+    body .section,
+    body .now {
+      border-color: rgba(255, 255, 255, 0.12);
+      background-color: var(--surface);
+      background-image: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.055),
+        rgba(255, 255, 255, 0.015) 40%
+      );
+    }
+
+    /* ---- 그라데이션 강조 ----
+       편집 모드에서 사용자가 드래그로 지정한 구간에 <span class="grad"> 가 붙는다.
+       실제 색은 --grad 하나만 바라보므로, 프리셋을 바꾸면 지정된 모든 구간이
+       한꺼번에 따라 바뀐다. */
+    :root            { --grad: linear-gradient(90deg, #3b9dff, #7dd3fc 45%, #a78bfa); }
+    :root[data-grad="ice"]    { --grad: linear-gradient(90deg, #67e8f9, #38bdf8 50%, #818cf8); }
+    :root[data-grad="sunset"] { --grad: linear-gradient(90deg, #fbbf24, #fb7185 55%, #c084fc); }
+    :root[data-grad="mint"]   { --grad: linear-gradient(90deg, #5eead4, #34d399 50%, #a3e635); }
+    :root[data-grad="rose"]   { --grad: linear-gradient(90deg, #fda4af, #f472b6 50%, #a78bfa); }
+
+    .grad {
+      background-image: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      /* 편집 중에는 캐럿이 보여야 하므로 완전 투명으로 두지 않는다 */
+      -webkit-text-fill-color: transparent;
+    }
+    body.edit-mode .grad {
+      /* 편집 모드에선 지정 구간이 어디까지인지 보이도록 옅은 밑줄 */
+      text-decoration: underline;
+      text-decoration-color: rgba(255, 255, 255, 0.25);
+      text-underline-offset: 6px;
+    }
+
+    /* ---- 선택 영역 위에 뜨는 그라데이션 토글 버튼 (편집 모드 전용) ---- */
+    #gradTool {
+      position: absolute;
+      z-index: 60;
+      display: none;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid var(--divider);
+      border-radius: 10px;
+      background: rgba(16, 20, 27, 0.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+    }
+    #gradTool.show { display: flex; }
+    #gradTool button {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--divider);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    #gradTool button:hover { border-color: var(--main); }
+    #gradTool .swatch {
+      width: 22px; height: 22px; padding: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+    }
+    #gradTool .swatch[aria-pressed="true"] { outline: 2px solid var(--main); outline-offset: 2px; }
+
+    /* 반투명 표면은 블러가 있어야 배경 위에서 '떠 있는' 판으로 읽힌다 */
+    .section,
+    .now {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
     /* Cross-page view transitions (smooth navigation where supported) */
     @view-transition { navigation: auto; }
 
     /* Hero particle canvas (behind content via negative z-index in header's own stacking context) */
     #heroCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+    /* GrainGradient shader background.
+       Sits at body level (not inside .wrap) so it spans the full viewport width
+       instead of being boxed into the 760px content column. Fades out at the
+       bottom so it blends into the page instead of ending on a hard edge. */
+    /* 화면 전체에 고정으로 깔린다. 마스크로 잘라내지 않아야 아래 섹션까지
+       같은 배경 위에 얹힌 것처럼 보인다. */
+    #shaderBg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
 
     /* Theme toggle (fixed) */
     .theme-toggle {
@@ -203,7 +352,9 @@
       position: relative;
       padding: 4px 0 20px;
       margin-bottom: 24px;
-      min-height: clamp(280px, 30vh, 330px);
+      /* 넓은 화면에서 셰이더가 충분히 드러나도록 히어로를 크게 잡는다 */
+      min-height: clamp(520px, 82vh, 860px);
+      text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -279,7 +430,8 @@
     /* Availability pill above the name */
     .status-pill {
       display: inline-flex;
-      align-self: flex-start;
+      /* 가운데 정렬 히어로 */
+      align-self: center;
       max-width: fit-content;
       align-items: center;
       gap: 7px;
@@ -308,45 +460,70 @@
       100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0); }
     }
 
-    .name {
-      font-size: clamp(38px, 8vw, 60px);
+    /* 히어로 타이포 재배치 — 슬로건이 주인공, 이름은 서명처럼 뒤로 */
+
+    /* 슬로건: 화면을 채우는 디스플레이 타이포 */
+    .intro {
+      max-width: 15ch;
+      margin: 0 auto 32px;
+      font-size: clamp(40px, 7vw, 88px);
       font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.04;
-      margin: 0 0 10px;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      color: var(--text);
+      text-wrap: balance;
     }
 
+    /* 이름 + 직함: 슬로건 아래 한 줄짜리 서명 */
+    .byline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+    .byline::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--divider);
+      flex: none;
+    }
+    .name {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      color: var(--text);
+      margin: 0;
+    }
     .role {
       font-family: "IBM Plex Mono", monospace;
       font-size: 13px;
       letter-spacing: 0.08em;
       color: var(--sub);
       text-transform: uppercase;
-      margin: 0 0 20px;
-    }
-
-    .intro {
-      max-width: 46ch;
-      font-size: 19px;
-      line-height: 1.55;
-      color: var(--text);
-      margin: 0 0 18px;
-    }
-
-    .notice {
-      font-size: 14px;
-      color: var(--muted);
-      border-left: 2px solid var(--sub);
-      padding: 2px 0 2px 14px;
       margin: 0;
+    }
+
+    /* 가운데 정렬 히어로에서는 왼쪽 세로선이 축을 깨므로 뗀다 */
+    .notice {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 52ch;
+      margin: 0 auto;
+      padding: 2px 0;
+      background: transparent;
     }
 
     /* 좁은 화면에서는 본문 활자를 조금 줄여 한 줄에 들어가는 글자 수를 데스크톱에
        가깝게 맞춘다. 폭이 절반이 되는데 글자 크기가 그대로면 줄 수가 두 배로 늘어
        레이아웃이 전혀 다른 글처럼 보인다. (키우는 게 아니라 줄이는 방향이다) */
     @media (max-width: 560px) {
-      .name  { font-size: clamp(30px, 8.5vw, 38px); }
-      .intro { font-size: 16px; }
+      .name  { font-size: 12px; }
+      .role  { font-size: 12px; }
+      .intro { font-size: clamp(28px, 8.5vw, 38px); max-width: 14ch; margin-bottom: 22px; }
       .notice, .now-text { font-size: 14px; }
     }
 
@@ -1279,14 +1456,148 @@
       }
       .cursor-glow { display: none !important; }
     }
+
+    /* ===== WORKFLOWS · PICKS ===== */
+    .wf-note { font-size: 13px; color: var(--muted-soft); margin: 0 0 16px; }
+    .wf-adminrow { margin-top: 14px; }
+    .wf-btn {
+      font-family: "IBM Plex Mono", monospace; font-size: 11px;
+      padding: 6px 12px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--divider); background: rgba(255,255,255,.05); color: var(--muted);
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .wf-btn:hover { color: var(--text); border-color: var(--main); }
+    .wf-btn.danger:hover { color: #ff8a8a; border-color: rgba(255,138,138,.6); }
+
+    /* 프로젝트 카드 */
+    .wf-card {
+      position: relative; padding: 20px 22px; margin-bottom: 12px;
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      background: rgba(255,255,255,.035);
+    }
+    .wf-top { display: flex; align-items: flex-start; gap: 12px; }
+    .wf-name { font-size: 16px; font-weight: 600; letter-spacing: -.01em; flex: 1; margin: 0; }
+    .wf-desc { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 6px 0 18px; max-width: 62ch; }
+
+    .wf-flow { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+    .wf-step {
+      position: relative; flex: 1; min-width: 160px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+      text-decoration: none; color: inherit;
+      transition: background .22s var(--ease), box-shadow .22s var(--ease);
+    }
+    .wf-step:hover { background: rgba(90,169,255,.1); box-shadow: inset 0 0 0 1px rgba(90,169,255,.45); }
+    .wf-logo {
+      flex: none; width: 38px; height: 38px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+      font-family: "IBM Plex Mono", monospace; font-size: 14px; color: var(--muted-soft);
+    }
+    .wf-logo img { width: 74%; height: 74%; object-fit: contain; }
+    .wf-text { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .wf-nm { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wf-role { font-size: 11.5px; color: var(--muted-soft); }
+    .wf-arrow { flex: none; align-self: center; font-family: "IBM Plex Mono", monospace; font-size: 15px; color: var(--muted-soft); }
+    .wf-stepdel {
+      position: absolute; top: -7px; right: -7px; z-index: 2;
+      width: 20px; height: 20px; padding: 0; border-radius: 50%;
+      justify-content: center; line-height: 1; background: var(--surface);
+    }
+    .wf-sel {
+      font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--divider); border-radius: 7px; padding: 4px 6px; max-width: 100%;
+    }
+
+    /* 소개 카드 */
+    .pick-card {
+      position: relative; display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 18px; margin-bottom: 10px;
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      background: rgba(255,255,255,.035);
+      text-decoration: none; color: inherit;
+      transition: border-color .25s var(--ease);
+    }
+    a.pick-card:hover { border-color: rgba(90,169,255,.5); }
+    .pick-mark {
+      flex: none; width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
+      font-family: "IBM Plex Mono", monospace; font-size: 15px; color: var(--muted-soft);
+    }
+    .pick-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .pick-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pick-nm { font-size: 14.5px; font-weight: 600; }
+    .pick-kind {
+      font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .06em;
+      padding: 2px 7px; border-radius: 20px; text-transform: uppercase;
+    }
+    .pick-kind[data-kind="mcp"]     { color:#c084fc; background:rgba(192,132,252,.13); box-shadow:inset 0 0 0 1px rgba(192,132,252,.32); }
+    .pick-kind[data-kind="program"] { color:#4fd0da; background:rgba(79,208,218,.12);  box-shadow:inset 0 0 0 1px rgba(79,208,218,.3); }
+    .pick-kind[data-kind="service"] { color:#fbbf24; background:rgba(251,191,36,.12);  box-shadow:inset 0 0 0 1px rgba(251,191,36,.3); }
+    .pick-kind[data-kind="library"] { color:#4ade80; background:rgba(74,222,128,.12);  box-shadow:inset 0 0 0 1px rgba(74,222,128,.3); }
+    .pick-desc { font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+    .pick-by { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--muted-soft); }
+    .pick-del { position: absolute; top: 10px; right: 10px; }
+    .wf-empty { font-size: 13px; color: var(--muted-soft); padding: 4px 0; }
+
+    /* 프로그램 카드에 붙는 소속 프로젝트 태그 (workflows 에서 파생) */
+    .proj-wf-tag {
+      display: inline-block; margin-left: 6px; vertical-align: middle;
+      font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .05em;
+      padding: 2px 7px; border-radius: 20px; white-space: nowrap;
+      color: var(--main); background: rgba(90,169,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(90,169,255,.3);
+    }
+
+    /* 편집 중인 글자는 점선으로 표시 */
+    #workflowList [contenteditable="true"],
+    #picksList [contenteditable="true"] {
+      outline: 1px dashed rgba(90,169,255,.45); outline-offset: 3px; border-radius: 3px;
+    }
+
+    @media (max-width: 660px) {
+      .wf-flow { flex-direction: column; }
+      .wf-arrow { transform: rotate(90deg); align-self: flex-start; margin-left: 24px; }
+    }
   </style>
 </head>
 <body>
+  <!-- 별자리 파티클 대신 GrainGradient 셰이더.
+       .wrap 밖(body 직속)에 두어야 760px 컬럼에 갇히지 않고 화면 전체 폭으로 펼쳐진다. -->
+  <div id="shaderBg" aria-hidden="true"
+       data-colors="#0969da,#0e7490,#3b82f6,#7dd3fc,#8b5cf6"
+       data-color-back="#0b0e14"
+       data-speed="1.3"
+       data-intensity="0.95"
+       data-noise="0.6"
+       data-rotation="40"></div>
+  <!-- 가독성 스크림. 셰이더 바로 위, 본문 아래에 깔려 가장자리와
+       아래쪽을 눌러준다. 이게 없으면 밝은 셰이더 덩어리 위의 글자가 읽히지 않는다. -->
+  <div id="shaderScrim" aria-hidden="true"></div>
+
+  <!-- 그라데이션 지정 툴바 — 편집 모드에서 글자를 드래그하면 뜬다 -->
+  <div id="gradTool" role="toolbar" aria-label="그라데이션 지정">
+    <button type="button" data-act="toggle">그라데이션</button>
+    <button type="button" class="swatch" data-preset="default" title="기본"
+            style="background:linear-gradient(90deg,#3b9dff,#7dd3fc 45%,#a78bfa)"></button>
+    <button type="button" class="swatch" data-preset="ice" title="아이스"
+            style="background:linear-gradient(90deg,#67e8f9,#38bdf8 50%,#818cf8)"></button>
+    <button type="button" class="swatch" data-preset="sunset" title="선셋"
+            style="background:linear-gradient(90deg,#fbbf24,#fb7185 55%,#c084fc)"></button>
+    <button type="button" class="swatch" data-preset="mint" title="민트"
+            style="background:linear-gradient(90deg,#5eead4,#34d399 50%,#a3e635)"></button>
+    <button type="button" class="swatch" data-preset="rose" title="로즈"
+            style="background:linear-gradient(90deg,#fda4af,#f472b6 50%,#a78bfa)"></button>
+  </div>
+
   <div class="wrap">
 
     <!-- ===== HEADER ===== -->
     <header class="site-header">
-      <canvas id="heroCanvas" aria-hidden="true"></canvas>
       <!-- 관리자 컨트롤은 전부 이 한 줄 안에 둔다.
            밖에 두면 .site-header 가 flex column 이라 버튼이 가로 전체로 늘어나
            관리자 바와 겹친다. -->
@@ -1297,15 +1608,36 @@
         <button id="adminBtn" class="admin-btn" type="button">관리자 로그인</button>
       </div>
       <span class="status-pill hero-item" style="animation-delay:0.05s"><span class="dot"></span> Open to share · 자유 배포</span>
-      <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
-      <p class="role hero-item" style="animation-delay:0.5s" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
-      <p class="intro hero-item" style="animation-delay:0.62s" data-editable data-field="intro">중학교 물리교사. 수업과 행정을 위한 도구를 직접 만들고, 성장하는 과정을 기록합니다.</p>
-      <p class="notice hero-item" style="animation-delay:0.74s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
+      <!-- 슬로건을 히어로로 올리고, 이름은 아래 서명 줄로 내렸다 -->
+      <p class="intro hero-item" style="animation-delay:0.2s" data-editable data-field="intro">우물 밖에 관심이 많은, 우물 안의 개구리.</p>
+      <div class="byline hero-item" style="animation-delay:0.5s">
+        <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
+        <p class="role" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
+      </div>
+      <p class="notice hero-item" style="animation-delay:0.62s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
+      <!-- 선택한 그라데이션 프리셋 이름. 화면에는 안 보이지만
+           [data-field] 라서 기존 저장·불러오기 흐름을 그대로 탄다. -->
+      <span id="gradPreset" data-field="gradPreset" hidden>default</span>
     </header>
+
+    <!-- ===== WORKFLOWS (프로젝트: 프로그램을 이어 붙인 작업 흐름) =====
+         내용은 Firestore main 문서의 workflows 필드(배열)에 통째로 저장된다.
+         프로그램별 소속 태그는 여기서 파생하므로, 프로그램 쪽에 따로 박아두지 않는다.
+         (박아두면 흐름을 고칠 때 양쪽이 어긋난다) -->
+    <details class="section reveal" id="workflowSection" open>
+      <summary><span class="chev">▶</span> 프로젝트</summary>
+      <div class="section-body">
+        <p class="wf-note">프로그램을 이어 붙인 작업 흐름입니다.</p>
+        <div id="workflowList"></div>
+        <div class="wf-adminrow" hidden>
+          <button class="wf-btn" type="button" id="wfAdd">＋ 프로젝트 추가</button>
+        </div>
+      </div>
+    </details>
 
     <!-- ===== PROJECTS ===== -->
     <details class="section reveal" id="projectsSection" open>
-      <summary><span class="chev">▶</span> 개발 프로젝트</summary>
+      <summary><span class="chev">▶</span> 개발 프로그램</summary>
       <div class="section-body">
         <!--
           프로젝트 카드. 카드/제목을 클릭하면 각 프로젝트 상세 페이지로 이동한다.
@@ -1542,6 +1874,19 @@
         <div class="dp-frame" id="dpFrame"><iframe id="dpIframe" title="기기 미리보기"></iframe></div>
       </div>
     </div>
+
+    <!-- ===== PICKS (소개: 남이 만든 도구 · MCP) =====
+         Firestore main 문서의 picks 필드(배열)에 저장된다. -->
+    <details class="section reveal" id="picksSection">
+      <summary><span class="chev">▶</span> 소개</summary>
+      <div class="section-body">
+        <p class="wf-note">직접 써보고 권할 만한 남의 도구입니다.</p>
+        <div id="picksList"></div>
+        <div class="wf-adminrow" hidden>
+          <button class="wf-btn" type="button" id="pickAdd">＋ 소개 항목 추가</button>
+        </div>
+      </div>
+    </details>
 
     <!-- ===== NOW ===== -->
     <section class="now reveal" aria-label="지금">
@@ -2083,6 +2428,7 @@
         makeEditableFieldsEditable(on);
         setChannelLinksEditable(on);
         if (window.SiteReorder) window.SiteReorder.setEnabled(on);
+        if (window.SiteWorkflows) window.SiteWorkflows.setEnabled(on);
         syncEditBadge();
       }
       // 배지가 곧 토글 버튼이다 (관리자일 때만 보인다)
@@ -2467,6 +2813,279 @@
     });
   </script>
 
+  <!-- ===== WORKFLOWS · PICKS =====
+    프로젝트(프로그램을 이어 붙인 흐름)와 소개(남의 도구·MCP)를 관리한다.
+    - 둘 다 개수가 변하는 배열이라 [data-field] 한 칸에 대응시킬 수 없다.
+      그래서 SiteReorder 가 order 를 다루는 방식 그대로, Firestore main 문서의
+      workflows / picks 필드에 배열을 통째로 넣고 뺀다.
+    - 프로그램 목록은 DOM([data-project] 카드)에서 그때그때 읽는다. 따로 복제해
+      두면 카드를 고쳤을 때 이쪽이 옛 이름을 붙들고 있게 된다.
+    - window.SiteWorkflows 로 FIREBASE(수집/적용)와 ADMIN(편집모드) 이 함께 쓴다.
+  -->
+  <script>
+    (function () {
+      var KIND_LABEL = { program: "프로그램", mcp: "MCP", service: "서비스", library: "라이브러리" };
+
+      var workflows = [];
+      var picks = [];
+      var editing = false;
+
+      var listEl  = document.getElementById("workflowList");
+      var picksEl = document.getElementById("picksList");
+      if (!listEl || !picksEl) return;
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+      function uid(p) { return p + "-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1e4); }
+
+      // ---- 프로그램 목록은 항상 DOM 에서 읽는다 ----
+      function programs() {
+        return Array.prototype.map.call(
+          document.querySelectorAll("#projectRows [data-project]"),
+          function (card) {
+            var id = card.getAttribute("data-project");
+            var nameEl = card.querySelector('[data-field="project.' + id + '.name"]');
+            var img = card.querySelector(".proj-preview-logo img");
+            var link = card.querySelector("a.proj-detail");
+            return {
+              id: id,
+              name: nameEl ? nameEl.textContent.trim() : ("프로그램 " + id),
+              logo: img ? img.getAttribute("src") : null,
+              href: link ? link.getAttribute("href") : "#"
+            };
+          }
+        );
+      }
+      function programById(id) {
+        return programs().filter(function (p) { return p.id === String(id); })[0] || null;
+      }
+
+      // ---- 프로그램 카드에 붙는 소속 태그는 여기서 파생한다 ----
+      function tagFor(programId) {
+        for (var i = 0; i < workflows.length; i++) {
+          var wf = workflows[i];
+          for (var j = 0; j < (wf.steps || []).length; j++) {
+            if (String(wf.steps[j].programId) === String(programId)) return wf.tag || wf.name;
+          }
+        }
+        return null;
+      }
+      function paintTags() {
+        Array.prototype.forEach.call(
+          document.querySelectorAll("#projectRows [data-project]"),
+          function (card) {
+            var tag = tagFor(card.getAttribute("data-project"));
+            var slot = card.querySelector(".proj-wf-tag");
+            if (!tag) { if (slot) slot.remove(); return; }
+            if (!slot) {
+              slot = document.createElement("span");
+              slot.className = "proj-wf-tag";
+              var head = card.querySelector(".proj-head") || card.querySelector(".proj-body");
+              if (head) head.appendChild(slot); else return;
+            }
+            slot.textContent = tag;
+          }
+        );
+      }
+
+      function logoHTML(p, cls) {
+        if (!p) return '<span class="' + cls + '">?</span>';
+        return '<span class="' + cls + '">' +
+          (p.logo ? '<img src="' + esc(p.logo) + '" alt="">' : esc(p.name.charAt(0))) +
+          '</span>';
+      }
+
+      // ================= 렌더 =================
+      function renderWorkflows() {
+        var list = programs();
+        if (!workflows.length) {
+          listEl.innerHTML = '<p class="wf-empty">아직 등록된 프로젝트가 없습니다.</p>';
+          paintTags();
+          return;
+        }
+        listEl.innerHTML = workflows.map(function (wf, wi) {
+          var steps = (wf.steps || []).map(function (s, si) {
+            var p = programById(s.programId);
+            var opts = list.map(function (x) {
+              return '<option value="' + esc(x.id) + '"' +
+                (String(x.id) === String(s.programId) ? " selected" : "") + ">" + esc(x.name) + "</option>";
+            }).join("");
+            var step =
+              '<div class="wf-step">' +
+                (editing ? '<button class="wf-btn danger wf-stepdel" type="button" data-act="del-step" data-wf="' + wi + '" data-i="' + si + '" title="이 칸 빼기">×</button>' : "") +
+                logoHTML(p, "wf-logo") +
+                '<span class="wf-text">' +
+                  (editing
+                    ? '<select class="wf-sel" data-act="set-step" data-wf="' + wi + '" data-i="' + si + '">' + opts + "</select>"
+                    : '<span class="wf-nm">' + esc(p ? p.name : "삭제된 프로그램") + "</span>") +
+                  '<span class="wf-role"' + (editing ? ' contenteditable="true"' : "") +
+                    ' data-act="role" data-wf="' + wi + '" data-i="' + si + '">' + esc(s.role || "") + "</span>" +
+                "</span>" +
+              "</div>";
+            if (!editing && p) {
+              step = step.replace('<div class="wf-step">', '<a class="wf-step" href="' + esc(p.href) + '">')
+                         .replace(/<\/div>$/, "</a>");
+            }
+            return si < wf.steps.length - 1 ? step + '<span class="wf-arrow">→</span>' : step;
+          }).join("");
+
+          return '<article class="wf-card" data-wf="' + wi + '">' +
+            '<div class="wf-top">' +
+              '<h3 class="wf-name"' + (editing ? ' contenteditable="true"' : "") + ' data-act="wf-name" data-wf="' + wi + '">' + esc(wf.name) + "</h3>" +
+              (editing ? '<button class="wf-btn danger" type="button" data-act="del-wf" data-wf="' + wi + '">삭제</button>' : "") +
+            "</div>" +
+            '<p class="wf-desc"' + (editing ? ' contenteditable="true"' : "") + ' data-act="wf-desc" data-wf="' + wi + '">' + esc(wf.desc) + "</p>" +
+            '<div class="wf-flow">' + steps + "</div>" +
+            (editing ? '<div class="wf-adminrow"><button class="wf-btn" type="button" data-act="add-step" data-wf="' + wi + '">＋ 칸 추가</button></div>' : "") +
+          "</article>";
+        }).join("");
+        paintTags();
+      }
+
+      function renderPicks() {
+        if (!picks.length) {
+          picksEl.innerHTML = '<p class="wf-empty">아직 등록된 항목이 없습니다.</p>';
+          return;
+        }
+        picksEl.innerHTML = picks.map(function (pk, i) {
+          var kinds = Object.keys(KIND_LABEL).map(function (k) {
+            return '<option value="' + k + '"' + (k === pk.kind ? " selected" : "") + ">" + KIND_LABEL[k] + "</option>";
+          }).join("");
+          var inner =
+            (editing ? '<button class="wf-btn danger pick-del" type="button" data-act="del-pick" data-i="' + i + '">×</button>' : "") +
+            '<span class="pick-mark">' + esc((pk.name || "?").charAt(0)) + "</span>" +
+            '<span class="pick-body">' +
+              '<span class="pick-top">' +
+                '<span class="pick-nm"' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-name" data-i="' + i + '">' + esc(pk.name) + "</span>" +
+                '<span class="pick-kind" data-kind="' + esc(pk.kind) + '">' + (KIND_LABEL[pk.kind] || pk.kind) + "</span>" +
+                (editing ? '<select class="wf-sel" data-act="set-kind" data-i="' + i + '">' + kinds + "</select>" : "") +
+              "</span>" +
+              '<span class="pick-desc"' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-desc" data-i="' + i + '">' + esc(pk.desc) + "</span>" +
+              '<span class="pick-by">by <span' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-by" data-i="' + i + '">' + esc(pk.by) + "</span></span>" +
+              (editing ? '<span class="pick-by">링크 <span contenteditable="true" data-act="pk-url" data-i="' + i + '">' + esc(pk.url) + "</span></span>" : "") +
+            "</span>";
+          return (!editing && pk.url && pk.url !== "#")
+            ? '<a class="pick-card" href="' + esc(pk.url) + '" target="_blank" rel="noopener">' + inner + "</a>"
+            : '<div class="pick-card">' + inner + "</div>";
+        }).join("");
+      }
+
+      function renderAll() { renderWorkflows(); renderPicks(); }
+
+      // ================= 조작 =================
+      listEl.addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        var wi = parseInt(btn.dataset.wf, 10);
+        var wf = workflows[wi];
+        if (!wf) return;
+        if (btn.dataset.act === "del-wf") {
+          if (!confirm('"' + wf.name + '" 프로젝트를 삭제할까요?')) return;
+          workflows.splice(wi, 1);
+        } else if (btn.dataset.act === "add-step") {
+          var list = programs();
+          if (!list.length) { alert("먼저 프로그램 카드가 있어야 합니다."); return; }
+          var unused = list.filter(function (p) {
+            return !(wf.steps || []).some(function (s) { return String(s.programId) === String(p.id); });
+          })[0] || list[0];
+          (wf.steps = wf.steps || []).push({ programId: unused.id, role: "역할 적기" });
+        } else if (btn.dataset.act === "del-step") {
+          wf.steps.splice(parseInt(btn.dataset.i, 10), 1);
+        } else return;
+        renderAll();
+      });
+
+      listEl.addEventListener("change", function (e) {
+        var sel = e.target.closest('select[data-act="set-step"]');
+        if (!sel) return;
+        workflows[parseInt(sel.dataset.wf, 10)].steps[parseInt(sel.dataset.i, 10)].programId = sel.value;
+        renderAll();
+      });
+
+      // 편집한 글자를 상태로 되돌린다
+      listEl.addEventListener("blur", function (e) {
+        var el = e.target, act = el && el.dataset && el.dataset.act;
+        if (!act) return;
+        var wf = workflows[parseInt(el.dataset.wf, 10)];
+        if (!wf) return;
+        var v = el.textContent.trim();
+        if (act === "wf-name") { wf.name = v; paintTags(); }
+        else if (act === "wf-desc") wf.desc = v;
+        else if (act === "role") wf.steps[parseInt(el.dataset.i, 10)].role = v;
+      }, true);
+
+      picksEl.addEventListener("click", function (e) {
+        var btn = e.target.closest('button[data-act="del-pick"]');
+        if (!btn) return;
+        picks.splice(parseInt(btn.dataset.i, 10), 1);
+        renderPicks();
+      });
+      picksEl.addEventListener("change", function (e) {
+        var sel = e.target.closest('select[data-act="set-kind"]');
+        if (!sel) return;
+        picks[parseInt(sel.dataset.i, 10)].kind = sel.value;
+        renderPicks();
+      });
+      picksEl.addEventListener("blur", function (e) {
+        var el = e.target, act = el && el.dataset && el.dataset.act;
+        if (!act || act.indexOf("pk-") !== 0) return;
+        var pk = picks[parseInt(el.dataset.i, 10)];
+        if (!pk) return;
+        pk[act.slice(3)] = el.textContent.trim();
+      }, true);
+
+      var addWf = document.getElementById("wfAdd");
+      if (addWf) addWf.addEventListener("click", function () {
+        var list = programs();
+        workflows.push({
+          id: uid("wf"), name: "새 프로젝트", tag: "새 태그",
+          desc: "이 흐름이 무엇을 해결하는지 적습니다.",
+          steps: list.length ? [{ programId: list[0].id, role: "역할 적기" }] : []
+        });
+        renderAll();
+      });
+      var addPick = document.getElementById("pickAdd");
+      if (addPick) addPick.addEventListener("click", function () {
+        picks.push({ id: uid("pk"), kind: "mcp", name: "새 항목", by: "만든이",
+                     desc: "왜 권하는지 적습니다.", url: "#" });
+        renderPicks();
+      });
+
+      // ================= 외부 연결 =================
+      function setEnabled(on) {
+        editing = !!on;
+        document.querySelectorAll("#workflowSection .wf-adminrow, #picksSection .wf-adminrow")
+          .forEach(function (r) { r.hidden = !editing; });
+        renderAll();
+      }
+      function getData() {
+        return {
+          workflows: workflows.map(function (w) {
+            return { id: w.id, name: w.name, tag: w.tag, desc: w.desc,
+                     steps: (w.steps || []).map(function (s) {
+                       return { programId: String(s.programId), role: s.role || "" };
+                     }) };
+          }),
+          picks: picks.map(function (p) {
+            return { id: p.id, kind: p.kind, name: p.name, by: p.by, desc: p.desc, url: p.url };
+          })
+        };
+      }
+      function applyData(d) {
+        if (!d) return;
+        if (Array.isArray(d.workflows)) workflows = d.workflows;
+        if (Array.isArray(d.picks)) picks = d.picks;
+        renderAll();
+      }
+
+      window.SiteWorkflows = { setEnabled: setEnabled, getData: getData, applyData: applyData, repaintTags: paintTags };
+      renderAll();
+    })();
+  </script>
+
   <!-- ===== REORDER ===== -->
   <!--
     프로젝트 카드 순서 바꾸기 (편집 모드 전용, 관리자만)
@@ -2698,6 +3317,12 @@
       });
       // 프로젝트 카드 순서 (REORDER 섹션이 관리)
       if (window.SiteReorder) data.order = window.SiteReorder.getOrder();
+      // 프로젝트·소개는 개수가 변하는 배열이라 fields 가 아니라 별도 키로 넣는다
+      if (window.SiteWorkflows) {
+        var wf = window.SiteWorkflows.getData();
+        data.workflows = wf.workflows;
+        data.picks = wf.picks;
+      }
       return data;
     }
 
@@ -2718,10 +3343,20 @@
         if (!blk.parentNode) return;
         unwrapEl(blk, document.createElement("br"));
       });
-      // <br> 만 남기고 나머지 태그는 내용만 남긴다.
+      // <br> 와 그라데이션 강조(<span class="grad">) 만 남기고 나머지 태그는 내용만 남긴다.
       Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
         if (!el.parentNode) return;
         if (el.tagName === "BR") return;
+        // 편집 모드에서 사용자가 지정한 그라데이션 구간은 보존한다.
+        // 속성은 class="grad" 하나만 남겨 style 주입 통로가 되지 않게 한다.
+        if (el.tagName === "SPAN" && el.classList.contains("grad")) {
+          // 자동으로 입힌 강조(grad-auto)는 저장하지 않는다. 저장해 버리면
+          // '사용자가 직접 지정한 구간'과 구별이 사라져 되돌릴 수 없다.
+          if (el.classList.contains("grad-auto")) { unwrapEl(el); return; }
+          Array.from(el.attributes).forEach((a) => el.removeAttribute(a.name));
+          el.setAttribute("class", "grad");
+          return;
+        }
         unwrapEl(el);
       });
       // 문단 사이 빈 줄은 최대 하나로 통일한다 (detail.js 의 collapseBlankLines 와 같은 규칙).
@@ -2776,6 +3411,11 @@
           }
         });
       }
+      // 프로젝트·소개는 맨 마지막에 그린다. 흐름 안의 프로그램 이름을
+      // 카드 DOM 에서 읽으므로, fields 가 채워진 뒤여야 최신 이름이 나온다.
+      if (window.SiteWorkflows) {
+        window.SiteWorkflows.applyData({ workflows: data.workflows, picks: data.picks });
+      }
     }
 
     // ---- Boot --------------------------------------------------------------
@@ -2796,6 +3436,167 @@
       _collectData: collectData,
       _applyData: applyData,
     };
+  </script>
+
+  <!-- 셰이더 배경 번들 (React + @paper-design/shaders-react, 244KB) -->
+  <script src="assets/shader/shader-bg.js"></script>
+
+  <!-- ===== GRADIENT TEXT =====
+    편집 모드에서 글자를 드래그하면 툴바가 떠서 그라데이션 구간을 직접 지정한다.
+    - 지정 구간은 <span class="grad"> 로 본문에 남고, sanitizeBreaks 화이트리스트를
+      통과하므로 기존 저장/불러오기 흐름 그대로 Firestore 에 보존된다.
+    - 색은 --grad 하나만 참조한다. 프리셋을 바꾸면 지정된 모든 구간이 함께 바뀐다.
+    - 프리셋 이름은 #gradPreset([data-field])에 담겨 같이 저장된다.
+  -->
+  <script>
+    (function () {
+      var tool = document.getElementById("gradTool");
+      var presetEl = document.getElementById("gradPreset");
+      if (!tool || !presetEl) return;
+
+      // ---- 프리셋 -------------------------------------------------------
+      function applyPreset(name) {
+        var v = (name || "default").trim() || "default";
+        if (v === "default") document.documentElement.removeAttribute("data-grad");
+        else document.documentElement.setAttribute("data-grad", v);
+        tool.querySelectorAll(".swatch").forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.preset === v));
+        });
+      }
+      applyPreset(presetEl.textContent);
+      // Firestore 로드가 값을 갈아끼우면 따라 적용한다.
+      new MutationObserver(function () { applyPreset(presetEl.textContent); })
+        .observe(presetEl, { childList: true, characterData: true, subtree: true });
+
+      // ---- 위치 판별 ----------------------------------------------------
+      function asEl(node) {
+        return node && node.nodeType === 1 ? node : node && node.parentElement;
+      }
+      function editableHost(node) {
+        var el = asEl(node);
+        return el ? el.closest("[data-editable]") : null;
+      }
+      function gradSpanAt(node) {
+        var el = asEl(node);
+        return el ? el.closest("span.grad") : null;
+      }
+      function inEditMode() { return document.body.classList.contains("edit-mode"); }
+
+      // ---- 적용 / 해제 ---------------------------------------------------
+      function unwrap(el) {
+        var p = el.parentNode;
+        while (el.firstChild) p.insertBefore(el.firstChild, el);
+        p.removeChild(el);
+        p.normalize();
+      }
+      function toggleGrad() {
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        var range = sel.getRangeAt(0);
+        var host = editableHost(range.commonAncestorContainer);
+        if (!host) return;
+
+        var existing = gradSpanAt(range.commonAncestorContainer);
+        if (existing) { unwrap(existing); hide(); return; }   // 이미 걸려 있으면 해제
+        if (sel.isCollapsed) return;
+
+        var span = document.createElement("span");
+        span.className = "grad";
+        try {
+          range.surroundContents(span);
+        } catch (e) {
+          // 여러 노드에 걸친 선택은 surroundContents 가 실패한다 → 추출 후 감싼다
+          span.appendChild(range.extractContents());
+          range.insertNode(span);
+        }
+        // 안쪽에 중첩된 grad 가 생겼으면 평탄화
+        Array.from(span.querySelectorAll("span.grad")).forEach(unwrap);
+        host.normalize();
+        sel.removeAllRanges();
+        hide();
+      }
+
+      // ---- 툴바 표시 ----------------------------------------------------
+      function hide() { tool.classList.remove("show"); }
+      function show(rect) {
+        tool.classList.add("show");                 // 먼저 띄워야 크기를 잰다
+        var top = window.scrollY + rect.top - tool.offsetHeight - 10;
+        var left = window.scrollX + rect.left + rect.width / 2 - tool.offsetWidth / 2;
+        tool.style.top = Math.max(window.scrollY + 8, top) + "px";
+        tool.style.left = Math.max(8, left) + "px";
+      }
+      function sync() {
+        if (!inEditMode()) return hide();
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return hide();
+        var range = sel.getRangeAt(0);
+        if (!editableHost(range.commonAncestorContainer)) return hide();
+        // 커서만 놓은 경우엔 이미 그라데이션이 걸린 구간일 때만(해제용) 띄운다
+        if (sel.isCollapsed && !gradSpanAt(range.commonAncestorContainer)) return hide();
+        var rect = range.getBoundingClientRect();
+        if (!rect.width && !rect.height) return hide();
+        show(rect);
+      }
+
+      // ---- 기본 강조(자동) ------------------------------------------------
+      // 사용자가 아무 구간도 지정하지 않았다면, 슬로건 마지막 줄에 자동으로 입힌다.
+      // 이 자동 구간은 grad-auto 로 표시되고 저장 시 제거되므로, 나중에 직접
+      // 지정하면 그쪽이 그대로 우선한다.
+      var introEl = document.querySelector(".intro");
+      var autoBusy = false;
+      function clearAuto() {
+        if (!introEl) return;
+        Array.from(introEl.querySelectorAll("span.grad-auto")).forEach(unwrap);
+      }
+      function autoGrad() {
+        if (!introEl || autoBusy) return;
+        autoBusy = true;
+        try {
+          clearAuto();
+          // 편집 중이거나, 직접 지정한 구간이 있으면 자동 강조는 넣지 않는다.
+          if (inEditMode()) return;
+          if (introEl.querySelector("span.grad")) return;
+          var brs = introEl.querySelectorAll("br");
+          if (!brs.length) return;
+          var range = document.createRange();
+          range.setStartAfter(brs[brs.length - 1]);
+          range.setEnd(introEl, introEl.childNodes.length);
+          if (!String(range).trim()) return;
+          var span = document.createElement("span");
+          span.className = "grad grad-auto";
+          span.appendChild(range.extractContents());
+          range.insertNode(span);
+        } finally {
+          autoBusy = false;
+        }
+      }
+      autoGrad();
+      // Firestore 로드가 슬로건을 갈아끼우면 다시 계산한다.
+      if (introEl) {
+        new MutationObserver(function () {
+          if (!autoBusy) setTimeout(autoGrad, 0);
+        }).observe(introEl, { childList: true, characterData: true, subtree: true });
+      }
+      // 편집 모드에 들어가면 자동 구간을 걷어 원문 그대로 편집하게 한다.
+      new MutationObserver(function () { setTimeout(autoGrad, 0); })
+        .observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+      document.addEventListener("selectionchange", function () { setTimeout(sync, 0); });
+      window.addEventListener("scroll", hide, true);
+      window.addEventListener("resize", hide);
+
+      // 툴바를 누를 때 본문 선택이 풀리면 안 된다
+      tool.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      tool.addEventListener("click", function (e) {
+        var btn = e.target.closest("button");
+        if (!btn) return;
+        if (btn.dataset.act === "toggle") { toggleGrad(); return; }
+        if (btn.dataset.preset) {
+          presetEl.textContent = btn.dataset.preset;
+          applyPreset(btn.dataset.preset);
+        }
+      });
+    })();
   </script>
 </body>
 </html>
