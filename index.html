@@ -1662,7 +1662,12 @@
       gap: 14px;
     }
     .proj-card {
-      aspect-ratio: 1 / 1;
+      /* 정사각형을 고정하지 않는다. 비율을 걸면 내용이 넘칠 때 잘리거나
+         (overflow:hidden) 그 높이만큼 가로가 강제돼 그리드를 뚫는다.
+         같은 줄의 카드들은 그리드가 알아서 높이를 맞춰준다. */
+      min-height: 210px;
+      /* 그리드 칸이 내용 최소폭에 눌려 늘어나지 않게 한다 */
+      min-width: 0;
       align-items: center;
       justify-content: center;
       gap: 9px;
@@ -1670,7 +1675,10 @@
       border-radius: 24px;
       background: rgba(255, 255, 255, .022);
       border-color: rgba(255, 255, 255, .07);
-      overflow: hidden;
+      /* overflow:hidden 을 두면 카드가 스크롤 컨테이너가 되어 정사각형 비율이
+         내용보다 우선한다. 좁은 화면에서 아이콘과 글이 잘려나갔다.
+         비율은 그대로 두되, 내용이 넘칠 때는 세로로 늘어나게 한다. */
+      overflow: visible;
     }
     .proj-card:hover {
       transform: translateY(-3px);
@@ -1741,7 +1749,12 @@
     .proj-modal .proj-foot { font-size: 12.5px; }
     .proj-modal .proj-name a { font-size: 17px; }
 
-    @media (max-width: 900px) { .proj-grid { grid-template-columns: repeat(3, 1fr); } }
+    /* 좁아지면 정사각형을 푼다.
+       카드가 좁아질수록 내용은 세로로 길어지는데, 비율이 걸려 있으면
+       그 높이만큼 가로도 강제돼 그리드를 뚫고 나간다. */
+    @media (max-width: 900px) {
+      .proj-grid { grid-template-columns: repeat(3, 1fr); }
+    }
     @media (max-width: 620px) {
       .proj-grid { grid-template-columns: repeat(2, 1fr); }
       .proj-preview { width: 58px; border-radius: 16px; }
