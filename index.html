@@ -160,6 +160,15 @@
     :root[data-grad="mint"]   { --grad: linear-gradient(90deg, #5eead4, #34d399 50%, #a3e635); }
     :root[data-grad="rose"]   { --grad: linear-gradient(90deg, #fda4af, #f472b6 50%, #a78bfa); }
 
+    /* 단어별 색 지정. data-c 가 붙은 단어는 전역 프리셋 대신 이 색을 쓴다.
+       단어마다 span 이 나뉘어 있으므로 각 단어가 그라데이션 전체를 온전히 갖는다
+       (구간 하나로 감싸면 첫 단어는 파랑, 끝 단어는 보라가 된다). */
+    .grad[data-c="0"] { --grad: linear-gradient(90deg, #3b9dff, #7dd3fc 45%, #a78bfa); }
+    .grad[data-c="1"] { --grad: linear-gradient(90deg, #67e8f9, #38bdf8 50%, #818cf8); }
+    .grad[data-c="2"] { --grad: linear-gradient(90deg, #fbbf24, #fb7185 55%, #c084fc); }
+    .grad[data-c="3"] { --grad: linear-gradient(90deg, #5eead4, #34d399 50%, #a3e635); }
+    .grad[data-c="4"] { --grad: linear-gradient(90deg, #fda4af, #f472b6 50%, #a78bfa); }
+
     .grad {
       background-image: var(--grad);
       -webkit-background-clip: text;
@@ -529,6 +538,16 @@
       .role  { font-size: 12px; }
       .intro { font-size: clamp(28px, 8.5vw, 38px); max-width: 14ch; margin-bottom: 22px; }
       .notice, .now-text { font-size: 14px; }
+    }
+
+    /* 슬로건 줄바꿈은 데스크톱 기준으로 찍혀 있다. 좁은 화면에서 그대로 두면
+       "우물 밖에 관심이 / 많은," 처럼 엉뚱한 데서 끊긴다.
+       상세 페이지의 renderRich 와 같은 규칙 — 엔터 1번은 데스크톱 전용 줄바꿈이고
+       720px 이하에서는 띄어쓰기로 흘린다.
+       ※ <br> 앞에 공백 텍스트 노드를 JS 가 미리 넣어두므로 단어가 붙지 않는다. */
+    @media (max-width: 720px) {
+      .intro br { display: none; }
+      .intro { max-width: 18ch; text-wrap: balance; }
     }
 
     /* ===== SECTIONS (collapsible) ===== */
@@ -3445,8 +3464,12 @@
           // 자동으로 입힌 강조(grad-auto)는 저장하지 않는다. 저장해 버리면
           // '사용자가 직접 지정한 구간'과 구별이 사라져 되돌릴 수 없다.
           if (el.classList.contains("grad-auto")) { unwrapEl(el); return; }
+          // 단어별 색 번호(data-c)만 함께 남긴다. style 을 열어주면 저장 데이터를
+          // 통해 임의 CSS 가 페이지로 들어온다.
+          var cIdx = el.getAttribute("data-c");
           Array.from(el.attributes).forEach((a) => el.removeAttribute(a.name));
           el.setAttribute("class", "grad");
+          if (cIdx !== null && /^[0-4]$/.test(cIdx)) el.setAttribute("data-c", cIdx);
           return;
         }
         unwrapEl(el);
@@ -3547,6 +3570,9 @@
       if (!tool || !presetEl) return;
 
       // ---- 프리셋 -------------------------------------------------------
+      // 프리셋 이름 → 단어별 색 번호. CSS 의 .grad[data-c="N"] 과 짝을 맞춘다.
+      var PRESET_IDX = { "default": 0, ice: 1, sunset: 2, mint: 3, rose: 4 };
+
       function applyPreset(name) {
         var v = (name || "default").trim() || "default";
         if (v === "default") document.documentElement.removeAttribute("data-grad");
@@ -3581,38 +3607,71 @@
         p.removeChild(el);
         p.normalize();
       }
-      // 선택 구간을 grad 로 감싼다. 이미 감싸져 있으면 그대로 둔다(true 반환).
-      function applyGradToSelection() {
+      // 단어 하나하나를 각각 span 으로 감싼다.
+      // 구간 전체를 span 하나로 감싸면 그라데이션 하나가 구간에 늘어나
+      // 첫 단어는 파랑, 끝 단어는 보라가 된다. 단어마다 자기 배경 상자를 주면
+      // 어느 단어를 봐도 그라데이션 전체 색을 온전히 갖는다.
+      function wrapWords(node, colorIdx) {
+        var out = document.createDocumentFragment();
+        Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+          if (child.nodeType === 3) {                       // 텍스트 → 단어로 쪼갬
+            child.textContent.split(/(\s+)/).forEach(function (t) {
+              if (!t) return;
+              if (/^\s+$/.test(t)) { out.appendChild(document.createTextNode(t)); return; }
+              var s = document.createElement("span");
+              s.className = "grad";
+              if (colorIdx != null) s.setAttribute("data-c", String(colorIdx));
+              s.textContent = t;
+              out.appendChild(s);
+            });
+          } else if (child.nodeName === "BR") {
+            out.appendChild(child);                         // 줄바꿈은 그대로
+          } else {
+            out.appendChild(wrapWords(child, colorIdx));    // 기존 span 은 벗기고 다시
+          }
+        });
+        return out;
+      }
+
+      // 선택 구간에 그라데이션을 입힌다. colorIdx 가 없으면 전역 프리셋 색.
+      function applyGradToSelection(colorIdx) {
         var sel = window.getSelection();
-        if (!sel || !sel.rangeCount) return false;
+        if (!sel || !sel.rangeCount || sel.isCollapsed) return false;
         var range = sel.getRangeAt(0);
         var host = editableHost(range.commonAncestorContainer);
         if (!host) return false;
-        if (gradSpanAt(range.commonAncestorContainer)) return true; // 이미 걸린 구간
-        if (sel.isCollapsed) return false;
 
-        var span = document.createElement("span");
-        span.className = "grad";
-        try {
-          range.surroundContents(span);
-        } catch (e) {
-          // 여러 노드에 걸친 선택은 surroundContents 가 실패한다 → 추출 후 감싼다
-          span.appendChild(range.extractContents());
-          range.insertNode(span);
-        }
-        // 안쪽에 중첩된 grad 가 생겼으면 평탄화
-        Array.from(span.querySelectorAll("span.grad")).forEach(unwrap);
+        range.insertNode(wrapWords(range.extractContents(), colorIdx));
+        // 중첩이 생겼으면 바깥쪽을 벗겨 안쪽 단어 단위만 남긴다
+        Array.prototype.slice.call(host.querySelectorAll("span.grad")).forEach(function (s) {
+          if (s.querySelector("span.grad")) unwrap(s);
+        });
         host.normalize();
         sel.removeAllRanges();
         hide();
         return true;
       }
+
       function toggleGrad() {
         var sel = window.getSelection();
         if (!sel || !sel.rangeCount) return;
-        var existing = gradSpanAt(sel.getRangeAt(0).commonAncestorContainer);
-        if (existing) { unwrap(existing); hide(); return; }   // 이미 걸려 있으면 해제
-        applyGradToSelection();
+        var range = sel.getRangeAt(0);
+        var existing = gradSpanAt(range.commonAncestorContainer);
+        if (existing) { unwrap(existing); hide(); return; }   // 커서만 놓았으면 해제
+        // 선택 구간 안의 기존 강조를 모두 해제하는 경우
+        if (!sel.isCollapsed) {
+          var host = editableHost(range.commonAncestorContainer);
+          var inside = host && Array.prototype.slice.call(host.querySelectorAll("span.grad"))
+            .filter(function (s) { return range.intersectsNode(s); });
+          if (inside && inside.length) {
+            inside.forEach(unwrap);
+            host.normalize();
+            sel.removeAllRanges();
+            hide();
+            return;
+          }
+        }
+        applyGradToSelection(null);
       }
 
       // ---- 툴바 표시 ----------------------------------------------------
@@ -3647,11 +3706,33 @@
         if (!introEl) return;
         Array.from(introEl.querySelectorAll("span.grad-auto")).forEach(unwrap);
       }
+
+      // 좁은 화면에서는 <br> 를 숨겨 문장을 흘린다(CSS). 그때 앞뒤 단어가 붙지
+      // 않도록 <br> 앞에 공백을 한 칸 미리 넣어둔다.
+      // 데스크톱에서는 줄 끝 공백이라 눈에 띄지 않는다.
+      function padBreaks() {
+        if (!introEl) return;
+        // 편집 중 들어간 &nbsp; 연속은 줄바꿈이 되지 않아 좁은 화면에서 문장이
+        // 흘러가지 못한다. 일반 공백 한 칸으로 눌러준다.
+        var walker = document.createTreeWalker(introEl, NodeFilter.SHOW_TEXT);
+        var texts = [], n;
+        while ((n = walker.nextNode())) texts.push(n);
+        texts.forEach(function (t) {
+          var fixed = t.textContent.replace(/[ \s]+/g, " ");
+          if (fixed !== t.textContent) t.textContent = fixed;
+        });
+        Array.prototype.slice.call(introEl.querySelectorAll("br")).forEach(function (br) {
+          var prev = br.previousSibling;
+          if (prev && prev.nodeType === 3 && /\s$/.test(prev.textContent)) return;
+          br.parentNode.insertBefore(document.createTextNode(" "), br);
+        });
+      }
       function autoGrad() {
         if (!introEl || autoBusy) return;
         autoBusy = true;
         try {
           clearAuto();
+          padBreaks();
           // 편집 중이거나, 직접 지정한 구간이 있으면 자동 강조는 넣지 않는다.
           if (inEditMode()) return;
           if (introEl.querySelector("span.grad")) return;
@@ -3661,10 +3742,11 @@
           range.setStartAfter(brs[brs.length - 1]);
           range.setEnd(introEl, introEl.childNodes.length);
           if (!String(range).trim()) return;
-          var span = document.createElement("span");
-          span.className = "grad grad-auto";
-          span.appendChild(range.extractContents());
-          range.insertNode(span);
+          var frag = wrapWords(range.extractContents(), null);
+          Array.prototype.slice.call(frag.childNodes).forEach(function (n) {
+            if (n.nodeType === 1 && n.className === "grad") n.className = "grad grad-auto";
+          });
+          range.insertNode(frag);
         } finally {
           autoBusy = false;
         }
@@ -3691,11 +3773,14 @@
         if (!btn) return;
         if (btn.dataset.act === "toggle") { toggleGrad(); return; }
         if (btn.dataset.preset) {
-          // 색을 고르면 선택 구간에 먼저 적용하고 프리셋을 바꾼다.
-          // (예전엔 프리셋만 바뀌어서 "색을 눌렀는데 아무 일도 없는" 상태였다)
-          applyGradToSelection();
-          presetEl.textContent = btn.dataset.preset;
-          applyPreset(btn.dataset.preset);
+          // 색 칩은 "고른 단어에만" 적용한다. 전역 프리셋을 바꾸면 예전에
+          // 지정해둔 단어까지 전부 따라 바뀐다.
+          var idx = PRESET_IDX[btn.dataset.preset];
+          if (!applyGradToSelection(idx)) {
+            // 선택한 글자가 없으면 예전처럼 전역 프리셋을 바꾼다
+            presetEl.textContent = btn.dataset.preset;
+            applyPreset(btn.dataset.preset);
+          }
         }
       });
     })();
