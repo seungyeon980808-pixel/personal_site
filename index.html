@@ -493,6 +493,8 @@
     .intro {
       max-width: 15ch;
       margin: 0 auto 32px;
+      /* 글이 오기 전에도 두 줄 자리를 잡아둔다 — 도착할 때 화면이 밀리지 않게 */
+      min-height: 2.16em;
       font-size: clamp(40px, 7vw, 88px);
       font-weight: 700;
       letter-spacing: -0.035em;
@@ -555,7 +557,7 @@
     }
 
     /* 슬로건 줄바꿈은 데스크톱 기준으로 찍혀 있다. 좁은 화면에서 그대로 두면
-       "우물 밖에 관심이 / 많은," 처럼 엉뚱한 데서 끊긴다.
+       문장이 엉뚱한 데서 끊긴다.
        상세 페이지의 renderRich 와 같은 규칙 — 엔터 1번은 데스크톱 전용 줄바꿈이고
        720px 이하에서는 띄어쓰기로 흘린다.
        ※ <br> 앞에 공백 텍스트 노드를 JS 가 미리 넣어두므로 단어가 붙지 않는다. */
@@ -1788,12 +1790,14 @@
       </div>
       <span class="status-pill hero-item" style="animation-delay:0.05s"><span class="dot"></span> Open to share · 자유 배포</span>
       <!-- 슬로건을 히어로로 올리고, 이름은 아래 서명 줄로 내렸다 -->
-      <p class="intro hero-item" style="animation-delay:0.2s" data-editable data-field="intro">우물 밖에 관심이 많은, 우물 안의 개구리.</p>
+      <!-- 슬로건·안내문은 Firestore 에서 온다. 여기에 글을 박아두면 로딩 전
+           잠깐 옛 문구가 스쳐 지나간다. 비워두고 자리만 잡아준다. -->
+      <p class="intro hero-item" style="animation-delay:0.2s" data-editable data-field="intro"></p>
       <div class="byline hero-item" style="animation-delay:0.5s">
         <h1 class="name kinetic-pending" data-editable data-field="name">박승연</h1>
         <p class="role" data-editable data-field="role">PHYSICS TEACHER · SEOUL</p>
       </div>
-      <p class="notice hero-item" style="animation-delay:0.62s" data-editable data-field="notice">모든 자료는 허락 없이 배포 및 공유가 가능합니다.</p>
+      <p class="notice hero-item" style="animation-delay:0.62s" data-editable data-field="notice"></p>
       <!-- 선택한 그라데이션 프리셋 이름. 화면에는 안 보이지만
            [data-field] 라서 기존 저장·불러오기 흐름을 그대로 탄다. -->
       <span id="gradPreset" data-field="gradPreset" hidden>default</span>
