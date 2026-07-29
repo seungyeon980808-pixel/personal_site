@@ -149,6 +149,53 @@
     </div>
   </main>
 
+  <!-- ===== TRY IT (임베드 체험) — assets/tryit.js 가 구동 ===== -->
+  <section class="tryit reveal" aria-label="직접 써보기"
+           data-tryit
+           data-tryit-src="https://seungyeon980808-pixel.github.io/5E/"
+           data-tryit-title="5E 미리 실행">
+    <div class="wrap">
+      <div class="tryit-head">
+        <h2>여기서 바로 써보기</h2>
+        <p class="sub">설치도 로그인도 없습니다. 아래가 실제 5E — 다만 <strong>진짜 작업은 새 창</strong>에서 하세요.</p>
+      </div>
+
+      <div class="tryit-frame">
+        <div class="tryit-chrome">
+          <span class="tc-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="tc-url">seungyeon980808-pixel.github.io/5E</span>
+          <span class="tc-actions">
+            <button type="button" class="tc-btn" data-tryit-reload hidden>처음으로</button>
+            <button type="button" class="tc-btn" data-tryit-full hidden>전체화면</button>
+            <a class="tc-btn primary" href="https://seungyeon980808-pixel.github.io/5E/"
+               target="_blank" rel="noopener">새 창에서 열기 ↗</a>
+          </span>
+        </div>
+
+        <div class="tryit-stage" data-tryit-stage>
+          <button class="tryit-start" type="button" data-tryit-start>
+            <img class="ts-logo" src="../assets/logo-5e.svg" alt="" />
+            <span class="ts-title">5E 실행하기</span>
+            <span class="ts-sub">누르면 이 자리에서 바로 뜹니다. 아무것도 설치하지 않습니다.</span>
+          </button>
+
+          <div class="tryit-blocked" data-tryit-blocked hidden>
+            <img class="ts-logo" src="../assets/logo-5e.svg" alt="" />
+            <span class="ts-title">화면이 좁아 여기선 실행하지 않습니다</span>
+            <span class="ts-sub">5E는 좌우 패널과 캔버스를 함께 보는 편집 도구라, 데스크톱 폭이 있어야 제 모습이 나옵니다.</span>
+            <a class="ts-cta" href="https://seungyeon980808-pixel.github.io/5E/"
+               target="_blank" rel="noopener">그래도 열어보기 ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="tryit-note">
+        임베드 안에서 만든 그림과 자동저장은 <strong>이 페이지 안에만</strong> 남습니다.
+        브라우저가 끼워 넣은 화면의 저장 공간을 따로 두기 때문입니다 — 이어서 쓸 작업은 새 창에서 하세요.
+      </p>
+    </div>
+  </section>
+
   <!-- ===== FEATURE INDEX (검색형 기능 목록) ===== -->
   <section class="feature-index" aria-label="전체 기능 목록">
     <div class="wrap">
@@ -221,6 +268,8 @@
   <!-- 글자를 패스로 떠 둔 것. Georgia 가 없는 기기에서도 5E 가 같은 모양이 된다 -->
   <script src="../assets/glyphs-5e.js" defer></script>
   <script src="../assets/hero-5e.js" defer></script>
+  <!-- "여기서 바로 써보기" 임베드 (data-tryit 섹션이 있을 때만 동작) -->
+  <script src="../assets/tryit.js" defer></script>
 
   <!-- ===== FEATURE INDEX 데이터 (5E 전용) ===== -->
   <script type="module">

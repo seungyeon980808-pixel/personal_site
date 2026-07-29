@@ -1326,6 +1326,169 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
 .detail-foot a:hover { color: var(--main); }
 .detail-foot .mono { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted-soft); }
 
+/* ===== TRY IT (앱 임베드 체험) =====
+   브라우저 창을 하나 얹어 놓은 모양. 크롬 바는 "이건 원래 따로 도는 앱이고,
+   지금은 잠깐 빌려 온 것"이라는 신호다 — 그래서 주소와 새 창 버튼을 늘 보여준다. */
+.tryit { padding: 0 0 clamp(32px, 5vw, 56px); }
+/* 편집기는 폭이 곧 쓸모다. 본문 폭(1040)보다 조금 더 내준다.
+   --tryit-w / --tryit-h 로 덮어쓸 수 있다 — tryit.html 의 크기 실험이 이걸 쓴다. */
+.tryit .wrap { max-width: var(--tryit-w, min(1240px, calc(100vw - 48px))); }
+
+.tryit-head { margin-bottom: 16px; }
+.tryit-head h2 {
+  font-size: clamp(18px, 1.6vw, 21px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 5px;
+}
+.tryit-head .sub { font-size: 13px; color: var(--muted-soft); margin: 0; }
+.tryit-head .sub strong { color: var(--main); font-weight: 600; }
+
+.tryit-frame {
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* 크롬 바 */
+.tryit-chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--divider);
+  background: var(--bg);
+}
+.tc-dots { display: flex; gap: 6px; flex: none; }
+.tc-dots i {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--divider);
+}
+.tc-url {
+  flex: 1;
+  min-width: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+  color: var(--muted-soft);
+  padding: 3px 10px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: var(--surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+.tc-btn {
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.tc-btn:hover { color: var(--main); border-color: var(--main); }
+.tc-btn.primary { color: #fff; background: var(--main); border-color: var(--main); }
+.tc-btn.primary:hover { background: var(--main-strong); border-color: var(--main-strong); }
+
+/* 무대 */
+.tryit-stage {
+  position: relative;
+  height: var(--tryit-h, clamp(560px, 68vh, 780px));
+  background: var(--bg);
+}
+.tryit-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.tryit[data-state="live"] .tryit-iframe { opacity: 1; }
+
+/* 실행 전 대기 화면 · 좁은 화면 안내 — 같은 모양을 공유한다 */
+.tryit-start,
+.tryit-blocked {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 0;
+}
+.tryit-start { cursor: pointer; transition: background 0.25s var(--ease); }
+.tryit-start:hover { background: var(--tint); }
+.ts-logo {
+  width: 46px; height: 46px;
+  opacity: 0.9;
+  transition: transform 0.3s var(--ease);
+}
+.tryit-start:hover .ts-logo { transform: translateY(-3px); }
+.ts-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.ts-sub { font-size: 12.5px; color: var(--muted-soft); max-width: 34ch; line-height: 1.55; }
+.ts-cta {
+  margin-top: 4px;
+  font-size: 12.5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--main);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.2s var(--ease);
+}
+.ts-cta:hover { background: var(--main-strong); }
+
+/* 로딩 — 크롬 바 아래에 가는 진행선 하나. 스피너는 쓰지 않는다 */
+.tryit-frame::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--main);
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+}
+.tryit { position: relative; }
+.tryit[data-state="loading"] .tryit-frame::after {
+  opacity: 1;
+  animation: tryit-bar 1.6s var(--ease) infinite;
+}
+@keyframes tryit-bar {
+  0%   { transform: scaleX(0);   transform-origin: left; }
+  50%  { transform: scaleX(1);   transform-origin: left; }
+  100% { transform: scaleX(0);   transform-origin: right; }
+}
+.tryit-frame { position: relative; }
+
+/* 전체화면일 때는 무대가 화면을 다 쓴다 */
+.tryit.is-full .tryit-frame { border-radius: 0; border: 0; height: 100%; display: flex; flex-direction: column; }
+.tryit.is-full .tryit-stage { height: auto; flex: 1; }
+
+.tryit-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--muted-soft);
+  line-height: 1.6;
+}
+.tryit-note strong { color: var(--muted); font-weight: 600; }
+
 /* ===== SCROLL REVEAL / ACTIVE MOTION ===== */
 .reveal {
   opacity: 0;
@@ -1377,6 +1540,15 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
 .feature.is-visible .feature-num::before { width: 34px; }
 
 /* ===== RESPONSIVE ===== */
+/* 좁은 화면에서는 앱을 띄우지 않으므로(tryit.js) 무대를 안내 카드 크기로 줄인다.
+   편집기 크기의 빈 상자를 남겨 두면 스크롤만 길어진다. */
+@media (max-width: 900px) {
+  .tryit .wrap { max-width: none; }
+  .tryit-stage { height: auto; min-height: 300px; }
+  .tryit-start, .tryit-blocked { position: static; inset: auto; min-height: 300px; }
+  .tc-url { display: none; }
+}
+
 @media (max-width: 720px) {
   .feature { grid-template-columns: 1fr; gap: 22px; }
   .feature:nth-child(even) .feature-media { order: 0; }

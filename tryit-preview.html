@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>임베드 실사용 점검 · 5E</title>
+<meta name="robots" content="noindex, nofollow" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/detail.css" />
+<link rel="icon" href="assets/logo-5e.svg" type="image/svg+xml" />
+
+<style>
+  /* 이 페이지 전용 껍데기. 임베드 자체는 detail.css 의 .tryit 규칙 그대로 쓴다 —
+     여기서 본 모습이 상세 페이지에서 본 모습과 달라지면 실험의 의미가 없다. */
+  body { padding-bottom: 60px; }
+
+  .tp-bar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--divider);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
+  .tp-bar .back { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .tp-bar .back:hover { color: var(--main); }
+  .tp-bar .title { font-size: 13px; font-weight: 600; }
+  .tp-bar .spacer { flex: 1; }
+
+  .tp-group { display: flex; align-items: center; gap: 6px; }
+  .tp-group > .lbl {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted-soft); margin-right: 2px;
+  }
+  .tp-opt {
+    font: inherit; font-size: 12px; line-height: 1;
+    padding: 6px 11px; border-radius: 999px;
+    border: 1px solid var(--divider); background: var(--surface); color: var(--muted);
+    cursor: pointer;
+    transition: color .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease);
+  }
+  .tp-opt:hover { color: var(--main); border-color: var(--main); }
+  .tp-opt[aria-pressed="true"] { color: #fff; background: var(--main); border-color: var(--main); }
+
+  .tp-size {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted-soft);
+    white-space: nowrap;
+  }
+
+  .tp-intro { padding: 26px 22px 0; }
+  .tp-intro h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 6px; }
+  .tp-intro p { font-size: 13px; color: var(--muted); margin: 0; max-width: 62ch; line-height: 1.65; }
+
+  .tp-check { padding: 8px 22px 0; }
+  .tp-check .wrap { max-width: var(--tryit-w, min(1240px, calc(100vw - 48px))); margin: 0 auto; padding: 0; }
+  .tp-check h2 {
+    font-size: 12px; font-weight: 600; margin: 0 0 10px;
+    font-family: "IBM Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted-soft);
+  }
+  .tp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px;
+             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .tp-list li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 11px 14px;
+    border: 1px solid var(--divider); border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: 12.5px; line-height: 1.55; color: var(--muted);
+  }
+  .tp-list b { display: block; color: var(--text); font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .tp-list .no {
+    flex: none; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: var(--main); padding-top: 2px;
+  }
+</style>
+</head>
+<body data-project="physics-draw">
+
+<!-- ===== 실험 조작 바 ===== -->
+<div class="tp-bar">
+  <a class="back" href="projects/physics-draw.html">← 상세 페이지</a>
+  <span class="title">임베드 실사용 점검</span>
+  <span class="spacer"></span>
+
+  <span class="tp-group" id="wGroup">
+    <span class="lbl">폭</span>
+    <button class="tp-opt" type="button" data-w="1040px">1040</button>
+    <button class="tp-opt" type="button" data-w="min(1240px, calc(100vw - 48px))" aria-pressed="true">1240 · 현재값</button>
+    <button class="tp-opt" type="button" data-w="calc(100vw - 48px)">화면 전체</button>
+  </span>
+
+  <span class="tp-group" id="hGroup">
+    <span class="lbl">높이</span>
+    <button class="tp-opt" type="button" data-h="480px">480</button>
+    <button class="tp-opt" type="button" data-h="clamp(560px, 68vh, 780px)" aria-pressed="true">68vh · 현재값</button>
+    <button class="tp-opt" type="button" data-h="calc(100vh - 120px)">화면 높이</button>
+  </span>
+
+  <span class="tp-size" id="tpSize">—</span>
+</div>
+
+<div class="tp-intro">
+  <h1>이 크기에서 5E를 쓸 만한가</h1>
+  <p>
+    상세 페이지에 넣은 임베드를 그대로 떼어 왔습니다. 위에서 폭·높이를 바꿔가며
+    실제로 그림을 하나 그려 보세요. 앱은 크기를 바꿔도 다시 뜨지 않으니,
+    그리던 것을 유지한 채로 어느 크기부터 답답해지는지 비교할 수 있습니다.
+  </p>
+</div>
+
+<!-- ===== TRY IT (상세 페이지와 같은 마크업) ===== -->
+<section class="tryit" aria-label="직접 써보기"
+         style="padding-top:20px"
+         data-tryit
+         data-tryit-src="https://seungyeon980808-pixel.github.io/5E/"
+         data-tryit-title="5E 미리 실행">
+  <div class="wrap">
+    <div class="tryit-frame">
+      <div class="tryit-chrome">
+        <span class="tc-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="tc-url">seungyeon980808-pixel.github.io/5E</span>
+        <span class="tc-actions">
+          <button type="button" class="tc-btn" data-tryit-reload hidden>처음으로</button>
+          <button type="button" class="tc-btn" data-tryit-full hidden>전체화면</button>
+          <a class="tc-btn primary" href="https://seungyeon980808-pixel.github.io/5E/"
+             target="_blank" rel="noopener">새 창에서 열기 ↗</a>
+        </span>
+      </div>
+
+      <div class="tryit-stage" data-tryit-stage>
+        <button class="tryit-start" type="button" data-tryit-start>
+          <img class="ts-logo" src="assets/logo-5e.svg" alt="" />
+          <span class="ts-title">5E 실행하기</span>
+          <span class="ts-sub">누르면 이 자리에서 바로 뜹니다. 아무것도 설치하지 않습니다.</span>
+        </button>
+
+        <div class="tryit-blocked" data-tryit-blocked hidden>
+          <img class="ts-logo" src="assets/logo-5e.svg" alt="" />
+          <span class="ts-title">화면이 좁아 여기선 실행하지 않습니다</span>
+          <span class="ts-sub">5E는 좌우 패널과 캔버스를 함께 보는 편집 도구라, 데스크톱 폭이 있어야 제 모습이 나옵니다.</span>
+          <a class="ts-cta" href="https://seungyeon980808-pixel.github.io/5E/"
+             target="_blank" rel="noopener">그래도 열어보기 ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 점검 항목 ===== -->
+<section class="tp-check">
+  <div class="wrap">
+    <h2>이런 게 걸리는지 봐주세요</h2>
+    <ol class="tp-list">
+      <li><span class="no">01</span><span><b>휠 스크롤이 싸운다</b>캔버스 위에서 휠을 굴리면 5E가 확대/축소를 먹습니다. 페이지를 내리려는데 그림이 확대되면 불편한 정도가 어느 만큼인지.</span></li>
+      <li><span class="no">02</span><span><b>스페이스+드래그 화면 이동</b>임베드 안에서 스페이스가 페이지 스크롤로 새는지, 5E가 제대로 받는지.</span></li>
+      <li><span class="no">03</span><span><b>단축키</b>클릭해서 포커스를 준 뒤 단축키가 먹는지. 포커스를 잃었을 때 다시 주는 게 번거로운지.</span></li>
+      <li><span class="no">04</span><span><b>파일 저장·내보내기</b>PNG/SVG 내보내기와 프로젝트 JSON 저장이 임베드 안에서도 다운로드되는지.</span></li>
+      <li><span class="no">05</span><span><b>자동저장</b>임베드는 저장 공간이 따로 잡힙니다. 새로고침 후 그리던 게 남아 있는지, 새 창과 안 섞이는지.</span></li>
+      <li><span class="no">06</span><span><b>모달·팝업</b>기출 검색이나 설정 창이 임베드 밖으로 잘리지 않는지. 480 높이에서 특히.</span></li>
+      <li><span class="no">07</span><span><b>전체화면 버튼</b>눌렀을 때 편해지는지, 아니면 그냥 새 창이 나은지.</span></li>
+      <li><span class="no">08</span><span><b>결론</b>이 자리에서 "맛보기"로 충분한지, 아니면 오히려 5E를 나쁘게 보이게 하는지.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Theme toggle -->
+<button id="themeToggle" class="theme-toggle" type="button" aria-label="라이트/다크 전환">
+  <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+
+<script src="assets/tryit.js" defer></script>
+<script>
+  /* 크기 실험 — CSS 변수만 갈아끼운다. iframe 은 건드리지 않으므로
+     크기를 바꿔도 그리던 그림이 살아 있다. */
+  const root = document.documentElement;
+  const readout = document.getElementById('tpSize');
+
+  function bind(groupId, varName) {
+    const group = document.getElementById(groupId);
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tp-opt');
+      if (!btn) return;
+      group.querySelectorAll('.tp-opt').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      root.style.setProperty(varName, btn.dataset.w || btn.dataset.h);
+      measure();   // offsetWidth 를 읽는 순간 레이아웃이 다시 계산되므로 값은 이미 새것이다
+    });
+  }
+  bind('wGroup', '--tryit-w');
+  bind('hGroup', '--tryit-h');
+
+  function measure() {
+    const stage = document.querySelector('[data-tryit-stage]');
+    if (!stage) return;
+    readout.textContent = `${Math.round(stage.offsetWidth)} × ${Math.round(stage.offsetHeight)}`;
+  }
+  window.addEventListener('resize', measure, { passive: true });
+  window.addEventListener('load', measure);
+  measure();
+
+  /* 테마 토글 — detail.js 를 통째로 들이지 않고 이 페이지에 필요한 것만 */
+  const saved = localStorage.getItem('ps-theme');
+  if (saved) root.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const dark = getComputedStyle(root).getPropertyValue('--bg').trim() === '#0b0e14';
+    const next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('ps-theme', next);
+  });
+</script>
+</body>
+</html>
