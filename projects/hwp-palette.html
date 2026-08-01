@@ -165,7 +165,12 @@
     #introCtl button:hover { color: #0071e3; border-color: #0071e3; }
     /* 인트로가 도는 동안에는 뒤 페이지가 스크롤되지 않게 */
     body.intro-on { overflow: hidden; }
-    @media (max-width: 760px) { #introOverlay { display: none; } }
+    /* 모바일 — 인트로를 끄지 않는다. 세로 화면에서 70%는 우표만 해지므로
+       가로폭을 거의 다 쓰고 높이는 영상 비율에 맡긴다(1280×722 가로 영상). */
+    @media (max-width: 760px) {
+      #introOverlay video { width: 94%; height: auto; max-height: 70%; }
+      #introCtl { right: 50%; transform: translateX(50%); bottom: 18px; }
+    }
   </style>
   <div id="introOverlay" hidden>
     <video id="introVideo" muted playsinline preload="auto"
@@ -181,10 +186,10 @@
       var v = document.getElementById("introVideo");
       var skip = document.getElementById("introSkip");
       if (!box || !v) return;
-      // 좁은 화면·모션 최소화 설정에서는 인트로를 아예 틀지 않는다 (영상도 안 받는다)
-      var wide = window.matchMedia("(min-width: 761px)");
+      // 모션 최소화 설정에서만 인트로를 접는다 (영상도 안 받는다).
+      // 화면 폭으로는 거르지 않는다 — 휴대폰에서도 인트로가 나와야 한다.
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (!wide.matches || reduce.matches) { box.remove(); return; }
+      if (reduce.matches) { box.remove(); return; }
 
       var closed = false;
       function close() {
