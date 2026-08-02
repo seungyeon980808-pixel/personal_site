@@ -28,10 +28,19 @@
   <meta name="twitter:image" content="https://www.psy.ai.kr/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- 한글 웹폰트 CSS 는 @font-face 가 386개라 파일만 245KB 다. 이걸 렌더링
+       차단으로 물면 폰트를 받기도 전에 첫 화면이 멈춘다. media 트릭으로
+       비차단 로드하고, 도착하면 그때 적용한다(그 사이엔 시스템 폰트). -->
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
+    rel="stylesheet" media="print" onload="this.media='all'"
   />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </noscript>
   <link rel="stylesheet" href="../assets/detail.css" />
 </head>
 <body data-project="docfinder">

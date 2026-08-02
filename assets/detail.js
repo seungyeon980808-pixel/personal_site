@@ -8,28 +8,42 @@
 //   <body data-project="edunote"> 값으로 문서/댓글을 고른다.
 // =========================================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  addDoc,
-  deleteDoc,
-  updateDoc,
-  query,
-  where,
-  onSnapshot,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+// ---- Firebase SDK 는 필요할 때만 받는다 -----------------------------------
+//   app+auth+firestore 를 정적으로 import 하면 페이지마다 180KB(압축) 를 받아
+//   파싱하고, Firestore 실시간 채널까지 즉시 연다. 방문자의 99%는 로그인도
+//   글쓰기도 하지 않으므로 그 값을 치를 이유가 없다. 읽기는 REST 한 번으로
+//   끝내고, SDK 는 로그인·저장·댓글쓰기 같은 '쓰는 순간'에만 불러온다.
+//   인스타 인앱 브라우저처럼 캐시가 비는 환경에서는 이 차이가 페이지마다 반복된다.
+const SDK = "https://www.gstatic.com/firebasejs/12.14.0/";
+let sdkPromise = null;
+function loadSdk() {
+  if (!sdkPromise) {
+    sdkPromise = (async () => {
+      const [appMod, authMod, fsMod] = await Promise.all([
+        import(SDK + "firebase-app.js"),
+        import(SDK + "firebase-auth.js"),
+        import(SDK + "firebase-firestore.js"),
+      ]);
+      app = appMod.initializeApp(firebaseConfig);
+      auth = authMod.getAuth(app);
+      db = fsMod.getFirestore(app);
+      return { a: authMod, f: fsMod };
+    })();
+  }
+  return sdkPromise;
+}
+
+// 로그인 상태를 편집 모드에 연결한다. 한 번만 붙는다.
+let authWatched = false;
+async function watchAuth() {
+  if (authWatched) return;
+  authWatched = true;
+  const { a } = await loadSdk();
+  a.onAuthStateChanged(auth, (user) => {
+    if (user && user.email === ADMIN_EMAIL) enableEditMode(user.email);
+    else disableEditMode();
+  });
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyAbHRNi10RttJNoLJCuxZQHucwp5Vttn90",
@@ -46,6 +60,71 @@ const COMMENTS = "comments";
 const ADMIN_EMAIL = "seungyeon980808@gmail.com";
 const PROJECT_ID = document.body.dataset.project || "unknown";
 const DOC_ID = "detail-" + PROJECT_ID;
+
+// 이 기기에서 관리자로 로그인한 적이 있는가. 있을 때만 부팅 시 auth SDK 를 받는다.
+const ADMIN_SEEN = "adminSeen";
+
+// ---- Firestore REST (읽기 전용) -------------------------------------------
+//   SDK 없이 문서 하나를 읽는다. 공개 읽기 규칙이면 API 키만으로 충분하다.
+const REST_ROOT =
+  "https://firestore.googleapis.com/v1/projects/" + firebaseConfig.projectId +
+  "/databases/(default)/documents";
+
+// REST 는 Timestamp 를 문자열로 준다. 화면 코드가 쓰는 toDate/toMillis 를 붙여
+// SDK 쪽과 모양을 맞춘다 — 렌더 코드는 어느 경로로 왔는지 몰라도 되게.
+function restTs(iso) {
+  const d = new Date(iso);
+  return { toDate: () => d, toMillis: () => d.getTime() };
+}
+function restVal(v) {
+  if (!v) return null;
+  if ("stringValue" in v) return v.stringValue;
+  if ("integerValue" in v) return Number(v.integerValue);
+  if ("doubleValue" in v) return Number(v.doubleValue);
+  if ("booleanValue" in v) return v.booleanValue;
+  if ("timestampValue" in v) return restTs(v.timestampValue);
+  if ("mapValue" in v) return restFields(v.mapValue.fields || {});
+  if ("arrayValue" in v) return (v.arrayValue.values || []).map(restVal);
+  return null;
+}
+function restFields(f) {
+  const out = {};
+  for (const k in f) out[k] = restVal(f[k]);
+  return out;
+}
+async function restGetDoc(path) {
+  const res = await fetch(REST_ROOT + "/" + path + "?key=" + firebaseConfig.apiKey);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("REST " + res.status);
+  const json = await res.json();
+  return restFields(json.fields || {});
+}
+async function restQuery(collectionId, field, value) {
+  const res = await fetch(REST_ROOT + ":runQuery?key=" + firebaseConfig.apiKey, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: field },
+            op: "EQUAL",
+            value: { stringValue: value },
+          },
+        },
+      },
+    }),
+  });
+  if (!res.ok) throw new Error("REST " + res.status);
+  const rows = await res.json();
+  return rows
+    .filter((r) => r.document)
+    .map((r) => ({
+      id: r.document.name.split("/").pop(),
+      ...restFields(r.document.fields || {}),
+    }));
+}
 
 // ?preview=1 로 열린 iframe = 기기 미리보기용 사본. 편집 UI 를 켜지 않는다.
 const IS_PREVIEW = new URLSearchParams(location.search).has("preview");
@@ -999,10 +1078,18 @@ function normalizeStatus(v) {
 }
 
 // ---- Firestore: detail content load/save ---------------------------------
+// 본문은 Firestore 에서 온다 = 네트워크가 끝나기 전까지 화면이 비어 있다.
+// 지난번에 받은 내용을 먼저 그려두면 다시 들어올 때 빈 화면을 거치지 않는다.
+const CACHE_KEY = "siteCache:" + DOC_ID;
 async function loadDoc() {
   try {
-    const snap = await getDoc(doc(db, COLLECTION, DOC_ID));
-    applyData(snap.exists() ? snap.data() : null);
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) applyData(JSON.parse(cached));
+  } catch (e) {}
+  try {
+    const data = await restGetDoc(COLLECTION + "/" + DOC_ID);
+    applyData(data);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
   } catch (err) {
     console.error("[detail] load failed", err);
     applyData(null);
@@ -1010,7 +1097,8 @@ async function loadDoc() {
 }
 
 async function saveDoc() {
-  await setDoc(doc(db, COLLECTION, DOC_ID), collectData());
+  const { f } = await loadSdk();
+  await f.setDoc(f.doc(db, COLLECTION, DOC_ID), collectData());
 }
 
 // ---- Comments ------------------------------------------------------------
@@ -1083,23 +1171,29 @@ function renderComments() {
   });
 }
 
+// 최신순 정렬 — 서버 인덱스를 요구하지 않도록 클라이언트에서 정렬한다
+function sortComments() {
+  commentsCache.sort((a, b) => {
+    const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+}
+
+// 방문자는 실시간 채널을 열지 않는다. REST 로 한 번 읽고 끝 —
+// 새로 쓰거나 지운 뒤에는 그때 다시 읽는다.
+async function refreshComments() {
+  try {
+    commentsCache = await restQuery(COMMENTS, "project", PROJECT_ID);
+    sortComments();
+    renderComments();
+  } catch (err) {
+    console.error("[detail] comments load failed", err);
+  }
+}
+
 function initComments() {
-  const q = query(collection(db, COMMENTS), where("project", "==", PROJECT_ID));
-  onSnapshot(
-    q,
-    (snap) => {
-      commentsCache = [];
-      snap.forEach((d) => commentsCache.push({ id: d.id, ...d.data() }));
-      // newest first (client-side sort → no composite index needed)
-      commentsCache.sort((a, b) => {
-        const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
-        const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
-        return tb - ta;
-      });
-      renderComments();
-    },
-    (err) => console.error("[detail] comments listen failed", err)
-  );
+  refreshComments();
 
   const form = document.getElementById("commentForm");
   if (form) {
@@ -1116,13 +1210,15 @@ function initComments() {
       const btn = form.querySelector("button[type=submit]");
       if (btn) btn.disabled = true;
       try {
-        await addDoc(collection(db, COMMENTS), {
+        const { f } = await loadSdk();
+        await f.addDoc(f.collection(db, COMMENTS), {
           project: PROJECT_ID,
           name: name.slice(0, 30),
           text: text.slice(0, 500),
-          createdAt: serverTimestamp(),
+          createdAt: f.serverTimestamp(),
         });
         textEl.value = "";
+        await refreshComments();
       } catch (err) {
         console.error("[detail] comment add failed", err);
         alert("후기 등록 중 오류가 발생했습니다. (보안 규칙 배포 여부를 확인하세요)");
@@ -1137,7 +1233,9 @@ async function removeComment(id) {
   if (!isEditMode) return;
   if (!confirm("이 후기를 삭제할까요?")) return;
   try {
-    await deleteDoc(doc(db, COMMENTS, id));
+    const { f } = await loadSdk();
+    await f.deleteDoc(f.doc(db, COMMENTS, id));
+    await refreshComments();
   } catch (err) {
     console.error("[detail] comment delete failed", err);
     alert("삭제 중 오류가 발생했습니다.");
@@ -1147,10 +1245,12 @@ async function removeComment(id) {
 async function replyComment(id, text) {
   if (!isEditMode) return;
   try {
-    await updateDoc(doc(db, COMMENTS, id), {
+    const { f } = await loadSdk();
+    await f.updateDoc(f.doc(db, COMMENTS, id), {
       reply: (text || "").trim().slice(0, 500),
-      repliedAt: serverTimestamp(),
+      repliedAt: f.serverTimestamp(),
     });
+    await refreshComments();
   } catch (err) {
     console.error("[detail] reply failed", err);
     alert("답글 저장 중 오류가 발생했습니다. (보안 규칙 배포 여부를 확인하세요)");
@@ -1290,10 +1390,6 @@ function initReveal() {
 
 // ---- Boot ----------------------------------------------------------------
 async function boot() {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-
   // Theme toggle.
   const themeBtn = document.getElementById("themeToggle");
   if (themeBtn) {
@@ -1359,19 +1455,24 @@ async function boot() {
   if (adminBtn) {
     adminBtn.addEventListener("click", async () => {
       try {
+        const { a } = await loadSdk();
         // 편집을 꺼둔 채 로그인 상태일 수 있으므로 isEditMode 가 아니라 canEdit 으로 판단한다.
         if (canEdit) {
-          await signOut(auth);
+          await a.signOut(auth);
+          try { localStorage.removeItem(ADMIN_SEEN); } catch (e) {}
           disableEditMode();
           return;
         }
-        const provider = new GoogleAuthProvider();
-        const res = await signInWithPopup(auth, provider);
+        const provider = new a.GoogleAuthProvider();
+        const res = await a.signInWithPopup(auth, provider);
         if (res.user && res.user.email === ADMIN_EMAIL) {
+          // 다음 방문부터는 부팅 때 바로 auth 를 붙여 편집 상태를 되살린다
+          try { localStorage.setItem(ADMIN_SEEN, "1"); } catch (e) {}
+          watchAuth();
           enableEditMode(res.user.email);
         } else {
           alert("편집 권한이 없는 계정입니다.");
-          await signOut(auth);
+          await a.signOut(auth);
         }
       } catch (err) {
         console.error("[detail] auth failed", err);
@@ -1415,10 +1516,9 @@ async function boot() {
   window.matchMedia(NARROW).addEventListener("change", repaintRich);
 
   // Auth listener: edit mode ONLY for the admin email.
-  onAuthStateChanged(auth, (user) => {
-    if (user && user.email === ADMIN_EMAIL) enableEditMode(user.email);
-    else disableEditMode();
-  });
+  // 이 기기에서 관리자로 로그인한 적이 없으면 auth SDK 자체를 받지 않는다.
+  // (로그인 버튼을 누르면 그때 받아서 붙는다 — watchAuth 참고)
+  if (localStorage.getItem(ADMIN_SEEN)) watchAuth();
 }
 
 boot();
