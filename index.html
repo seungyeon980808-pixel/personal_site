@@ -35,10 +35,19 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- 한글 웹폰트 CSS 는 @font-face 가 386개라 파일만 245KB 다. 이걸 렌더링
+       차단으로 물면 폰트를 받기도 전에 첫 화면이 멈춘다. media 트릭으로
+       비차단 로드하고, 도착하면 그때 적용한다(그 사이엔 시스템 폰트). -->
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
+    rel="stylesheet" media="print" onload="this.media='all'"
   />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </noscript>
 
   <style>
     :root {
@@ -3753,20 +3762,28 @@
       to the ADMIN section via window.Site.
   -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged,
-    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+    // Firebase SDK 는 '쓰는 순간'에만 받는다. app+auth+firestore 정적 import 는
+    // 압축 후에도 180KB 이고, 즉시 Firestore 실시간 채널까지 연다. 방문자는
+    // 로그인도 저장도 하지 않으므로 읽기는 REST 한 번으로 끝낸다.
+    // (인스타 인앱 브라우저처럼 캐시가 비는 환경에서 페이지마다 반복되던 비용)
+    const SDK = "https://www.gstatic.com/firebasejs/12.14.0/";
+    let sdkPromise = null;
+    function loadSdk() {
+      if (!sdkPromise) {
+        sdkPromise = (async () => {
+          const [appMod, authMod, fsMod] = await Promise.all([
+            import(SDK + "firebase-app.js"),
+            import(SDK + "firebase-auth.js"),
+            import(SDK + "firebase-firestore.js"),
+          ]);
+          app = appMod.initializeApp(firebaseConfig);
+          auth = authMod.getAuth(app);
+          dbRef = fsMod.getFirestore(app);
+          return { a: authMod, f: fsMod };
+        })();
+      }
+      return sdkPromise;
+    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyAbHRNi10RttJNoLJCuxZQHucwp5Vttn90",
@@ -3783,47 +3800,85 @@
     const ADMIN_EMAIL = "seungyeon980808@gmail.com";
 
     let app, auth, dbRef;
+    // 이 기기에서 관리자로 로그인한 적이 있는가 — 있을 때만 부팅 시 auth 를 받는다
+    const ADMIN_SEEN = "adminSeen";
 
-    // 1) initFirebase() — initialize app, auth, firestore --------------------
-    function initFirebase() {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      dbRef = getFirestore(app);
-      return { app, auth, dbRef };
+    // 1) REST 읽기 — SDK 없이 문서 하나를 가져온다 ---------------------------
+    const REST_DOC =
+      "https://firestore.googleapis.com/v1/projects/" + firebaseConfig.projectId +
+      "/databases/(default)/documents/" + COLLECTION + "/" + DOC_ID +
+      "?key=" + firebaseConfig.apiKey;
+
+    function restVal(v) {
+      if (!v) return null;
+      if ("stringValue" in v) return v.stringValue;
+      if ("integerValue" in v) return Number(v.integerValue);
+      if ("doubleValue" in v) return Number(v.doubleValue);
+      if ("booleanValue" in v) return v.booleanValue;
+      if ("timestampValue" in v) return new Date(v.timestampValue);
+      if ("mapValue" in v) return restFields(v.mapValue.fields || {});
+      if ("arrayValue" in v) return (v.arrayValue.values || []).map(restVal);
+      return null;
+    }
+    function restFields(f) {
+      const out = {};
+      for (const k in f) out[k] = restVal(f[k]);
+      return out;
     }
 
     // 2) loginWithGoogle() — Google popup login ------------------------------
     async function loginWithGoogle() {
-      const provider = new GoogleAuthProvider();
-      const cred = await signInWithPopup(auth, provider);
+      const { a } = await loadSdk();
+      const provider = new a.GoogleAuthProvider();
+      const cred = await a.signInWithPopup(auth, provider);
+      if (cred.user && cred.user.email === ADMIN_EMAIL) {
+        try { localStorage.setItem(ADMIN_SEEN, "1"); } catch (e) {}
+      }
       return cred.user;
     }
 
     // 3) logoutUser() — sign out ---------------------------------------------
     async function logoutUser() {
-      return signOut(auth);
+      const { a } = await loadSdk();
+      try { localStorage.removeItem(ADMIN_SEEN); } catch (e) {}
+      return a.signOut(auth);
     }
 
     // 4) onAuthChange(callback) — auth state listener ------------------------
     //    Edit mode is activated by the callback ONLY when the user's email
     //    equals ADMIN_EMAIL (the ADMIN section enforces this rule).
+    //    방문자에게는 auth SDK 를 받지 않는다 — 로그인한 적 있는 기기에서만 붙인다.
     function onAuthChange(callback) {
-      onAuthStateChanged(auth, (user) => callback(user));
+      let seen = null;
+      try { seen = localStorage.getItem(ADMIN_SEEN); } catch (e) {}
+      if (!seen) { callback(null); return; }
+      loadSdk().then(({ a }) => a.onAuthStateChanged(auth, (user) => callback(user)));
     }
 
     // 5) saveToFirestore(data) — write to personal-site/main -----------------
     async function saveToFirestore(data) {
-      await setDoc(doc(dbRef, COLLECTION, DOC_ID), data, { merge: true });
+      const { f } = await loadSdk();
+      await f.setDoc(f.doc(dbRef, COLLECTION, DOC_ID), data, { merge: true });
     }
 
     // 6) loadFromFirestore() — read personal-site/main and apply to DOM ------
+    // 본문은 Firestore 에서 온다 = 네트워크가 끝나기 전까지 화면이 비어 있다.
+    // 지난번에 받은 내용을 먼저 그려두면, 다시 들어올 때 빈 화면을 거치지 않는다.
+    const CACHE_KEY = "siteCache:" + DOC_ID;
     async function loadFromFirestore() {
       try {
-        const snap = await getDoc(doc(dbRef, COLLECTION, DOC_ID));
-        if (snap.exists()) {
-          applyData(snap.data());
-          return snap.data();
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) applyData(JSON.parse(cached));
+      } catch (e) {}
+      try {
+        const res = await fetch(REST_DOC);
+        if (res.ok) {
+          const data = restFields((await res.json()).fields || {});
+          applyData(data);
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+          return data;
         }
+        if (res.status !== 404) throw new Error("REST " + res.status);
       } catch (err) {
         console.error("[FIREBASE] loadFromFirestore failed", err);
       }
@@ -3961,7 +4016,7 @@
     }
 
     // ---- Boot --------------------------------------------------------------
-    initFirebase();
+    // (SDK 초기화는 loadSdk() 안으로 옮겼다 — 필요할 때 한 번만 돈다)
 
     // Expose the single Site namespace consumed by the ADMIN section.
     window.Site = {
@@ -3980,8 +4035,23 @@
     };
   </script>
 
-  <!-- 셰이더 배경 번들 (React + @paper-design/shaders-react, 244KB) -->
-  <script src="assets/shader/shader-bg.js"></script>
+  <!-- 셰이더 배경 번들 (React + @paper-design/shaders-react, 244KB)
+       장식이다. 폰에서까지 244KB 를 받아 WebGL 을 돌릴 값어치는 없다 —
+       마우스가 있는 넓은 화면에서만, 그것도 첫 화면이 다 그려진 뒤에 받는다. -->
+  <script>
+    (function () {
+      var ok =
+        window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+        window.innerWidth >= 900 &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!ok) return;
+      window.addEventListener("load", function () {
+        var s = document.createElement("script");
+        s.src = "assets/shader/shader-bg.js";
+        document.body.appendChild(s);
+      });
+    })();
+  </script>
 
   <!-- ===== GRADIENT TEXT =====
     편집 모드에서 글자를 드래그하면 툴바가 떠서 그라데이션 구간을 직접 지정한다.
