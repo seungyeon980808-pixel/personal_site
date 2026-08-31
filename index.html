@@ -1536,11 +1536,12 @@
     }
     a.pick-card:hover { border-color: rgba(90,169,255,.5); }
     .pick-mark {
-      flex: none; width: 42px; height: 42px; border-radius: 12px;
+      flex: none; width: 42px; height: 42px; border-radius: 12px; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07);
       font-family: "IBM Plex Mono", monospace; font-size: 15px; color: var(--muted-soft);
     }
+    .pick-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .pick-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .pick-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .pick-nm { font-size: 16px; font-weight: 600; }
@@ -3114,6 +3115,15 @@
       var KIND_LABEL = { program: "프로그램", mcp: "MCP", service: "서비스", library: "라이브러리" };
 
       var workflows = [];
+      var DEFAULT_PICK = {
+        id: "pk-lazy-starter-kit",
+        kind: "program",
+        name: "lazy-starter-kit",
+        by: "Heoooooon",
+        desc: "새 컴퓨터의 AI 개발 환경을 한 번에 구성하고, dry-run으로 먼저 확인할 수 있는 크로스 플랫폼 설치 도구.",
+        url: "https://github.com/Heoooooon/lazy-starter-kit",
+        icon: "https://raw.githubusercontent.com/Heoooooon/lazy-starter-kit/main/docs/brand/app-icon.svg"
+      };
       var picks = [];
       var thoughts = [];
       var devlog = [];
@@ -3276,9 +3286,12 @@
           var kinds = Object.keys(KIND_LABEL).map(function (k) {
             return '<option value="' + k + '"' + (k === pk.kind ? " selected" : "") + ">" + KIND_LABEL[k] + "</option>";
           }).join("");
+          var mark = pk.icon
+            ? '<span class="pick-mark"><img src="' + esc(pk.icon) + '" alt="" loading="lazy"></span>'
+            : '<span class="pick-mark">' + esc((pk.name || "?").charAt(0)) + "</span>";
           var inner =
             (editing ? '<button class="wf-btn danger pick-del" type="button" data-act="del-pick" data-i="' + i + '">×</button>' : "") +
-            '<span class="pick-mark">' + esc((pk.name || "?").charAt(0)) + "</span>" +
+            mark +
             '<span class="pick-body">' +
               '<span class="pick-top">' +
                 '<span class="pick-nm"' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-name" data-i="' + i + '">' + esc(pk.name) + "</span>" +
@@ -3287,7 +3300,8 @@
               "</span>" +
               '<span class="pick-desc"' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-desc" data-i="' + i + '">' + esc(pk.desc) + "</span>" +
               '<span class="pick-by">by <span' + (editing ? ' contenteditable="true"' : "") + ' data-act="pk-by" data-i="' + i + '">' + esc(pk.by) + "</span></span>" +
-              (editing ? '<span class="pick-by">링크 <span contenteditable="true" data-act="pk-url" data-i="' + i + '">' + esc(pk.url) + "</span></span>" : "") +
+              (editing ? '<span class="pick-by">링크 <span contenteditable="true" data-act="pk-url" data-i="' + i + '">' + esc(pk.url) + "</span></span>" +
+                '<span class="pick-by">아이콘 URL <span contenteditable="true" data-act="pk-icon" data-i="' + i + '">' + esc(pk.icon || "") + "</span></span>" : "") +
             "</span>";
           return (!editing && pk.url && pk.url !== "#")
             ? '<a class="pick-card" href="' + esc(pk.url) + '" target="_blank" rel="noopener">' + inner + "</a>"
@@ -3581,7 +3595,7 @@
       var addPick = document.getElementById("pickAdd");
       if (addPick) addPick.addEventListener("click", function () {
         picks.push({ id: uid("pk"), kind: "mcp", name: "새 항목", by: "만든이",
-                     desc: "왜 권하는지 적습니다.", url: "#" });
+                     desc: "왜 권하는지 적습니다.", url: "#", icon: "" });
         renderPicks();
       });
 
@@ -3602,8 +3616,9 @@
                      }) };
           }),
           picks: picks.map(function (p) {
-            return { id: p.id, kind: p.kind, name: p.name, by: p.by, desc: p.desc, url: p.url };
+            return { id: p.id, kind: p.kind, name: p.name, by: p.by, desc: p.desc, url: p.url, icon: p.icon || "" };
           }),
+          picksSeededVersion: 1,
           thoughts: thoughts.map(function (t) {
             return { id: t.id, title: t.title, body: t.body, at: t.at,
                      pinned: !!t.pinned, workflowId: t.workflowId || null };
@@ -3616,7 +3631,12 @@
       function applyData(d) {
         if (!d) return;
         if (Array.isArray(d.workflows)) workflows = d.workflows;
-        if (Array.isArray(d.picks)) picks = d.picks;
+        if (Array.isArray(d.picks)) {
+          picks = d.picks;
+          if (!d.picksSeededVersion && !picks.some(function (p) { return p.id === DEFAULT_PICK.id; })) {
+            picks.push(Object.assign({}, DEFAULT_PICK));
+          }
+        }
         if (Array.isArray(d.thoughts)) thoughts = d.thoughts;
         if (Array.isArray(d.devlog)) devlog = d.devlog;
         renderAll();
@@ -3909,6 +3929,7 @@
         var wf = window.SiteWorkflows.getData();
         data.workflows = wf.workflows;
         data.picks = wf.picks;
+        data.picksSeededVersion = wf.picksSeededVersion;
         data.thoughts = wf.thoughts;
         data.devlog = wf.devlog;
       }
@@ -4009,7 +4030,8 @@
       // 카드 DOM 에서 읽으므로, fields 가 채워진 뒤여야 최신 이름이 나온다.
       if (window.SiteWorkflows) {
         window.SiteWorkflows.applyData({
-          workflows: data.workflows, picks: data.picks, thoughts: data.thoughts,
+          workflows: data.workflows, picks: data.picks,
+          picksSeededVersion: data.picksSeededVersion, thoughts: data.thoughts,
           devlog: data.devlog
         });
       }
