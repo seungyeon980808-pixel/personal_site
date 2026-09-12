@@ -1,0 +1,38 @@
+#desktop { padding: 72px 32px 144px; }
+#widgets { width: 248px; gap: 16px; }
+.widget { padding: 16px; border-radius: 22px; }
+.month-head { font-size: 14px; }
+.month-head button { font-size: 24px; height: 32px; width: 32px; }
+.weekdays { margin: 8px 0 4px; font-size: 11px; }
+#calendar-dates button { font-size: 12px; height: 28px; border-radius: 9px; }
+.calendar-hint { display: none; }
+.calendar-footer { margin-top: 8px; padding-top: 4px; }
+.calendar-footer button { padding: 4px; }
+.note p { font-size: 13px; line-height: 1.8; margin: 14px 0; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.note-reading { white-space: pre-wrap; font-size: 18px; line-height: 2; }
+.note-heading { font-size: 12px; }.note-heading span { font-size: 11px; }
+.note-bottom { gap: 12px; }.note-bottom .text { font-size: 11px; }
+#icons { grid-template-columns: repeat(2, 88px); gap: 24px 16px; }
+.desktop-icon { padding: 8px 4px; font-size: 12px; }
+.desktop-icon .app-icon { width: 48px; }.desktop-icon .icon-folder { height: 38px; }
+#dock { padding: 9px 12px; gap: 6px; border-radius: 22px; bottom: 24px; }
+#dock button { min-width: 52px; padding: 4px; }
+#dock button span:last-child { font-size: 10px; }
+#dock .dock-launcher { border-right: 1px solid #64748b55; border-radius: 0; padding-right: 14px; margin-right: 6px; }
+.program-extras { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--border); }
+.program-extras .secondary { font-size: 13px; }
+.menu-bar>strong { font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; font-size: 12px; }
+.menu-bar #return { padding: 5px 10px; font-size: 12px; }
+body.travelling { overflow: hidden; }
+@media(min-width:701px) and (max-height:760px) {
+  #desktop { padding-top: 60px; }#widgets { width: 228px; gap: 12px; }.widget { padding: 12px; }.note p { -webkit-line-clamp: 3; font-size: 12px; }
+}
+@media(max-width:700px) {
+  #desktop { padding: 60px 16px 144px; }#widgets { width: 100%; gap: 16px; }.widget { padding: 16px; }
+  #calendar-dates button { height: 28px; font-size: 13px; }.month-head button { width: 40px; height: 40px; }.calendar-footer button { padding: 8px; }
+  .note p { font-size: 14px; -webkit-line-clamp: 3; }.note-bottom button { min-height: 36px; }.note-heading { font-size: 13px; }
+  #icons { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px 8px; }
+  .menu-bar>strong { max-width: 62px; }.menu-bar #edit { font-size: 11px; padding: 8px 4px; }.menu-bar #return { padding: 6px; font-size: 11px; }
+  #dock { gap: 4px; padding: 8px; max-width: calc(100vw - 20px); overflow-x: auto; justify-content: flex-start; }
+  #dock button { min-width: 48px; }.desktop-footer { right: 16px; font-size: 10px; }
+}

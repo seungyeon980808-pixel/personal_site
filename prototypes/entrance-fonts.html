@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>입장 화면 폰트 시안</title>
+  <style>
+    :root{color-scheme:light;--ink:#1d1d1f;--muted:#6e6e73;--line:#e5e5e7;--paper:#fbfbfc}
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}
+    main{width:min(1440px,calc(100% - 56px));margin:0 auto;padding:64px 0 96px}
+    header{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:30px;gap:24px}
+    h1{font-size:32px;letter-spacing:-.055em;margin:0} header p{color:var(--muted);font-size:15px;margin:0;max-width:440px;line-height:1.6}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+    article{background:#fff;border:1px solid var(--line);border-radius:28px;overflow:hidden;min-width:0}
+    .meta{display:flex;gap:12px;align-items:baseline;padding:20px 22px 16px}.letter{color:#0071e3;font-size:12px;font-weight:700;letter-spacing:.08em}.meta h2{font-size:18px;margin:0;letter-spacing:-.04em}.meta p{font-size:13px;color:var(--muted);margin:0 0 0 auto}
+    .stage{min-height:420px;display:grid;place-items:center;overflow:hidden;position:relative;padding:44px 28px 24px;background:linear-gradient(180deg,#fff 0%,#f8f8fa 100%)}
+    .words{text-align:center;position:relative;z-index:1;color:var(--ink);transform:translateY(-42px)}.words strong{display:block;font-size:clamp(30px,3.1vw,50px);line-height:1.16;letter-spacing:-.075em;font-weight:700}.words small{display:block;margin-top:14px;font-size:14px;color:var(--muted);letter-spacing:-.025em}
+    .laptop{position:absolute;width:min(82%,540px);height:110px;bottom:20px;left:50%;transform:translateX(-50%);border-radius:11px 11px 18px 18px;background:linear-gradient(178deg,#e8e8ea 0%,#bfc1c5 100%);box-shadow:0 22px 23px #0000001f,0 2px 0 #fff inset}.laptop:before{content:"";position:absolute;left:6%;right:6%;top:9px;height:60px;border:1px solid #a6a8ad;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#d9dbdf,#babcc1)}.laptop:after{content:"";position:absolute;width:16%;height:5px;border-radius:0 0 5px 5px;background:#96999e;left:42%;bottom:9px}
+    .apple-sans .words{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}.apple-sans .words strong{font-weight:700}
+    .nanum-gothic .words{font-family:"Nanum Gothic",sans-serif}.nanum-gothic .words strong{font-weight:800;letter-spacing:-.09em}
+    .biz .words{font-family:"BIZ UDGothic", "Apple SD Gothic Neo",sans-serif}.biz .words strong{font-weight:700;letter-spacing:-.065em}
+    .myeongjo .words{font-family:"Nanum Myeongjo",serif}.myeongjo .words strong{font-weight:700;letter-spacing:-.075em;line-height:1.23}.myeongjo .words small{font-family:"Apple SD Gothic Neo",sans-serif}
+    .apple-myungjo .words{font-family:"AppleMyungjo","Nanum Myeongjo",serif}.apple-myungjo .words strong{font-weight:700;letter-spacing:-.07em;line-height:1.22}.apple-myungjo .words small{font-family:"Apple SD Gothic Neo",sans-serif}
+    .choice{box-shadow:0 0 0 2px #0071e3;border-color:#0071e3}.choice .meta h2:after{content:"추천";font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;font-weight:600;font-size:11px;letter-spacing:0;margin-left:8px;color:#0071e3;vertical-align:2px}
+    footer{margin-top:30px;padding:22px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+    @media(max-width:720px){main{width:min(100% - 32px,620px);padding-top:34px}header{display:block}header p{margin-top:12px}.grid{grid-template-columns:1fr}.stage{min-height:350px}.meta p{display:none}}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>입장 화면 · 폰트 비교</h1>
+      <p>닫힌 노트북 위의 선언문을 실제 맥에서 볼 수 있는 한글 서체로 비교합니다. 화면 안으로 진입할 때 문구는 자연스럽게 사라집니다.</p>
+    </header>
+    <section class="grid" aria-label="폰트 시안">
+      <article class="apple-sans choice"><div class="meta"><span class="letter">A</span><h2>Apple SD Gothic Neo</h2><p>정밀하고 조용한 기본안</p></div><div class="stage"><div class="words"><strong>교사가 한가해야,<br>교육이 성장한다.</strong><small>게으른 교사의 작업용 노트북</small></div><div class="laptop" aria-hidden="true"></div></div></article>
+      <article class="nanum-gothic"><div class="meta"><span class="letter">B</span><h2>나눔고딕</h2><p>조금 더 친근하고 단단함</p></div><div class="stage"><div class="words"><strong>교사가 한가해야,<br>교육이 성장한다.</strong><small>게으른 교사의 작업용 노트북</small></div><div class="laptop" aria-hidden="true"></div></div></article>
+      <article class="biz"><div class="meta"><span class="letter">C</span><h2>BIZ UDGothic</h2><p>가독성을 우선한 균형</p></div><div class="stage"><div class="words"><strong>교사가 한가해야,<br>교육이 성장한다.</strong><small>게으른 교사의 작업용 노트북</small></div><div class="laptop" aria-hidden="true"></div></div></article>
+      <article class="myeongjo"><div class="meta"><span class="letter">D</span><h2>나눔명조</h2><p>교육 철학을 강조하는 안</p></div><div class="stage"><div class="words"><strong>교사가 한가해야,<br>교육이 성장한다.</strong><small>게으른 교사의 작업용 노트북</small></div><div class="laptop" aria-hidden="true"></div></div></article>
+      <article class="apple-myungjo"><div class="meta"><span class="letter">E</span><h2>AppleMyungjo</h2><p>조금 더 고전적인 여백</p></div><div class="stage"><div class="words"><strong>교사가 한가해야,<br>교육이 성장한다.</strong><small>게으른 교사의 작업용 노트북</small></div><div class="laptop" aria-hidden="true"></div></div></article>
+    </section>
+    <footer>추천은 A입니다. 맥 환경과 자연스럽게 이어지고, 닫힌 노트북의 절제된 제품 연출을 방해하지 않습니다.</footer>
+  </main>
+</body>
+</html>
