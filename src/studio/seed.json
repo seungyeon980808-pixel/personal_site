@@ -1,0 +1,212 @@
+{
+  "order": [
+    "7",
+    "1",
+    "3",
+    "4",
+    "5",
+    "6",
+    "0",
+    "2"
+  ],
+  "picks": [
+    {
+      "id": "pk-lazy-starter-kit",
+      "kind": "program",
+      "name": "lazy-starter-kit",
+      "by": "Heoooooon",
+      "desc": "새 컴퓨터의 AI 개발 환경을 한 번에 구성하고, dry-run으로 먼저 확인할 수 있는 크로스 플랫폼 설치 도구.",
+      "url": "https://github.com/Heoooooon/lazy-starter-kit",
+      "icon": "https://raw.githubusercontent.com/Heoooooon/lazy-starter-kit/main/docs/brand/app-icon.svg"
+    },
+    {
+      "id": "pk-omo",
+      "kind": "program",
+      "name": "OMO",
+      "by": "code-yeongyu",
+      "desc": "복잡한 코드베이스에서 여러 AI 에이전트의 역할을 나눠 병렬로 움직이게 하는 개발 하네스.",
+      "url": "https://github.com/code-yeongyu/oh-my-openagent",
+      "icon": "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/packages/web/public/icon-512x512.png"
+    },
+    {
+      "id": "pk-rhwp",
+      "kind": "program",
+      "name": "rHWP",
+      "by": "edwardkim",
+      "desc": "브라우저에서 HWP/HWPX 문서를 열고 편집할 수 있는 오픈소스 편집기. 한데의 문서 공동작성 기능을 가능하게 한 핵심 기반.",
+      "url": "https://edwardkim.github.io/rhwp/",
+      "icon": "https://raw.githubusercontent.com/edwardkim/rhwp/main/assets/logo/logo-512.png"
+    },
+    {
+      "id": "pk-recordly",
+      "kind": "program",
+      "name": "Recordly",
+      "by": "webadderall",
+      "desc": "자동 줌과 커서 보정, 타임라인 편집을 갖춘 오픈소스 화면 녹화 도구. 제품 데모와 사용법 영상을 빠르게 다듬기 좋다.",
+      "url": "https://recordly.dev/",
+      "icon": "https://raw.githubusercontent.com/webadderallorg/Recordly/main/public/app-icons/recordly-512.png"
+    },
+    {
+      "id": "pk-aside",
+      "kind": "service",
+      "name": "Aside",
+      "by": "Aside",
+      "desc": "로그인된 웹사이트, 파일, 기억, 브라우저 검증을 한 흐름으로 이어 실제 작업을 끝까지 맡길 수 있는 AI 브라우저.",
+      "url": "https://aside.com/",
+      "icon": "https://aside.com/icon.png?icon.0lfc1q-r_ms2e.png"
+    }
+  ],
+  "thoughts": [
+    {
+      "id": "th-mtf2od01-2523",
+      "title": "개학하고 2주밖에 안 지났건만...",
+      "body": "1. 드디어 사놓고 방치하던 맥을 사용하기 시작했다.<br>2. 해커톤(도전형) 이수 완료.<br>3. 이번 출제에 내가 개발한 시험문제출제 워크플로우 사용 예정.<br>4. 2학기 수업 준비 방식은 html기반으로 해볼까 고려중",
+      "at": "2026-08-30",
+      "pinned": false,
+      "workflowId": null
+    },
+    {
+      "id": "th-mrxpdj82-4565",
+      "title": "방학에 할 일",
+      "body": "1. 해커톤(도전형) 연수 준비<br>2. 학교업무관리시스템 구축<br>3. 시험문제출제 워크플로우 구축(실제 출제를 거쳐서 검증)<br>4. 2학기 수업 준비 미리 다 해놓기<br>5. 프로그래밍 학습",
+      "at": "2026-07-24",
+      "pinned": true,
+      "workflowId": null
+    }
+  ],
+  "workflows": [
+    {
+      "id": "wf-mrx2l0t0-20",
+      "name": "시험문제 제작 워크플로우",
+      "tag": "새 태그",
+      "desc": "시험문제 제작은 부담스럽습니다. 다른 일은 몰라도 출제만큼은 직접 해야죠. 그 과정을 편리하게 할 수 있는 방법에 대해서 탐구합니다.",
+      "problem": "",
+      "outcome": "내용 요소는 부족하고, 이미지 생성은 오래 걸리며, 조판은 생각보다 잘 안됩니다. 더 노력해봐야겠죠.",
+      "steps": [
+        {
+          "programId": "7",
+          "role": "문항 요소를 근거에 맞게 선정하기"
+        },
+        {
+          "programId": "1",
+          "role": "문항에 맞는 그림 그리기"
+        },
+        {
+          "programId": "3",
+          "role": "문항 요소와 그림을 배치하고 편집하기"
+        }
+      ]
+    }
+  ],
+  "picksSeededVersion": "1",
+  "links": {
+    "project.4.github": "#",
+    "channel.brunch": "https://brunch.co.kr/@8bdd87c9870b451",
+    "project.3.github": "https://github.com/seungyeon980808-pixel/HwpPalette",
+    "project.1.github": "https://github.com/seungyeon980808-pixel/5E",
+    "channel.threads": "https://www.threads.com/@iwatpt",
+    "project.5.url": "#",
+    "project.7.github": "https://github.com/seungyeon980808-pixel/exam_pool",
+    "project.2.url": "#",
+    "project.0.github": "#",
+    "channel.instagram": "https://www.instagram.com/iwatpt?igsh=MWE1anNqcjY5NTY5dg==",
+    "project.6.url": "#",
+    "project.3.url": "#",
+    "project.0": "#",
+    "channel.drive": "https://drive.google.com/drive/folders/1xk1Vr_bjfhLwKdnZW3EW7NplFPQFHToc",
+    "project.0.url": "#",
+    "project.5.github": "#",
+    "project.4.url": "#",
+    "channel.youtube": "https://youtube.com/@seungyeonpark-r2h",
+    "project.2.github": "#",
+    "project.1.url": "https://seungyeon980808-pixel.github.io/5E/",
+    "channel.github": "https://github.com/seungyeon980808-pixel",
+    "project.6.github": "#",
+    "project.7.url": "#"
+  },
+  "fields": {
+    "channel.instagram.name": "Instagram",
+    "project.4.desc": "키보드의 단축키 설정을 쉽게 할 수 있는 프로그램입니다. 만약 원하는 기능이 없다면, 만들어서 넣을 수 있습니다. 사용할수록 나에게 맞는 도구가 됩니다.",
+    "project.3.stack": "스택",
+    "project.1.name": "5E(sciEnce Eudcational Exam Easy Editor)",
+    "channel.github.desc": "진행중인 프로젝트",
+    "intro": "&nbsp;교사가&nbsp;<span class=\"grad\" data-c=\"3\">한가하면</span><span class=\"grad\" data-c=\"3\">,</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;교육이 <span class=\"grad\">성장한다.</span>",
+    "project.5.desc": "내가 원하는 폴더를 지정하고 그 안에서만 검색할 수 있습니다. 파일 안에 검색하는 키워드가 어디에 있는지도 편리하게 확인할 수 있습니다.",
+    "project.7.stack": "Python · FastAPI · SQLite FTS5",
+    "project.0.version": "v0.0.0",
+    "project.5.why": "메뉴얼, 규정, 안내사항, 각종 계획서를 언제까지 찾아야 할까요? 검색을 하더라도 내용을 보려면 열어 봐야합니다.",
+    "channel.drive.desc": "배포중인 자료",
+    "stat.years": "1",
+    "project.2.why": "왜 만들었는지 한 줄로 적기",
+    "project.1.stack": "HTML · Canvas · JS",
+    "role": "PHYSICS TEACHER · SEOUL",
+    "project.7.version": "v0.1.0",
+    "channel.threads.name": "Threads",
+    "project.4.version": "v0.0.0",
+    "project.1.status": "live",
+    "project.0.name": "obsidian_hub",
+    "stat.students": "0",
+    "project.2.status": "in progress",
+    "project.5.version": "v0.0.0",
+    "project.4.status": "in progress",
+    "project.2.name": "K-마이파인",
+    "project.2.version": "v0.2.0",
+    "project.6.name": "ModiPdf",
+    "project.3.version": "v0.0.0",
+    "contact.email": "seungyeon980808@gmail.com",
+    "project.5.stack": "스택",
+    "contact.kakao": "sea4917",
+    "project.7.why": "선지 하나 쓸 때마다 교과서를 처음부터 다시 뒤지는 게 싫어서.",
+    "channel.brunch.desc": "긴 글",
+    "project.2.desc": "무엇을 하는 도구인지 한 줄",
+    "project.6.status": "in progress",
+    "project.7.name": "ExamPool",
+    "project.5.name": "DocFinder",
+    "project.6.version": "v0.0.0",
+    "channel.youtube.name": "YouTube(미운영)",
+    "channel.youtube.desc": "과학 수업, 개발",
+    "gradPreset": "default",
+    "channel.github.name": "GitHub",
+    "project.6.why": "POF 수정은 귀찮습니다. 자꾸 광고를 보라고 합니다. 간단한 수정만 하면 되는데, 매번 PDF 편집 웹앱을 찾기가 귀찮습니다.",
+    "notice": "",
+    "project.1.version": "v1.1.0",
+    "project.3.status": "in progress",
+    "project.1.why": "시험문제용 그림은 항상 내 마음에 들지 않습니다. 내 마음에 쏙 드는 그림을 찾기란 쉬운 일이 아니죠. AI가 잘 그려준다고 한들 내가 직접 그린 그림만할까요?",
+    "project.4.why": "폴더를 열고, 파일을 옮기고, 링크를 열고, 프로그램을 실행하고 마우스로 클릭을 하다가 시간이 다 지나갑니다. 저같이 정신 없는 사람은 더 그렇죠.",
+    "project.2.stack": "HTML · JS",
+    "project.3.why": "한글 파일을 수정하다보면, 답답함이 올라옵니다.&nbsp; 매일 쓰는 표도, 글씨체도, 글씨크기도 다시 설정을 해야햐죠. 내가 쓰는 기능만 한 곳에 모아둔다면 어떨까요?",
+    "project.6.stack": "스택",
+    "name": "박승연",
+    "project.7.status": "in progress",
+    "project.0.stack": "HTML · JS · Firebase",
+    "now.text": "교사 개발자 해커톤(도전형) 직무연수에 포트폴리오를 제출하기 위해 준비중입니다.",
+    "channel.instagram.desc": "일상, 소통",
+    "project.5.status": "planned",
+    "project.1.desc": "원하는 그림을 찾고, 편집하고, 그리는 과학실험문제 제작용 에디터입니다.",
+    "project.6.desc": "이제 로컬에서 해결하십시오. 파일을 올리고 내려받고 할 필요가 없습니다. PDF의 간단한 수정을 도와줍니다.",
+    "project.3.name": "HwpPalette",
+    "project.0.status": "in progress",
+    "project.3.desc": "한글 문서에서 반복적으로 사용하는 기능들을 한 곳에 모아놓을 수 있는 팔레트 입니다. 복잡한 양식의 표도 클릭 한 번으로 저장하여 불러올 수 있습니다.",
+    "project.4.name": "EveryKey",
+    "project.7.desc": "근거를 붙인 참·거짓 명제를 쌓아두고, 필요할 때 꺼내 시험 문항으로 조립한다.",
+    "channel.threads.desc": "일상, 짧은 글",
+    "project.4.stack": "스택",
+    "channel.drive.name": "Google Drive",
+    "stat.tools": "5",
+    "project.0.why": "옵시디언이 좋은건 알겠는데, 모바일에서도 쓰려고하니 유료로 구독을 하라고 하더군요?",
+    "channel.brunch.name": "Brunch",
+    "project.0.desc": "안그래도 팍팍한데 구독이 늘어나는 것은 원하지 않습니다. 모바일에서 작성한 기록을 데스크톱에서 동기화를 누르면 로컬 폴더 안으로 메모가 들어오게 하는 앱입니다."
+  },
+  "devlog": [
+    {
+      "id": "dl-mtf2qcy7-227",
+      "at": "2026-08-30",
+      "body": "어제 서울시교육청 2호 개발자 해커톤(도전형) 연수가 끝났다. 여러모로 배운점이 많았던 연수였다. 맥을 처음으로 메인으로 두고 작업을 했으며, aside가 미쳤다는걸, 그리고 협업이라는 것을 제대로 처음 해봤다. 확실히 혼자할때랑은 느낌 자체가 달랐다. 소통의 중요성을 깨달았다고 해야하나? 학교에서도 소통을 잘 할 수 있어야하는데, 지금의 쿨메신저를 이용해서는 원활한 소통은 요원해보인다."
+    },
+    {
+      "id": "dl-mryovixl-8839",
+      "at": "2026-07-23",
+      "body": "MCP라는게 어떤건지 느낌으로만 알고 있었는데, 실제로 내가 만든 웹앱에 달아서 사용해보니까 뭔지 알겠다. 결국 비용문제 때문에 API를 다는걸 회피하고 있었는데 괜찮은 우회로가 되겠다. 물론 아직 결과물은 처참하다. 그리고 Exam Pool 2일차인데 벌써 퀄리티가 꽤 괜찮다. 개인정보나 보안을 신경쓸 것이 없으니 진도가 쭉쭉 나가는 것이 아주 시원하다."
+    }
+  ]
+}

@@ -80,3 +80,8 @@ out/
 
 # 셰이더 번들 빌드 산출물의 소스 (node_modules 는 위에서 제외됨)
 shader-experiment/dist/
+
+# Studio QA artifacts
+.omo/
+test-results/
+playwright-report/

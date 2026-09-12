@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import {build,transform} from 'esbuild';
+import {fileURLToPath} from 'node:url';
+const root=new URL('../',import.meta.url);
+const entry=fileURLToPath(new URL('src/studio/app.js',root));
+const result=await build({entryPoints:[entry],bundle:true,minify:true,format:'esm',target:'es2022',write:false});
+const css=await fs.readFile(new URL('src/studio/style.css',root),'utf8');
+const compact=await transform(css,{loader:'css',minify:true});
+const shell=await fs.readFile(new URL('src/studio/shell.html',root),'utf8');
+const html=shell.replace('/*STUDIO_CSS*/',()=>compact.code).replace('/*STUDIO_JS*/',()=>result.outputFiles[0].text.replace(/<\/script/gi,'<\\/script'));
+await fs.writeFile(new URL('index.html',root),html);
+console.log(`Built index.html: ${(Buffer.byteLength(html)/1024).toFixed(1)} KB (CSS and JS inline)`);

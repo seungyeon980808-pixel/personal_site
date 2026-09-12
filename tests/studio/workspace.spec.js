@@ -1,0 +1,59 @@
+const {test,expect}=require('@playwright/test');
+const seed=require('../../src/studio/seed.json');
+const encode=v=>typeof v==='string'?{stringValue:v}:typeof v==='number'?{integerValue:String(v)}:typeof v==='boolean'?{booleanValue:v}:v===null?{nullValue:null}:Array.isArray(v)?{arrayValue:{values:v.map(encode)}}:{mapValue:{fields:Object.fromEntries(Object.entries(v).map(([k,x])=>[k,encode(x)]))}};
+async function mock(page,{auth='owner',conflict=false,remote=null}={}){
+ let writes=[];
+ await page.route('https://firestore.googleapis.com/**',async route=>{const req=route.request();if(req.method()==='PATCH'){writes.push(req.postDataJSON());await route.fulfill({status:conflict?409:200,json:conflict?{error:{message:'conflict'}}:{...req.postDataJSON(),updateTime:'2026-09-12T00:00:01Z'}});return;}if(req.url().includes(':batchGet')){await route.fulfill({json:[{found:{name:'projects/edunote-96bd7/databases/(default)/documents/personal-site/main',...encode(seed).mapValue}},remote?{found:{name:'projects/edunote-96bd7/databases/(default)/documents/personal-site/desktop-v1',...encode(remote.workspace).mapValue,updateTime:remote.revision}}:{missing:'projects/edunote-96bd7/databases/(default)/documents/personal-site/desktop-v1'}]});return;}if(req.url().includes('/main?'))await route.fulfill({json:{...encode(seed).mapValue,updateTime:'2026-09-12T00:00:00Z'}});else await route.fulfill({status:404,json:{error:{code:404}}});});
+ await page.route('https://www.gstatic.com/firebasejs/**',route=>route.fulfill({contentType:'application/javascript',body:route.request().url().includes('firebase-app')?'export const initializeApp = () => ({});':`const user={email:'${auth==='owner'?'seungyeon980808@gmail.com':'visitor@example.com'}',emailVerified:true,getIdToken:async()=> 'test-token'};export const getAuth=()=>({currentUser:null,authStateReady:async()=>{}});export const onAuthStateChanged=(a,cb)=>cb(null);export class GoogleAuthProvider{};export const signInWithPopup=async()=>({user});export const signOut=async()=>{};`}));
+ await page.goto('/');await page.getByRole('button',{name:'맥북 화면을 눌러 작업실 들어가기',exact:true}).click();await expect(page.locator('#entrance')).toBeHidden();return writes;
+}
+const close=page=>page.getByRole('button',{name:'창 닫기',exact:true}).click();
+const manage=page=>page.getByRole('button',{name:'작업실 관리',exact:true}).click();
+test('all content, dated records, Finder navigation, search and window controls',async({page})=>{
+ const errors=[];page.on('pageerror',err=>errors.push(err.message));await mock(page);
+ await page.getByRole('button',{name:'만든 도구',exact:true}).click();await expect(page.locator('.program-card')).toHaveCount(7);
+ await page.locator('.program-card').filter({hasText:'ExamPool'}).click();await expect(page.getByRole('button',{name:/설명 보기/})).toBeVisible();
+ await page.getByRole('button',{name:'이전 화면',exact:true}).click();await expect(page.locator('.program-card')).toHaveCount(7);
+ await page.getByRole('button',{name:'창 최소화'}).click();await expect(page.locator('#workspace-window')).not.toBeVisible();await page.locator('#restore').click();await expect(page.locator('.program-card')).toHaveCount(7);await close(page);
+ await page.getByRole('button',{name:'이전 달',exact:true}).click();await page.getByRole('button',{name:'8월 30일, 기록 2개',exact:true}).click();await expect(page.locator('.record-list .row')).toHaveCount(2);await close(page);
+ await page.getByRole('button',{name:'추천 도구함',exact:true}).first().click();await page.getByRole('button',{name:'문서·행정',exact:true}).click();await expect(page.getByRole('heading',{name:'rHWP',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'자료 열기'})).toHaveAttribute('href','https://edwardkim.github.io/rhwp/');await close(page);
+ await page.getByRole('button',{name:'작업실 검색',exact:true}).click();await page.getByRole('searchbox').fill('시험');await page.getByRole('button',{name:'검색',exact:true}).click();await expect(page.locator('.search-result').first()).toBeVisible();await close(page);
+ await page.getByRole('button',{name:'프로젝트',exact:true}).click();await expect(page.locator('.step')).toHaveCount(3);await close(page);
+ await page.getByRole('button',{name:'소개·채널',exact:true}).click();await expect(page.locator('.channel')).toHaveCount(6);expect(errors).toEqual([]);
+});
+test('draft note and icon shortcut persist, public view stays unchanged, publish is owner-only',async({page})=>{
+ const writes=await mock(page);await manage(page);
+ await page.getByLabel('방문자에게 남기는 메모').fill('테스트 방문자 메모');await page.getByRole('button',{name:'초안 저장',exact:true}).click();await close(page);await expect(page.locator('#note-text')).toHaveText('테스트 방문자 메모');
+ await page.reload();await page.getByRole('button',{name:'작업실 관리',exact:true}).click();await expect(page.getByLabel('방문자에게 남기는 메모')).toHaveValue('테스트 방문자 메모');
+ await page.getByRole('button',{name:'바로가기',exact:true}).click();await page.getByLabel('이름',{exact:true}).fill('연수 설문');await page.getByLabel('연결 주소').fill('https://docs.google.com/spreadsheets/');await page.getByLabel('아이콘 종류').selectOption('sheet');await page.getByLabel('직접 고른 아이콘').setInputFiles('assets/studio/lake.webp');await page.getByRole('button',{name:'초안 저장',exact:true}).click();await expect(page.getByRole('button',{name:'공개 게시',exact:true})).toBeDisabled();await close(page);await expect(page.locator('#icons a')).toHaveAttribute('href','https://docs.google.com/spreadsheets/');await expect(page.locator('#icons a img')).toHaveAttribute('src',/^data:image\/webp/);
+ await page.getByRole('button',{name:'공개 화면 보기'}).click();await expect(page.locator('#icons a')).toHaveCount(0);await expect(page.locator('#note-text')).not.toHaveText('테스트 방문자 메모');
+ await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await expect(page.getByRole('button',{name:'공개 게시',exact:true})).toBeEnabled();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'공개 게시',exact:true}).click();await expect(page.getByRole('heading',{name:'박승연',exact:true})).toBeVisible();expect(writes).toHaveLength(1);expect(writes[0].fields.note.stringValue).toBe('테스트 방문자 메모');
+});
+test('record and categorized skill CRUD plus backup validation and conflict recovery',async({page})=>{
+ await mock(page,{conflict:true});await manage(page);await page.getByRole('button',{name:'기록',exact:true}).click();await page.getByLabel('날짜',{exact:true}).fill('2026-09-12');await page.getByLabel('제목',{exact:true}).fill('새 기록');await page.getByLabel('내용',{exact:true}).fill('직접 기록한 내용');await page.getByRole('button',{name:'초안 저장',exact:true}).click();
+ await page.getByRole('button',{name:'추천·연수 자료',exact:true}).click();await page.getByLabel('분야',{exact:true}).fill('수업·평가');await page.getByLabel('폴더 이름').fill('문항 제작');await page.getByLabel('이름',{exact:true}).fill('내 추천 스킬');await page.getByLabel('연결 주소').fill('https://github.com/example/skill');await page.getByLabel('아이콘 종류').selectOption('skill');await page.getByLabel('소개 · 사용법 · 설치 안내').fill('설치 방법과 활용 예시');await page.getByRole('button',{name:'초안 저장',exact:true}).click();await close(page);
+ await page.getByRole('button',{name:'추천 도구함',exact:true}).first().click();await page.getByRole('button',{name:'수업·평가',exact:true}).click();await expect(page.getByRole('heading',{name:'내 추천 스킬',exact:true})).toBeVisible();await close(page);
+ await page.getByRole('button',{name:'관리 화면',exact:true}).click();await page.getByRole('button',{name:'Google 관리자 로그인'}).click();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'공개 게시',exact:true}).click();await expect(page.locator('#admin-status')).toContainText('다른 곳에서');
+ await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"version":1,"note":"x","records":[],"resources":[],"shortcuts":[{"id":"x","name":"bad","url":"javascript:alert(1)","kind":"link"}]}')});
+ await expect(page.locator('#toast')).toContainText('https 링크');
+});
+test('non-owner login cannot publish',async({page})=>{const writes=await mock(page,{auth:'visitor'});await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await expect(page.locator('#admin-status')).toContainText('등록된 관리자');await expect(page.getByRole('button',{name:'공개 게시',exact:true})).toBeDisabled();expect(writes).toHaveLength(0);});
+for(const width of [375,768,1280])test(`responsive surfaces ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await mock(page);
+ await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/desktop-${width}.png`,fullPage:false});
+ for(const name of ['만든 도구','추천 도구함','연수 자료','프로젝트','소개·채널']){await page.getByRole('button',{name,exact:true}).first().click();await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/${name}-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await close(page);}
+ await page.getByRole('button',{name:'캘린더',exact:true}).click();await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/records-${width}.png`});await close(page);
+ await manage(page);await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/admin-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+});
+test('reduced motion, physics pause and keyboard Escape',async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});await mock(page);await page.getByRole('button',{name:'놀이터',exact:true}).click();await expect(page.getByRole('button',{name:'재생',exact:true})).toBeVisible();await page.getByRole('slider').fill('200');await expect(page.locator('#period')).toContainText('2.84');await page.keyboard.press('Escape');await expect(page.locator('#workspace-window')).not.toBeVisible();});
+
+test('a stored draft keeps its original server revision after reload',async({page})=>{
+ const original='2026-09-12T00:00:00Z';const remote={revision:original,workspace:{version:1,note:'기존 메모',records:[],resources:[],shortcuts:[]}};
+ await mock(page,{remote,conflict:true});await manage(page);await page.getByLabel('방문자에게 남기는 메모').fill('오래된 초안');await page.getByRole('button',{name:'초안 저장',exact:true}).click();
+ remote.revision='2026-09-12T01:00:00Z';remote.workspace.note='다른 기기에서 쓴 메모';await page.reload();await expect(page.locator('#note-text')).toHaveText('다른 기기에서 쓴 메모');await manage(page);await expect(page.getByLabel('방문자에게 남기는 메모')).toHaveValue('오래된 초안');
+ await page.getByRole('button',{name:'Google 관리자 로그인'}).click();page.once('dialog',d=>d.accept());const request=page.waitForRequest(r=>r.method()==='PATCH');await page.getByRole('button',{name:'공개 게시',exact:true}).click();expect(new URL((await request).url()).searchParams.get('currentDocument.updateTime')).toBe(original);await expect(page.locator('#admin-status')).toContainText('다른 곳에서');
+});
+
+test('screen entry, distinct shortcut control, exit and in-desktop app browser',async({page})=>{
+ await mock(page);await page.getByRole('button',{name:'5E',exact:true}).click();await expect(page.getByRole('button',{name:/설명 보기/})).toBeVisible();await page.getByRole('button',{name:/바로 실행/}).click();await expect(page.locator('#browser-frame')).toHaveAttribute('src','https://seungyeon980808-pixel.github.io/5E/');const rect=await page.locator('#workspace-window').boundingBox();expect(rect.width).toBeLessThan(1280);expect(rect.height).toBeLessThan(900);await page.locator('#titlebar [data-exit]').click();await expect(page.locator('#entrance')).toBeVisible();await expect(page.locator('#workspace-window')).not.toBeVisible();await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();await manage(page);await close(page);await expect(page.locator('.shortcut-create')).toContainText('새 바로가기');await page.locator('.shortcut-create').click();await expect(page.getByLabel('연결 주소')).toBeVisible();
+});

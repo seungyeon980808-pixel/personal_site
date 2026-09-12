@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test --config playwright.config.mjs",
+    "build": "node tools/build-studio.mjs",
+    "assets:studio": "node tools/studio-assets.mjs",
+    "test:studio": "playwright test --config playwright.config.mjs",
+    "preview:studio": "node tools/serve-studio.mjs",
+    "audit:studio": "node tools/audit-studio.mjs"
   },
   "repository": {
     "type": "git",
@@ -20,5 +25,13 @@
   "homepage": "https://github.com/seungyeon980808-pixel/personal_site#readme",
   "dependencies": {
     "puppeteer": "^25.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.28.2",
+    "lighthouse": "^13.4.1",
+    "playwright-lighthouse": "^4.0.0",
+    "sharp": "^0.35.4"
   }
 }
