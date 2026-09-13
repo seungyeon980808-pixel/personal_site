@@ -90,3 +90,19 @@ test('hardware and live glass follow the same angle throughout lifting',async({p
  await page.evaluate(()=>document.getAnimations().forEach(a=>a.play()));
  await expect(page.locator('#entrance')).toBeHidden();
 });
+
+test('camera keeps moving across the lift-to-zoom boundary',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto('/');
+ await page.locator('#entrance[data-ready="true"]').waitFor();await page.locator('#enter').click();
+ await page.waitForFunction(()=>document.querySelector('#photo-flight').getAnimations().some(a=>a.playState==='running'));
+ const scales=[];
+ for(const time of [950,1050,1150,1250,1350]){
+  scales.push(await page.evaluate(time=>{
+   document.getAnimations().forEach(a=>{a.pause();a.currentTime=time;});
+   return new DOMMatrix(getComputedStyle(document.querySelector('#photo-flight')).transform).m11;
+  },time));
+ }
+ for(let i=1;i<scales.length;i++)expect(scales[i]-scales[i-1]).toBeGreaterThan(.01);
+ await page.evaluate(()=>document.getAnimations().forEach(a=>a.play()));
+ await expect(page.locator('#entrance')).toBeHidden();
+});

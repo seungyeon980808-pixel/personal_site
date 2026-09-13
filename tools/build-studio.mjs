@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 const root=new URL('../',import.meta.url);
 const entry=fileURLToPath(new URL('src/studio/app.js',root));
 const result=await build({entryPoints:[entry],bundle:true,minify:true,format:'esm',target:'es2022',write:false});
-const css=(await Promise.all(['style.css','entrance.css','desktop.css','workspace.css','phone.css'].map(name=>fs.readFile(new URL(`src/studio/${name}`,root),'utf8')))).join('\n');
+const css=(await Promise.all(['style.css','entrance.css','desktop.css','workspace.css','phone.css','solid-phone.css'].map(name=>fs.readFile(new URL(`src/studio/${name}`,root),'utf8')))).join('\n');
 const compact=await transform(css,{loader:'css',minify:true});
 const entrance=await fs.readFile(new URL('src/studio/entrance.html',root),'utf8');
 const shell=(await fs.readFile(new URL('src/studio/shell.html',root),'utf8')).replace('<!--STUDIO_ENTRANCE-->',entrance);

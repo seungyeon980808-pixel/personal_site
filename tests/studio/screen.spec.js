@@ -3,7 +3,7 @@ const {test,expect}=require('@playwright/test');
 for(const width of [375,1280])test(`screen content keeps identity and widget positions through entry at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:812});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#desktop').evaluate(node=>node.dataset.continuity='same-desktop');await expect(page.locator('#desktop')).toHaveAttribute('inert','');
- await page.locator('#enter').click();await page.locator('#entrance[data-phase="open"]').waitFor();
+ await page.locator('#enter').click();await page.waitForFunction(()=>document.querySelector('#entrance').dataset.phase==='open',null,{polling:'raf'});
  const before=await page.evaluate(()=>{const v=document.querySelector('.screen-viewport').getBoundingClientRect();return {background:getComputedStyle(document.querySelector('#desktop'),'::before').backgroundImage,rects:['#widgets','#icons','#dock'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [(r.x-v.x)/v.width,(r.y-v.y)/v.height,r.width/v.width,r.height/v.height];})};});
  await page.locator('#entrance').waitFor({state:'hidden'});
  const after=await page.evaluate(()=>({background:getComputedStyle(document.querySelector('#desktop'),'::before').backgroundImage,rects:['#widgets','#icons','#dock'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [r.x/innerWidth,r.y/innerHeight,r.width/innerWidth,r.height/innerHeight];})}));

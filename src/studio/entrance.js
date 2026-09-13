@@ -1,15 +1,15 @@
 import {$} from './utils.js';
-import {phonePhotoTarget,phoneFrames} from './phone-motion.js';
+import {phonePhotoTarget,phoneFrames,phoneCameraFrames} from './phone-motion.js';
 import {close} from './window.js';
 import {mountDesktop,releaseDesktop,resizeScreen} from './screen.js';
 
 const motion={hinge:1100,hold:320,flight:800,copy:240,ease:'cubic-bezier(.4,0,.2,1)',zoom:'cubic-bezier(.65,.02,.3,1)'};
 const phone=()=>matchMedia('(max-width:700px)').matches;
 const lidClosed=()=>phone()?'rotateX(48deg)':'rotateX(-94deg)',lidOpen='rotateX(0deg)';
-let sequence=0,animations=[],intent='closed',restCamera='none',uprightPhoto='',phonePath=null,imagesReady=Promise.resolve();
+let sequence=0,animations=[],intent='closed',restCamera='none',uprightPhoto='',phonePath=null,cameraPath=null,imagesReady=Promise.resolve();
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function layoutEntrance(){
- uprightPhoto='';phonePath=null;
+ uprightPhoto='';phonePath=null;cameraPath=null;
  const entrance=$('#entrance'),camera=$('#photo-flight'),copy=$('.entrance-copy');
  const hidden=entrance.hidden;entrance.hidden=false;camera.style.transform='none';
  const isPhone=phone();
@@ -46,12 +46,46 @@ function flightTransform(){
  const screen=$('.screen-viewport').getBoundingClientRect(),x=innerWidth/screen.width,y=innerHeight/screen.height;
  return `translate(${-screen.x*x}px,${-screen.y*y}px) scale(${x},${y})`;
 }
+async function mobileTransition(inside,token){
+ const entrance=$('#entrance'),reverse=frames=>frames.slice().reverse().map(frame=>({...frame,offset:1-frame.offset}));
+ if(!phonePath){uprightPhoto=phonePhotoTarget();phonePath=phoneFrames(uprightPhoto);}
+ cameraPath ||= phoneCameraFrames(restCamera);
+ const cameraDone=animate($('#photo-flight'),inside?cameraPath:reverse(cameraPath),1800,'linear');
+ if(!inside){
+  animate($('.entrance-copy'),[{opacity:0},{opacity:0}],0);
+  animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],0);
+  animate($('.phone-rest-photo'),[phonePath.photoFrames.at(-1),phonePath.photoFrames.at(-1)].map(({transform})=>({transform})),0);
+  animate($('.phone-upright-shell'),[{transform:'none',opacity:1},{transform:'none',opacity:1}],0);
+  for(const part of [$('.phone-rest-photo>img'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
+  animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
+  animate($('.screen-notch'),[{opacity:0},{opacity:1}],700);
+  await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],700);
+  if(token!==sequence)return;
+ }
+ phoneShell(inside,1100);
+ animate($('.phone-upright-shell'),inside?phonePath.shellFrames:reverse(phonePath.shellFrames),1100);
+ animate($('.phone-rest-photo'),inside?phonePath.photoFrames:reverse(phonePath.photoFrames),1100);
+ animate($('.phone-photo-base'),inside?[{transform:'scaleY(1)'},{transform:'scaleY(.24)'}]:[{transform:'scaleY(.24)'},{transform:'scaleY(1)'}],1100);
+ animate($('.entrance-copy'),inside?[{opacity:1},{opacity:1,offset:.25},{opacity:0}]:[{opacity:0},{opacity:0,offset:.65},{opacity:1}],1100);
+ await animate($('#notebook-lid'),inside?[{transform:lidClosed()},{transform:lidOpen}]:[{transform:lidOpen},{transform:lidClosed()}],1100);
+ if(token!==sequence)return;
+ if(inside){
+  entrance.dataset.phase='open';
+  animate($('.screen-notch'),[{opacity:1},{opacity:0}],500);
+  await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],160);
+  if(token!==sequence)return;
+  entrance.dataset.phase='zooming';
+ }
+ await cameraDone;
+ if(token===sequence)settle(inside);
+}
 export async function enterDesktop(){
  if(intent!=='closed'||$('#entrance').dataset.phase!=='closed')return;
  const lidStart=getComputedStyle($('#notebook-lid')).transform,coverStyle=getComputedStyle($('.device-cover')),coverStart=coverStyle.transform,coverOpacity=coverStyle.opacity;
  intent='inside';const token=++sequence;if(reduced()){settle(true);return;}
  const entrance=$('#entrance');entrance.dataset.phase='opening';$('#enter').disabled=true;document.body.classList.add('travelling');
  await imagesReady;if(token!==sequence)return;
+ if(phone())return mobileTransition(true,token);
  if(phone()){
   const target=phonePhotoTarget();uprightPhoto=target;phonePath=phoneFrames(target);phoneShell(true,motion.hinge);
   animate($('.phone-upright-shell'),phonePath.shellFrames,motion.hinge);
@@ -76,6 +110,7 @@ export async function exitDesktop(){
  close();intent='closed';const token=++sequence;window.scrollTo(0,0);if(reduced()){settle(false);return;}
  const entrance=$('#entrance');entrance.hidden=false;entrance.dataset.phase='closing';$('#enter').disabled=true;$('#desktop').inert=true;document.body.classList.add('travelling');
  mountDesktop();
+ if(phone())return mobileTransition(false,token);
  animate($('.entrance-copy'),[{opacity:0},{opacity:0}],0);animate($('.device-cover'),[{opacity:0},{opacity:0}],0);animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],0);animate($('#photo-flight'),[{transform:'none'},{transform:'none'}],0);
  const photoTarget=phone()?(uprightPhoto||phonePhotoTarget()):'';
  if(phone()){

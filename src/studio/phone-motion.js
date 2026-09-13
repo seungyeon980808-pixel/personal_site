@@ -67,3 +67,17 @@ export function phoneFrames(target){
  shellFrames[60].transform='none';
  return {photoFrames,shellFrames};
 }
+
+export function phoneCameraFrames(rest){
+ const camera=$('#photo-flight'),lid=$('#notebook-lid');
+ const cameraStyle=camera.style.transform,lidStyle=lid.style.transform,transition=lid.style.transition;
+ camera.style.transform='none';lid.style.transition='none';lid.style.transform='none';
+ const r=$('.phone-screen-anchor').getBoundingClientRect();
+ camera.style.transform=cameraStyle;lid.style.transform=lidStyle;lid.getBoundingClientRect();lid.style.transition=transition;
+ const restY=parseFloat(rest.slice(rest.indexOf('(')+1)),sx=innerWidth/r.width,sy=innerHeight/r.height;
+ const smooth=t=>{const p=Math.max(0,Math.min(1,t));return p*p*(3-2*p);};
+ return Array.from({length:91},(_,i)=>{
+  const t=i/90,z=smooth((t-.4)/.6),rise=smooth(t/.65);
+  return {offset:t,transform:`translate(${-r.x*sx*z}px,${restY*(1-rise)-r.y*sy*z}px) scale(${1+(sx-1)*z},${1+(sy-1)*z})`};
+ });
+}

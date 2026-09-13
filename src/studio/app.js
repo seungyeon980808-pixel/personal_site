@@ -6,7 +6,10 @@ import * as views from './views.js';
 import {admin} from './admin.js';
 import {physics} from './physics.js';
 import {browserView,separateWindow} from './browser.js';
-import {initEntrance,enterDesktop} from './entrance.js';
+import {initEntrance,enterDesktop as enterPhotoDesktop} from './entrance.js';
+import {initSolidPhone,enterSolidDesktop} from './solid-phone.js';
+const solid=new URLSearchParams(location.search).get('entrance')==='solid';
+const enterDesktop=solid?enterSolidDesktop:enterPhotoDesktop;
 import {initPages} from './pages.js';
 let month=new Date(),selectedDate='';
 const defaults=[['연수 자료','training','folder'],['공유 자료','shared','folder'],['추천 도구함','recommend','folder'],['소개','about','folder']];
@@ -29,7 +32,7 @@ function route(r){
  fn?.();
  if(r.view==='search'){$('#search-form').onsubmit=event=>{event.preventDefault();open({view:'search',query:new FormData(event.target).get('query')},true);};$('#search-query').focus();}
 }
-configureWindow(route);initWindow();initPages();initEntrance();
+configureWindow(route);initWindow();initPages();solid?initSolidPhone():initEntrance();
 document.addEventListener('click',event=>{const link=event.target.closest('a[target="_blank"]');if(link&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey){event.preventDefault();separateWindow(link.href);return;}const target=event.target.closest('[data-route],[data-date]');if(!target)return;if(target.dataset.date){selectedDate=target.dataset.date;calendar();open({view:'records',date:selectedDate});}else open(JSON.parse(target.dataset.route));});
 $('#previous-month').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()-1,1);calendar();};
 $('#next-month').onclick=()=>{month=new Date(month.getFullYear(),month.getMonth()+1,1);calendar();};

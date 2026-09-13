@@ -1,0 +1,21 @@
+.solid-mode #photo-flight{display:none!important}
+.solid-mode .phone-copy{display:inline}
+.solid-mode .notebook-copy{display:none}
+.solid-mode{--solid-width:min(78vw,300px,38dvh)}
+.solid-camera{position:absolute;inset:0;transform:var(--solid-rest,none);transform-origin:0 0;pointer-events:none;z-index:3}
+.solid-world{position:absolute;inset:0;perspective:1100px;perspective-origin:50% 65%}
+.solid-rig{position:absolute;width:var(--solid-width);height:calc(var(--solid-width)*1.98);left:calc((100% - var(--solid-width))/2);top:calc((100% - var(--solid-width)*1.98)/2);transform:rotateX(60deg);transform-origin:50% 100%;transform-style:preserve-3d;--depth:36px}
+.solid-front,.solid-back{position:absolute;inset:0;border-radius:13% / 6.566%;backface-visibility:hidden}
+.solid-front{background:#101114;border:1px solid #d8dadd;box-shadow:inset 0 0 0 1px #545861,inset 0 0 0 3px #060709;transform:translateZ(0);overflow:hidden}
+.solid-back{background:linear-gradient(125deg,#dedfe2,#afb2b8 40%,#d7d9dc);transform:translateZ(calc(-1*var(--depth))) rotateY(180deg);border:1px solid #86898e}
+.solid-sides{position:absolute;inset:0;transform-style:preserve-3d}
+.solid-side{position:absolute;display:block;backface-visibility:hidden}
+.solid-glass{position:absolute;inset:1.4% 2.9% 1.5%;border-radius:11% / 5.5%;overflow:hidden;clip-path:inset(0 round 11% / 5.5%);background:#458898;isolation:isolate}
+.solid-content{position:absolute;inset:0 auto auto 0;transform-origin:0 0}
+.solid-island{position:absolute;z-index:4;left:35%;top:1%;width:30%;height:2.8%;border-radius:100px;background:#020305;box-shadow:inset 0 0 1px #252931}
+.solid-island:after{content:"";position:absolute;right:10%;top:25%;height:50%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#263647,#05090d 70%)}
+.solid-port{position:absolute;left:43%;width:14%;height:40%;top:30%;border-radius:99px;background:#07090c;box-shadow:0 0 0 1px #72767e}
+.solid-grille{position:absolute;top:40%;height:20%;width:19%;background:radial-gradient(circle,#101217 45%,transparent 55%) 0 0/8px 100%}
+.solid-grille.left{left:18%}.solid-grille.right{right:18%}
+.solid-shadow{position:absolute;left:calc((100% - var(--solid-width))/2);top:calc(50% + var(--solid-width)*.99);width:var(--solid-width);height:16px;background:#152031;border-radius:50%;filter:blur(12px);opacity:.2;transform-origin:50% 50%}
+.solid-mode #enter{z-index:4;border-radius:32px}

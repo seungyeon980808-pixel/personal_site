@@ -84,3 +84,21 @@ Mobile continuity supersedes earlier photo-swap behavior: keep the same original
 - Photo plane and upright hardware now use matched projective keyframes throughout lifting; hardware changes while in motion rather than after a frozen upright pose.
 - Base disappears earlier to avoid a ghost charging-port strip. Lowering reverses the same geometry.
 - Five sampled motion times verify glass/shell corner separation below one CSS pixel; eight related tests pass. Six fresh state captures passed independent geometry review; physical-device frame pacing is not measured.
+
+### Experimental solid phone (separate preview)
+- Keep checkpoint bcf488e and the default photo entrance. Opt-in ?entrance=solid uses a single rigid CSS 3D object: front glass, back, and rounded perimeter side faces, fixed thickness and no hardware image crossfade.
+- Same actual desktop DOM in the glass before and after entry; preserve pages, folder/settings, Escape and reduced motion. White hero and approved Korean copy retained.
+- Experiment tests mechanical rotation first; procedural metal is explicitly a prototype, not a claim to match the photo's material fidelity.
+
+### Solid reference thickness correction
+- Match the approved photo's substantial visible metal front, rather than a slim commercial-device ratio: fixed body depth is 12% of model width. Keep the 60° resting angle unchanged.
+- Port and grille occupy the metal face. A rendered test bounds visible side height to 8–13% of projected front width and verifies unchanged depth throughout rotation and return.
+
+### Return to photo endpoints; overlap the motion
+- User clarified that intermediate physical fidelity is not required: preserve checkpoint photo endpoints and remove the stop between lift and zoom.
+- Original photo entrance now uses one 1800ms camera timeline. Centering and enlargement overlap; the body finishes lifting at 1100ms while the camera keeps moving. Return runs the camera in reverse, with lowering beginning before zoom-out ends.
+- Solid experiment remains separate and is not used by this path. Related tests: 9 pass, including ongoing camera movement at five samples spanning the lift/zoom join.
+
+### Mobile checkpoint and next focus
+- User accepts the current photo transition as a checkpoint. Unequal horizontal/vertical zoom scaling can visibly stretch the phone screen; aspect-preserving enlargement is deferred, not resolved.
+- Continue next with desktop refinement. Keep the current photographic mobile entrance as the default; the solid version is only a comparison prototype.
