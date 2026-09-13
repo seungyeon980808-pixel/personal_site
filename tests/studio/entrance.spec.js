@@ -12,8 +12,8 @@ test('slow image loading preserves keyboard entry and cancellation',async({page}
 test('approved photo endpoints and copy form one vertically centered hero',async({page})=>{
  for(const [width,height] of [[375,812],[1280,720],[1280,1000]]){
   await page.setViewportSize({width,height});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
-  const geometry=await page.evaluate(()=>{const copy=document.querySelector('.entrance-copy').getBoundingClientRect(),photo=document.querySelector('.notebook-rest-photo').getBoundingClientRect();return {center:(copy.top+photo.bottom)/2,gap:photo.top-copy.bottom,top:copy.top,bottom:photo.bottom};});
-  expect(Math.abs(geometry.center-height/2)).toBeLessThan(2);expect(geometry.gap).toBeGreaterThanOrEqual(35);expect(geometry.top).toBeGreaterThan(0);expect(geometry.bottom).toBeLessThan(height);
+  const geometry=await page.evaluate(()=>{const copy=document.querySelector('.entrance-copy').getBoundingClientRect(),photo=document.querySelector(innerWidth<=700?'.phone-rest-photo':'.notebook-rest-photo').getBoundingClientRect();return {center:(copy.top+photo.bottom)/2,gap:photo.top-copy.bottom,top:copy.top,bottom:photo.bottom};});
+  expect(Math.abs(geometry.center-height/2)).toBeLessThan(2);expect(geometry.gap).toBeGreaterThanOrEqual(width<=700?15:35);expect(geometry.top).toBeGreaterThan(0);expect(geometry.bottom).toBeLessThan(height);
  }
  await page.locator('#enter').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','open');await expect(page.locator('#photo-flight')).toHaveCSS('opacity','1');await expect(page.locator('#entrance')).toBeHidden();
 });
@@ -35,7 +35,7 @@ test('entry remains usable without session storage and reduced motion avoids cam
 });
 test('embedded application survives minimize and is disposed on close',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');await page.locator('#enter').click();
- await page.getByRole('button',{name:'5E',exact:true}).click();await page.getByRole('button',{name:/바로 실행/}).click();
+ await page.getByRole('button',{name:'만든 프로그램 폴더',exact:true}).click();await page.getByRole('button',{name:'5E',exact:true}).click();await page.getByRole('button',{name:/바로 실행/}).click();
  await page.locator('#browser-frame').evaluate(frame=>frame.dataset.instance='keep');await page.locator('#window-minimize').click();await page.locator('#restore').click();
  await expect(page.locator('#browser-frame')).toHaveAttribute('data-instance','keep');await page.locator('#window-close').click();await expect(page.locator('#browser-frame')).toHaveCount(0);
 });

@@ -1,3 +1,9 @@
+## Mobile phone entrance — 2026-09-12
+At viewport≤700, use the approved upright phone photograph as a single continuous hardware layer, projected from48deg on the floor to0deg standing. Preserve desktop notebook above700. Phone width min(78vw,310px,38dvh), aspect399/787; subtle metal rim and contact shadow; phone front edge is transform origin. Hero copy uses exact “게으른 교사의 작업용 휴대폰”; subtitle margin12 and phone gap16. Phone z-layer above copy, copy persists through first35% of rise before fading so moving phone occludes it. Same actualdesktop DOM inside display then zoomhand-off; no second screenshotUI. Tap/Enter, Escape, reverse exit, reducedmotion and responsive mode switch retain existing behavior. Mobile preview also at /prototypes/mobile-phone.html through375px iframe, main adapts automatically.
+
+## Compact interior windows — 2026-09-12
+Preserve approved laptop entrance and desktop. Finder adapts to content: minimum360px content height, maximum512px/viewport; note minimum240px. Window default 920×560 max; width viewport−64, height viewport−88; existing maximize/browser behavior remains. Titlebar48; page/content inset24. Finder columns152/200/flexible; row36px minimum, file44px; spacing4/8/12/16/24. Resource header horizontal44px icon + path12px + title22px. Body14px line1.75, record reading15px; no blanket font shrinking, no content truncation. Narrow screens keep existing stacked navigation, controls44px, inset16 and full-height windows. Sidebar neutral pale blue, active selected blue unchanged. Acceptance: resource descriptions and actions stay close to header; long titles wrap; all records/files accessible with scrolling; no horizontal overflow at375/768/1280; window controls and browser/maximize work.
+
 Latest hinge correction: rear cover axis is fixed at frame y79.4%. Source rear y73.05% maps there with constant6.35% translation; hover changes only projected depth .5024→.4424 around that axis. Rear endpoints stay stationary; front rises. Refined photographic assets retain a common open chassis. This supersedes the2px whole-cover lift below.
 
 # 박승연의 작업실
@@ -47,3 +53,34 @@ Korean prose keeps words intact with word-break:keep-all and overflow fallback. 
 Keep approved classroom. Replace all visible entry CTA styling with a real focusable Mac-screen hit target, aligned in a 1536x1024 scene coordinate system (screen x448..1092/y422..776). A DOM lake desktop preview covers the baked-in screen/button. Hover gives slight glass reflection; keyboard focus provides an inset screen outline. The entire scene zooms from screen center. Text hint is separate and non-interactive.
 Return-to-desk is a labeled menu control on all widths and available in window chrome. Shortcut creation uses a dashed outline/plus with '새 바로가기' and '추가하기', not an app-style tile.
 Programs offer a launch chooser: local detail and web app execution open an in-desktop browser frame, with address, reload, separate-window fallback, and existing close/minimize/back controls. Only this site's relative detail URLs and known official web-app hosts are embedded; arbitrary shared links use a sized external window. Mobile frame retains an inset border rather than occupying the complete screen. Browser security policies may require opening some apps separately; fallback stays visible.
+
+Mobile hardware depth: the phone face, 22px metallic bottom with charging port and speaker perforations, and rounded side surfaces share one 3D rotation. Keep the resting camera angle independent of physical thickness.
+
+Mobile approved-image contract: rest state displays the untouched phone-original.png lying-phone crop (72,415,628,593); never substitute a projected front photo for this endpoint. Upright photo remains visible through the open hold, then crossfades to the actual workspace during zoom. Slogan remains live text.
+
+Mobile transition alignment: animate the approved lying photo through a projective transform anchored to its four display corners; align with the upright display before the final 20% dissolve. Use 180ms upright hold. The source image remains unchanged at rest.
+
+Phone depth: split the original image at its front glass edge (79.26% of crop height); keep both photographic layers identical at rest, reduce the lower metal face to24% of its projected height during lift. Programs live in one three-column mobile icon folder; Dock contains program folder, calendar and Settings. Settings retains existing administrator authentication/publication controls.
+
+Mobile continuity supersedes earlier photo-swap behavior: keep the same original phone photograph opaque throughout all phases; do not swap hardware at the upright endpoint. Only the live display content overlays during camera flight. Feather the outer photo canvas to avoid moving rectangular background edges.
+
+### Mobile screen continuity and paging (2026-09-13)
+- The same live desktop is projected into the original phone photo at rest, during lifting/lowering, and during zoom. No delayed photo-to-UI crossfade.
+- Mobile home has two native horizontal scroll-snap pages: calendar/memo, then folders/shortcuts. Dock stays fixed; page dots also support explicit navigation.
+- Preserve the selected page when the desktop moves between the photo screen and the full viewport. Desktop layout is unchanged.
+- Verified with touch-event regression, entry/exit continuity tests and local browser interaction. Physical iPhone performance remains a device check.
+
+### Phone glass boundary correction (2026-09-13)
+- Calibrated the live screen to the photo's complete inner glass boundary; both projective transforms share the same four corners and fractional CSS width.
+- Applied explicit rounded clipping so transformed content cannot escape the curved upper rim.
+- Fresh closed/opening/open/zoom/returning/returned captures passed independent edge review; original cyan edge strips are no longer visible.
+
+### Upright phone hardware (2026-09-13)
+- Standing hold uses the approved board's front-facing hardware ring, with its example screen cut away by an SVG mask. The live desktop stays in the existing projected viewport.
+- Only hardware crossfades after the resting-photo projection reaches its upright target; the reverse completes before lowering. This replaces the stretched port-bearing base at the standing endpoint.
+- Fresh six-state visual review passed for frame continuity and absence of duplicate edges. Existing intermediate screen softness remains a separate limitation.
+
+### Continuous mobile angle transition (2026-09-13)
+- Photo plane and upright hardware now use matched projective keyframes throughout lifting; hardware changes while in motion rather than after a frozen upright pose.
+- Base disappears earlier to avoid a ghost charging-port strip. Lowering reverses the same geometry.
+- Five sampled motion times verify glass/shell corner separation below one CSS pixel; eight related tests pass. Six fresh state captures passed independent geometry review; physical-device frame pacing is not measured.
