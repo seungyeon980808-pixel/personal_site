@@ -28,7 +28,7 @@ function animate(element,keyframes,duration,easing=motion.ease){
  const animation=element.animate(keyframes,{duration,easing,fill:'forwards'});animations.push(animation);return animation.finished.catch(()=>{});
 }
 function phoneShell(standing,duration){
- const shell=$('.phone-upright-shell'),parts=[$('.phone-rest-photo>img')];
+ const shell=$('.phone-upright-shell'),parts=[$('.phone-rest-photo>img'),$('.phone-rest-glass')];
  const frames=standing?[{opacity:0},{opacity:0,offset:.25},{opacity:1,offset:.85},{opacity:1}]:[{opacity:1},{opacity:1,offset:.15},{opacity:0,offset:.75},{opacity:0}];
  animate(shell,frames,duration);
  animate($('.phone-photo-base'),standing?[{opacity:1},{opacity:0,offset:.45},{opacity:0}]:[{opacity:0},{opacity:0,offset:.55},{opacity:1}],duration);
@@ -56,7 +56,7 @@ async function mobileTransition(inside,token){
   animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],0);
   animate($('.phone-rest-photo'),[phonePath.photoFrames.at(-1),phonePath.photoFrames.at(-1)].map(({transform})=>({transform})),0);
   animate($('.phone-upright-shell'),[{transform:'none',opacity:1},{transform:'none',opacity:1}],0);
-  for(const part of [$('.phone-rest-photo>img'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
+  for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
   animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
   animate($('.screen-notch'),[{opacity:0},{opacity:1}],700);
   await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],700);
@@ -116,7 +116,7 @@ export async function exitDesktop(){
  if(phone()){
   phonePath ||= phoneFrames(photoTarget);
   animate($('.phone-upright-shell'),[{opacity:1},{opacity:1}],0);
-  for(const part of [$('.phone-rest-photo>img'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
+  for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
   animate($('.phone-rest-photo'),[{transform:photoTarget},{transform:photoTarget}],0);
   animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
  }

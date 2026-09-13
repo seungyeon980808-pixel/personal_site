@@ -50,7 +50,7 @@
 
 @media(max-width:700px){#entrance[data-phase="open"] .device-lid::before,#entrance[data-phase="open"] .device-lid::after,#entrance[data-phase="zooming"] .device-lid::before,#entrance[data-phase="zooming"] .device-lid::after{visibility:hidden}}
 
-.phone-rest-photo { display:none; }
+.phone-rest-photo,.phone-rest-glass,.phone-screen-clip { display:none; }
 @media(max-width:700px) {
   .phone-rest-photo {
     display:block; position:absolute; width:min(94vw,380px,48dvh); aspect-ratio:628 / 593;
@@ -75,13 +75,16 @@
  .device-lid>.phone-hardware,.phone-bottom,.device-lid::before,.device-lid::after{display:none!important}
 }
 @media(max-width:700px){
- .phone-rest-photo{mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent),linear-gradient(to bottom,#000 88%,transparent 100%);mask-composite:intersect}
- .phone-photo-base{mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent)}
+ .phone-rest-photo img{mask-mode:luminance;mask-image:url("assets/studio/phone-rest-mask.svg");mask-size:100% 100%;mask-repeat:no-repeat}
+ .phone-photo-base{isolation:isolate}
+ .phone-photo-base::after{content:"";position:absolute;left:7%;right:7%;top:86.5%;height:12%;z-index:-1;background:radial-gradient(ellipse at 50% 35%,#0004,transparent 70%)}
+ .phone-screen-clip{display:block;position:absolute;inset:0;mask:url("assets/studio/phone-rest-glass.svg") 0 0 / 100% 100% no-repeat;z-index:2;pointer-events:none}
+ .phone-rest-glass{display:block;position:absolute;inset:0;background:#030607;mask:url("assets/studio/phone-glass-backing.svg") 0 0 / 100% 100% no-repeat;pointer-events:none;z-index:-1;clip-path:inset(0 0 20.74% 0)}
 }
 
 @media(max-width:700px){
  .phone-screen-anchor{position:absolute;left:4.6%;top:2.05%;width:90.8%;height:95.7%;pointer-events:none}
- .phone-rest-photo .screen-viewport{position:absolute;left:0;top:0;transform-origin:0 0;opacity:1!important;border-radius:8% / 6%;clip-path:inset(0 round 8% / 6%);overflow:hidden;z-index:2;background:#458898}
+ .phone-rest-photo .screen-viewport{position:absolute;left:0;top:0;transform-origin:0 0;opacity:1!important;border-radius:0;clip-path:none;overflow:hidden;z-index:2;background:#030607}
  .phone-rest-photo .screen-content{opacity:1!important}
  .phone-rest-photo .screen-viewport::before{display:none}
  .phone-rest-photo{overflow:visible}
@@ -101,6 +104,13 @@
 
 @media(max-width:700px){
  .phone-rest-photo .screen-notch{display:block;position:absolute;left:35%;top:1%;width:30%;height:2.8%;border-radius:999px;background:#020305;z-index:5;opacity:1;pointer-events:none;transform:none}
+}
+
+@media(max-width:700px){
+ .phone-rest-photo .screen-viewport::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;background:linear-gradient(145deg,#17262b 0%,#05090b 32%,#000 100%);opacity:0;transition:opacity 160ms cubic-bezier(.2,.8,.2,1)}
+ html:not(.device-peek-hover) #entrance[data-phase="closed"] .phone-rest-photo .screen-viewport::after{opacity:1}
+ #entrance[data-phase="closed"]:has(#enter:focus-visible) .phone-rest-photo .screen-viewport::after{opacity:0}
+ @media(hover:hover) and (pointer:fine){#entrance[data-phase="closed"]:has(#enter:hover) .phone-rest-photo .screen-viewport::after{opacity:0}}
 }
 
 .phone-upright-shell{display:none}

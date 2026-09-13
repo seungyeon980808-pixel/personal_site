@@ -199,3 +199,24 @@
 - 소개 창 안에서 해당 소개/이력만 관리하는 기존 기능별 편집 원칙 준수. 캘린더 일별 기록과 소개의 월별 개발 발자취는 각각 역할을 구분한다.
 - 단기·중장기 목표 영역은 이전 요청 유지. 이번 문구가 목표 삭제 지시는 아님.
 - 상태: 내용과 편집 요구사항 기록만 완료. 일괄 수정 지시 전까지 실제 사이트 변경·공개하지 않음.
+
+## 2026-09-14 기기 호버·표면 수정 완료
+- 수정 전 체크포인트 커밋: 369ac87.
+- 기기 전환 시안의 iframe 전체 밝기 필터 제거. 구석 휴대폰 주변 흰 배경 유지.
+- 휴대폰: 화면 영역만 검은 유리로 대기, 실제 기기 hover/키보드 focus/터치 진입에 켜짐.
+- 맥북: 후면 회전축 고정, 덮개 앞부분 상승 폭 확대. 새 알루미늄 표면 이미지와 미세한 반사/질감 적용.
+- 기존 화면 비율 및 열기·닫기 애니메이션 유지. 관련 14개 동작 검사 통과, 실제 브라우저 확인 및 시각 검토 2건 통과.
+- 위 변경은 로컬 작업본. 이번 수정 후 추가 커밋·배포 없음.
+
+## 2026-09-14 휴대폰 외곽 투명 처리 완료
+- 사진의 사각형 흰 배경을 외곽 마스크로 제거. 기기 전환 시안의 구석 iframe 배경도 투명 처리.
+- 원본 예시 화면이 검은 유리 가장자리로 새어나오던 파란 줄을 제거. 켜짐/꺼짐은 같은 실제 화면에서 유지.
+- 그림자는 바닥 아래 타원형으로 처리하며 기존 휴대폰 형태·입장·퇴장 동작 유지.
+- 배경색을 바꾼 픽셀 검사, 관련15개 동작 검사, 최종 집중4개 검사,14장 시각 검토2건 통과.
+- 추가 커밋·배포 없음.
+
+### 2026-09-14 — device photo boundaries
+- Preserved phone contact shadow; masked MacBook photographic white backgrounds while retaining chassis and transparent contact shadow.
+- Replaced independent phone corner radii with the photographed glass contour. Removed baked-in screen pixels with a luminance cutout and overlapping black backing; preserved motion corner registration.
+- Build passed. Device hover/matte/contour checks 5/5 at DPR2; phone and entrance regression checks 11/11.
+- Manually used device-switch preview: switched devices, viewed hover wake/lid lift, entered phone and returned; no browser console errors. Evidence: `.omo/evidence/device-boundaries/`.

@@ -42,7 +42,7 @@ export function project(source,target){
 export function placePhoneScreen(viewport){
  const photo=$('.phone-rest-photo'),scale=parseFloat(getComputedStyle(photo).width)/628;
  const width=337*scale,height=438*scale;
- photo.append(viewport);
+ $('.phone-screen-clip').append(viewport);
  viewport.style.width=width+'px';viewport.style.height=height+'px';
  viewport.style.transform=project([[0,0],[width,0],[width,height],[0,height]],glassCorners.map(([x,y])=>[x*scale,y*scale]));
 }
