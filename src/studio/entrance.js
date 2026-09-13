@@ -16,7 +16,7 @@ function layoutEntrance(){
  $('#enter').setAttribute('aria-label',isPhone?'휴대폰 들고 작업실 들어가기':'노트북 열고 작업실 들어가기');
  entrance.setAttribute('aria-label',isPhone?'휴대폰 입구':'노트북 입구');
  const exitLabel=isPhone?'휴대폰 내려놓기':'노트북 닫기';
- $('#return').textContent=`↖ ${exitLabel}`;$('#return').setAttribute('aria-label',exitLabel);document.querySelector('[data-exit]').setAttribute('aria-label',exitLabel);
+ $('#return').setAttribute('title',exitLabel);$('#return').setAttribute('aria-label',exitLabel);
  const bounds=$(isPhone?'.phone-rest-photo':'.notebook-rest-photo').getBoundingClientRect(),copyHeight=copy.getBoundingClientRect().height,gap=isPhone?16:48;
  const top=(innerHeight-copyHeight-gap-bounds.height)/2,restTop=top+copyHeight+gap;
  restCamera=`translateY(${restTop-bounds.top}px)`;
@@ -38,7 +38,7 @@ function cancelAnimations(){for(const animation of animations)animation.cancel()
 function settle(inside){
  sequence++;cancelAnimations();intent=inside?'inside':'closed';
  $('#entrance').hidden=inside;$('#entrance').dataset.phase=inside?'inside':'closed';
- inside?releaseDesktop():mountDesktop();$('#enter').disabled=false;
+ inside?releaseDesktop():mountDesktop();document.dispatchEvent(new Event('studio:desktopready'));$('#enter').disabled=false;
  document.body.classList.remove('travelling');remember(inside);
  (inside?$('#search-button'):$('#enter')).focus({preventScroll:true});
 }
@@ -142,7 +142,7 @@ export async function exitDesktop(){
 export function initEntrance(){
  layoutEntrance();
  imagesReady=Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
- $('#enter').onclick=enterDesktop;$('#return').onclick=exitDesktop;document.querySelector('[data-exit]').onclick=exitDesktop;
+ $('#enter').onclick=enterDesktop;$('#return').onclick=exitDesktop;
  let entered=false;try{entered=sessionStorage.getItem('studio-entered')==='1';}catch{entered=false;}
  if(entered){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
  window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#entrance').hidden&&intent==='inside'){event.preventDefault();settle(false);}});

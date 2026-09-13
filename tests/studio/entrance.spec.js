@@ -35,7 +35,7 @@ test('entry remains usable without session storage and reduced motion avoids cam
 });
 test('embedded application survives minimize and is disposed on close',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/');await page.locator('#enter').click();
- await page.getByRole('button',{name:'만든 프로그램 폴더',exact:true}).click();await page.getByRole('button',{name:'5E',exact:true}).click();await page.getByRole('button',{name:/바로 실행/}).click();
+ await page.getByRole('button',{name:'5E',exact:true}).click();await page.getByRole('button',{name:/바로 실행/}).click();
  await page.locator('#browser-frame').evaluate(frame=>frame.dataset.instance='keep');await page.locator('#window-minimize').click();await page.locator('#restore').click();
  await expect(page.locator('#browser-frame')).toHaveAttribute('data-instance','keep');await page.locator('#window-close').click();await expect(page.locator('#browser-frame')).toHaveCount(0);
 });

@@ -8,12 +8,18 @@ const paths = {
  back:'<path d="m14 5-7 7 7 7"/>',
  plus:'<path d="M12 5v14M5 12h14"/>',
  play:'<path d="m9 5 11 7-11 7Z"/>',
- settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/>',
+ settings:'<path d="m9.5 3-.5 2-2 1-2-.5-2 3L4.5 10v3L3 14.5l2 3 2-.5 2 1 .5 3h5l.5-3 2-1 2 .5 2-3-1.5-1.5v-3L21 8.5l-2-3-2 .5-2-1-.5-2Z"/><circle cx="12" cy="12" r="4"/>',
+ github:'<path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
+ threads:'<path d="M19 7c-1-4-5-5-8-4-5 1-6 5-6 9s2 9 7 9c4 0 7-2 7-5 0-4-7-6-9-3-2 4 6 6 6-2 0-4-4-5-6-3"/>',
+ brunch:'<path d="m11 4-3 15m2-9c8-6 11 7 3 8-2 0-4-1-4-3" stroke-width="2"/>',
  close:'<path d="m6 6 12 12M6 18 18 6"/>',
  expand:'<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',
  minus:'<path d="M5 12h14"/>',
  globe:'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
+ greeting:'<circle cx="12" cy="5.5" r="3.4" fill="currentColor" stroke="none"/><path d="M7.2 10.1c.8 3 2.6 4.8 4.8 5.8 2.2-1 4-2.8 4.8-5.8M8.1 11.2c.2 3.1 1.5 5.5 3.9 7.2M15.9 11.2c-.2 3.1-1.5 5.5-3.9 7.2M9.2 18.5v2.3m5.6-2.3v2.3" stroke-width="2.5"/>',
+ guestbook:'<path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v18H7.5A2.5 2.5 0 0 0 5 22Z"/><path d="M5 4.5V22M9 7h6m-6 4h6m-6 4h4"/>',
+ message:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5Z"/><path d="M8 8h8m-8 3h5"/>',
 };
 export const svg = (name, cls='') => `<svg class="${cls}" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.folder}</svg>`;
-export const icon = (kind='folder',image='') => image ? `<img class="app-icon" src="${image}" width="52" height="52" alt="">` : `<span class="app-icon icon-${kind}">${svg(kind)}</span>`;
+export const icon = (kind='folder',image='') => image ? `<img class="app-icon" src="${image}" width="52" height="52" alt="">` : kind==='calendar'?`<span class="app-icon icon-calendar" aria-hidden="true"><small>${new Date().getMonth()+1}월</small><b>${new Date().getDate()}</b></span>`:`<span class="app-icon icon-${kind}">${svg(kind)}</span>`;

@@ -383,9 +383,21 @@ function renumber() {
 function renderFeatures(features) {
   const list = document.getElementById("featureList");
   if (!list) return;
-  const data = features && features.length ? features : DEFAULT_FEATURES;
+  const data = features && features.length ? features : [];
   list.innerHTML = "";
   data.forEach((feat, i) => list.appendChild(makeFeature(i, feat)));
+}
+
+function renderGuide() {
+  const guide = document.getElementById("detailGuide");
+  if (!guide) return;
+  const title = document.querySelector(".detail-title")?.textContent?.trim() || "이 도구";
+  const summary = document.querySelector(".detail-tagline")?.textContent?.trim() || "";
+  const status = document.querySelector(".status")?.textContent?.trim() || "";
+  const live = document.querySelector('a[data-link="live"]');
+  const href = live?.getAttribute("href") || "";
+  const hasLive = href && href !== "#";
+  guide.innerHTML = `<section><p class="guide-kicker">소개</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(summary && !summary.includes("한 줄 소개") ? summary : "소개 내용을 준비하고 있습니다.")}</p></section><section><p class="guide-kicker">사용 방법</p><p>${hasLive ? "라이브 도구를 열어 바로 사용할 수 있습니다." : "실행 주소를 준비하고 있습니다."}</p>${hasLive ? `<a class="guide-link" href="${escapeHtml(href)}" target="_blank" rel="noopener">라이브 도구 열기 ↗</a>` : ""}</section><section><p class="guide-kicker">업데이트</p><p>${status ? `현재 상태: ${escapeHtml(status)}` : "업데이트 정보를 준비하고 있습니다."}</p></section>`;
 }
 
 function collectFeatures() {
@@ -572,6 +584,7 @@ function applyData(data) {
   syncCtaVisibility();
   syncCtaInputs();
   renderFeatures(data.features);
+  renderGuide();
 }
 
 // ---- 아이콘 크기 조절 (편집 모드 전용) ------------------------------------

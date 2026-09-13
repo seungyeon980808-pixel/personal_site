@@ -44,7 +44,7 @@ function release(){
 function settle(inside){
  serial++;stop();state=inside?'inside':'closed';
  $('#entrance').hidden=inside;$('#entrance').dataset.phase=state;
- inside?release():mount();$('#enter').disabled=false;
+ inside?release():mount();document.dispatchEvent(new Event('studio:desktopready'));$('#enter').disabled=false;
  (inside?$('#search-button'):$('#enter')).focus({preventScroll:true});
 }
 function layout(){
@@ -103,9 +103,9 @@ export function initSolidPhone(){
  $('#enter').insertAdjacentHTML('beforebegin','<div class="solid-camera" aria-hidden="true"><div class="solid-world"><div class="solid-rig"><div class="solid-back"></div><div class="solid-sides"></div><div class="solid-front"><div class="solid-glass"><div class="solid-content"></div><span class="solid-island"></span></div></div></div><div class="solid-shadow"></div></div></div>');
  home=document.createElement('span');home.hidden=true;$('#desktop').before(home);
  $('#enter').setAttribute('aria-label','휴대폰 들고 작업실 들어가기');
- $('#return').setAttribute('aria-label','휴대폰 내려놓기');$('#return').textContent='↖ 휴대폰 내려놓기';
- document.querySelector('[data-exit]').setAttribute('aria-label','휴대폰 내려놓기');
- $('#enter').onclick=enterSolidDesktop;$('#return').onclick=exit;document.querySelector('[data-exit]').onclick=exit;
+ $('#return').setAttribute('aria-label','휴대폰 내려놓기');$('#return').title='휴대폰 내려놓기';
+
+ $('#enter').onclick=enterSolidDesktop;$('#return').onclick=exit;
  mount();layout();$('#entrance').dataset.ready='true';
  addEventListener('resize',()=>{settle(state==='inside');layout();});
  addEventListener('keydown',event=>{if(event.key==='Escape'&&state!=='inside'){event.preventDefault();settle(false);}});

@@ -9,11 +9,14 @@ export function separateWindow(url){
 }
 export function browserView(id,mode='detail'){
  const app=state.site.programs.find(p=>p.id===id);if(!app)return;
- const url=mode==='launch'?app.url:new URL(`projects/${app.slug}.html`,location.href).href;
+ const url=mode==='launch'?app.url:new URL(`projects/${app.slug}.html?embedded=1&v=desktop-refinement-1`,location.href).href;
  if(!safeURL(url))return;
- const title=mode==='launch'?`${app.label} · 실행`:`${app.label} · 설명`;
- content(title,`<div class="browser-view"><div class="browser-toolbar"><button id="browser-reload" aria-label="페이지 새로고침">↻</button><span class="browser-address" title="${e(url)}">${e(new URL(url).host+new URL(url).pathname)}</span><button id="browser-separate">별도 창 ↗</button></div><p class="browser-help">이 창 안에서 이용할 수 있습니다. 화면이 열리지 않거나 로그인이 필요하면 <button id="browser-fallback">별도 창으로 열기</button></p><iframe id="browser-frame" title="${e(title)}" src="${e(url)}" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals" allow="clipboard-write; fullscreen"></iframe></div>`);
+ const title=mode==='launch'?`${app.label} · 실행`:`${app.label} · 설명`,external=mode==='launch',origin=new URL(url).host;
+ content(title,`<div class="browser-view"><p id="browser-error" class="browser-error" role="alert" hidden>화면을 불러오지 못했습니다. <button id="browser-fallback">별도 창으로 열기</button></p><iframe id="browser-frame" title="${e(title)}" src="${e(url)}" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals" allow="clipboard-write; fullscreen"></iframe></div>`);
  $('#workspace-window').classList.remove('maximized');$('#window-expand').setAttribute('aria-pressed','false');$('#workspace-window').classList.add('browser-window');
- $('#browser-reload').onclick=()=>{$('#browser-frame').src=url;};
- $('#browser-separate').onclick=$('#browser-fallback').onclick=()=>separateWindow(url);
+ const controls=$('#browser-controls'),originLabel=$('#browser-origin'),frame=$('#browser-frame'),error=$('#browser-error'),openSeparate=()=>separateWindow(url);
+ controls.hidden=false;originLabel.hidden=!external;originLabel.textContent=external?origin:'';originLabel.title=external?origin:'';
+ $('#browser-reload').onclick=()=>{error.hidden=true;frame.src=url;};
+ $('#browser-separate').onclick=$('#browser-fallback').onclick=openSeparate;
+ frame.addEventListener('error',()=>{if(error.isConnected)error.hidden=false;});
 }

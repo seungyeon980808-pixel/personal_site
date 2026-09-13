@@ -6,9 +6,9 @@ const owner='seungyeon980808@gmail.com', draftKey='studio-draft-v1';
 let sdk,user=null,revision,loaded=false,publicWorkspace=workspaceFrom(),draftBase=null,draftBaseKnown=false;
 export const state={site:siteFrom(),workspace:workspaceFrom(),draft:false,editor:false};
 const notify=()=>document.dispatchEvent(new CustomEvent('studio:change'));
-function decode(v){if(v.mapValue)return decodeFields(v.mapValue.fields||{});if(v.arrayValue)return(v.arrayValue.values||[]).map(decode);return v.stringValue??v.booleanValue??(v.integerValue?Number(v.integerValue):null);}
+function decode(v){if(v.mapValue)return decodeFields(v.mapValue.fields||{});if(v.arrayValue)return(v.arrayValue.values||[]).map(decode);return v.stringValue??v.booleanValue??(v.integerValue?Number(v.integerValue):v.doubleValue?Number(v.doubleValue):null);}
 function decodeFields(f){return Object.fromEntries(Object.entries(f).map(([k,v])=>[k,decode(v)]));}
-function encode(v){if(typeof v==='string')return{stringValue:v};if(typeof v==='number')return{integerValue:String(v)};if(Array.isArray(v))return{arrayValue:{values:v.map(encode)}};return{mapValue:{fields:Object.fromEntries(Object.entries(v).map(([k,x])=>[k,encode(x)]))}};}
+function encode(v){if(typeof v==='string')return{stringValue:v};if(typeof v==='boolean')return{booleanValue:v};if(typeof v==='number')return Number.isInteger(v)?{integerValue:String(v)}:{doubleValue:v};if(Array.isArray(v))return{arrayValue:{values:v.map(encode)}};return{mapValue:{fields:Object.fromEntries(Object.entries(v).map(([k,x])=>[k,encode(x)]))}};}
 async function readContent(){
  const endpoint=base.slice(0,base.indexOf('/documents/'))+'/documents:batchGet';
  const prefix='projects/edunote-96bd7/databases/(default)/documents/personal-site/';
@@ -29,22 +29,34 @@ export async function refresh(){
  }catch{loaded=false;notify();return false;}
 }
 export function editDraft(){
+ if(!isAdmin())throw Error('관리자 로그인이 필요합니다.');
  const stored=readLocal(draftKey);
  if(stored){state.workspace=validateWorkspace(stored.workspace||stored);draftBase=stored.baseRevision??null;draftBaseKnown=stored.baseKnown===true;}else{state.workspace=structuredClone(publicWorkspace);draftBase=revision??null;draftBaseKnown=loaded;}
  state.draft=true;state.editor=true;notify();
 }
+export function restoreDraftIfOwner(){
+ if(!isAdmin())return false;
+ const stored=readLocal(draftKey);if(!stored)return false;
+ try{state.workspace=validateWorkspace(stored.workspace||stored);draftBase=stored.baseRevision??null;draftBaseKnown=stored.baseKnown===true;state.draft=true;state.editor=true;notify();return true;}catch{return false;}
+}
 export function update(workspace){
+ if(!isAdmin())throw Error('관리자 로그인이 필요합니다.');
  const checked=validateWorkspace(workspace);writeLocal(draftKey,{workspace:checked,baseRevision:draftBase,baseKnown:draftBaseKnown});state.workspace=checked;state.draft=true;notify();
 }
 export function previewPublic(){state.workspace=structuredClone(publicWorkspace);state.draft=false;state.editor=false;notify();}
 export function discard(){localStorage.removeItem(draftKey);previewPublic();}
 export function isAdmin(){return user?.email===owner&&user.emailVerified===true;}
+export async function adminToken(){
+ if(!isAdmin())throw Error('관리자 로그인이 필요합니다.');
+ return user.getIdToken();
+}
 async function authSdk(){
- if(!sdk){sdk=(async()=>{const version='https://www.gstatic.com/firebasejs/12.14.0/';const [app,a]=await Promise.all([import(version+'firebase-app.js'),import(version+'firebase-auth.js')]);const auth=a.getAuth(app.initializeApp(config,'desktop'));await auth.authStateReady();user=auth.currentUser;a.onAuthStateChanged(auth,u=>{user=u;notify();});return{a,auth};})();}
+ if(!sdk){sdk=(async()=>{const version='https://www.gstatic.com/firebasejs/12.14.0/';const [app,a]=await Promise.all([import(version+'firebase-app.js'),import(version+'firebase-auth.js')]);const auth=a.getAuth(app.initializeApp(config,'desktop'));await auth.authStateReady();user=auth.currentUser;a.onAuthStateChanged(auth,u=>{user=u;if(!isAdmin()&&state.editor)previewPublic();else notify();});return{a,auth};})();}
  return sdk;
 }
+export async function restoreAuth(){await authSdk();}
 export async function login(){const {a,auth}=await authSdk();const credential=await a.signInWithPopup(auth,new a.GoogleAuthProvider());user=credential.user;if(!isAdmin()){await a.signOut(auth);throw Error('등록된 관리자 계정으로 로그인해주세요.');}notify();}
-export async function logout(){const {a,auth}=await authSdk();await a.signOut(auth);user=null;notify();}
+export async function logout(){const {a,auth}=await authSdk();await a.signOut(auth);user=null;previewPublic();}
 export async function publish(){
  if(!isAdmin())throw Error('관리자 로그인이 필요합니다.');
  if(!loaded||!draftBaseKnown)throw Error('이 초안의 서버 기준을 확인하지 못했습니다. 백업을 내려받고 공개 내용을 다시 불러온 뒤 적용해주세요.');

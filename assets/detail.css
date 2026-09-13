@@ -729,6 +729,13 @@ body.edit-mode .cta-link-edit { display: flex; }
 
 /* ===== FEATURE SECTIONS ===== */
 .features { padding: clamp(12px, 2vw, 24px) 0 clamp(32px, 5vw, 56px); }
+.detail-guide { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; padding:0 0 clamp(24px,4vw,40px); }
+.detail-guide section { padding:18px; border:1px solid var(--divider); border-radius:var(--radius-sm); }
+.detail-guide h2 { margin:0 0 10px; font-size:18px; }
+.detail-guide p { margin:0; color:var(--muted); line-height:1.65; }
+.guide-kicker { margin-bottom:8px !important; font:12px "IBM Plex Mono",monospace; color:var(--sub) !important; }
+.guide-link { display:inline-block; margin-top:12px; color:var(--main); font-weight:600; text-decoration:none; }
+@media(max-width:700px){.detail-guide{grid-template-columns:1fr;gap:10px}.detail-guide section{padding:16px;}}
 .feature {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1573,3 +1580,8 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
   }
   .feature-num::before { width: 34px !important; }
 }
+
+:root[data-embedded="true"] .theme-toggle,
+:root[data-embedded="true"] #themeToggle,
+:root[data-embedded="true"] #adminBtn,
+:root[data-embedded="true"] .topbar { display: none !important; }

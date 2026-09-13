@@ -6,8 +6,10 @@
   <script>
     (function () {
       try {
-        var t = localStorage.getItem("theme");
+        var embedded = new URLSearchParams(location.search).has("embedded");
+        var t = embedded ? "light" : localStorage.getItem("theme");
         document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
+        if (embedded) document.documentElement.setAttribute("data-embedded", "true");
       } catch (e) {}
     })();
   </script>
@@ -15,7 +17,7 @@
   <link rel="icon" type="image/svg+xml" href="../assets/logo-5e.svg" />
   <meta name="description" content="원하는 그림을 찾고, 편집하고, 그리는 과학시험문제용 에디터입니다." />
   <meta property="og:type" content="article" />
-  <meta property="og:site_name" content="박승연 · personal site" />
+  <meta property="og:site_name" content="게으른 교사 · personal site" />
   <meta property="og:title" content="5E · 과학문제 이미지 편집기" />
   <meta property="og:description" content="원하는 그림을 찾고, 편집하고, 그리는 과학시험문제용 에디터입니다." />
   <meta property="og:url" content="https://www.psy.ai.kr/projects/physics-draw.html" />
@@ -41,7 +43,7 @@
       rel="stylesheet"
     />
   </noscript>
-  <link rel="stylesheet" href="../assets/detail.css" />
+  <link rel="stylesheet" href="../assets/detail.css?v=desktop-refinement-1" />
   <link rel="stylesheet" href="../assets/hero-5e.css" />
 </head>
 <body data-project="physics-draw">
@@ -153,7 +155,7 @@
   <!-- ===== FEATURES (assets/detail.js 가 동적 렌더) ===== -->
   <main class="features">
     <div class="wrap">
-      <div id="featureList"></div>
+      <div id="detailGuide" class="detail-guide"></div><div id="featureList"></div>
       <button id="addFeatureBtn" type="button">+ 기능 추가</button>
     </div>
   </main>
@@ -240,7 +242,7 @@
   <footer class="detail-foot">
     <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; width:100%;">
       <a href="../index.html">← 다른 프로젝트 보기</a>
-      <span class="mono">박승연 · 2026</span>
+      <span class="mono">게으른 교사 · 2026</span>
     </div>
   </footer>
 

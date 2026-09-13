@@ -9,14 +9,18 @@
 #workspace-window h1 { font-size: 24px; margin-bottom: 16px; }
 #workspace-window h2 { font-size: 18px; }
 #workspace-window .eyebrow { margin-bottom: 8px; }
-.finder { grid-template-columns: 152px 200px minmax(0,1fr); }
-.finder-sidebar, .finder-items { padding: 12px 8px; min-width: 0; }
+.finder { grid-template-columns: 152px 160px minmax(0,1fr); }
+.finder.has-preview { grid-template-columns: 140px 150px 190px minmax(0,1fr); }
+.finder-sidebar, .finder-folders, .finder-items { padding: 12px 8px; min-width: 0; }
 .finder-sidebar { background: linear-gradient(120deg,#edf5f8,#f3f6f9); }
-.finder-sidebar > .eyebrow, .finder-items > .eyebrow { padding: 0 8px; margin-bottom: 12px; }
+.finder-sidebar > .eyebrow, .finder-folders > .eyebrow, .finder-items > .eyebrow { padding: 0 8px; margin-bottom: 12px; }
+.finder-folders { border-right:1px solid var(--border); }
 .finder .row { min-height: var(--workspace-row); padding: 6px 8px; margin-bottom: 2px; gap: 8px; border-radius: 6px; }
 .finder .row svg { width: 18px; height: 18px; }
+.finder .file-row .app-icon { width:24px; height:24px; flex:0 0 24px; object-fit:contain; border-radius:6px; }
 .finder .file-row { min-height: 44px; }
 .finder .file-row small { line-height: 1.4; margin-top: 2px; }
+.workflow-finder .file-row small { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .finder-preview { padding: var(--workspace-inset); }
 .resource-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
 .resource-heading > .app-icon { width: 44px; height: 44px; flex-shrink: 0; border-radius: 11px; }
@@ -50,14 +54,17 @@
 .search-result { padding: 12px 8px; }
 .workflow { margin: 24px 0; }
 .workflow-steps { gap: 12px; margin: 16px 0; }
+.workflow-step { padding: 16px; border: 1px solid var(--border); border-radius: 10px; }
 .empty { padding: 24px 12px; }
 .empty svg { width: 32px; height: 32px; margin-bottom: 12px; }
 @media(min-width:701px) {
   #workspace-window:not(.maximized):not(.browser-window) { width: min(920px,calc(100vw - 64px)); height: min(560px,calc(100dvh - 88px)); }
-  #workspace-window:not(.maximized):has(.program-detail), #workspace-window:not(.maximized):has(.note-reading) { width: min(720px,calc(100vw - 64px)); height: min(480px,calc(100dvh - 88px)); }
+  #workspace-window:not(.maximized):has(.program-detail) { width: min(720px,calc(100vw - 64px)); height: min(480px,calc(100dvh - 88px)); }
+  #workspace-window:not(.maximized):has(.note-reading) { width: min(560px,calc(100vw - 64px)); height: min(480px,calc(100dvh - 88px)); }
 }
 @media(min-width:701px) and (max-width:900px) {
-  .finder { grid-template-columns: 128px 164px minmax(0,1fr); }
+  .finder { grid-template-columns: 116px 138px minmax(0,1fr); }
+  .finder.has-preview { grid-template-columns: 104px 118px 146px minmax(0,1fr); }
   .finder-preview { padding: 20px; }
 }
 @media(max-width:700px) {
@@ -65,7 +72,7 @@
   #titlebar { padding: 0 8px; }
   .finder-sidebar { padding: 8px; }
   .finder-sidebar .row { padding: 8px 12px; }
-  .finder-items { padding: 8px; max-height: 220px; }
+  .finder-folders,.finder-items { padding: 8px; max-height: 220px; }
   .finder .file-row { min-height: 48px; }
   .finder-preview { padding: 20px 16px; }
   .resource-heading { margin-bottom: 16px; }

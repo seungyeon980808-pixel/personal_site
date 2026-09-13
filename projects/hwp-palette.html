@@ -6,25 +6,27 @@
   <script>
     (function () {
       try {
-        var t = localStorage.getItem("theme");
+        var embedded = new URLSearchParams(location.search).has("embedded");
+        var t = embedded ? "light" : localStorage.getItem("theme");
         document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
+        if (embedded) document.documentElement.setAttribute("data-embedded", "true");
       } catch (e) {}
     })();
   </script>
-  <title>HwpPalette · 박승연</title>
+  <title>HwpPalette · 게으른 교사</title>
   <link rel="icon" type="image/svg+xml" href="../assets/logo-hwp.svg" />
-  <meta name="description" content="박승연이 만든 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
+  <meta name="description" content="게으른 교사의 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
   <meta property="og:type" content="article" />
-  <meta property="og:site_name" content="박승연 · personal site" />
-  <meta property="og:title" content="HwpPalette · 박승연" />
-  <meta property="og:description" content="박승연이 만든 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
+  <meta property="og:site_name" content="게으른 교사 · personal site" />
+  <meta property="og:title" content="HwpPalette · 게으른 교사" />
+  <meta property="og:description" content="게으른 교사의 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
   <meta property="og:url" content="https://www.psy.ai.kr/projects/hwp-palette.html" />
   <meta property="og:image" content="https://www.psy.ai.kr/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="HwpPalette · 박승연" />
-  <meta name="twitter:description" content="박승연이 만든 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
+  <meta name="twitter:title" content="HwpPalette · 게으른 교사" />
+  <meta name="twitter:description" content="게으른 교사의 도구 HwpPalette — 대표 기능과 시연을 확인하세요." />
   <meta name="twitter:image" content="https://www.psy.ai.kr/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,7 +43,7 @@
       rel="stylesheet"
     />
   </noscript>
-  <link rel="stylesheet" href="../assets/detail.css" />
+  <link rel="stylesheet" href="../assets/detail.css?v=desktop-refinement-1" />
 </head>
 <body data-project="hwp-palette">
 
@@ -86,7 +88,7 @@
   <!-- ===== FEATURES (assets/detail.js 가 동적 렌더) ===== -->
   <main class="features">
     <div class="wrap">
-      <div id="featureList"></div>
+      <div id="detailGuide" class="detail-guide"></div><div id="featureList"></div>
       <button id="addFeatureBtn" type="button">+ 기능 추가</button>
     </div>
   </main>
@@ -113,7 +115,7 @@
   <footer class="detail-foot">
     <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; width:100%;">
       <a href="../index.html">← 다른 프로젝트 보기</a>
-      <span class="mono">박승연 · 2026</span>
+      <span class="mono">게으른 교사 · 2026</span>
     </div>
   </footer>
 

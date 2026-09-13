@@ -1,8 +1,20 @@
+## macOS-style menu strip — 2026-09-13
+User screenshot guides a 30px translucent desktop menu strip, bold app label, working File/View/Help dropdowns and right-side search, device exit, local date/time. No fake battery/network indicators. Native details support keyboard opening, outside-click and Escape close; mobile keeps the compact 44px controls. These dimensions are project choices, not Apple requirements.
+
+## Quiet menu bar — 2026-09-13
+Remove redundant exit action inside content windows; traffic-light close returns to the desktop. The desktop menu bar has a short 작업실 label and two accessible icon buttons (search and device exit), 36px height, 32×28px controls; mobile retains 44px bar and 40px controls. Keep accessible labels, native tooltips and keyboard focus rings.
+
+## Desktop Dock refinement — 2026-09-13
+Retain the 44px Dock icon size and 6px item gaps. Calendar uses a red 14px month header and a large 26px current date on white paper; settings uses a silver gear. Desktop-only GitHub, Threads and Brunch links follow a 1px divider, sourced from existing channel data, with visible labels and the existing separate-window behavior. Mobile keeps its three-item Dock.
+
 ## Mobile phone entrance — 2026-09-12
 At viewport≤700, use the approved upright phone photograph as a single continuous hardware layer, projected from48deg on the floor to0deg standing. Preserve desktop notebook above700. Phone width min(78vw,310px,38dvh), aspect399/787; subtle metal rim and contact shadow; phone front edge is transform origin. Hero copy uses exact “게으른 교사의 작업용 휴대폰”; subtitle margin12 and phone gap16. Phone z-layer above copy, copy persists through first35% of rise before fading so moving phone occludes it. Same actualdesktop DOM inside display then zoomhand-off; no second screenshotUI. Tap/Enter, Escape, reverse exit, reducedmotion and responsive mode switch retain existing behavior. Mobile preview also at /prototypes/mobile-phone.html through375px iframe, main adapts automatically.
 
 ## Compact interior windows — 2026-09-12
 Preserve approved laptop entrance and desktop. Finder adapts to content: minimum360px content height, maximum512px/viewport; note minimum240px. Window default 920×560 max; width viewport−64, height viewport−88; existing maximize/browser behavior remains. Titlebar48; page/content inset24. Finder columns152/200/flexible; row36px minimum, file44px; spacing4/8/12/16/24. Resource header horizontal44px icon + path12px + title22px. Body14px line1.75, record reading15px; no blanket font shrinking, no content truncation. Narrow screens keep existing stacked navigation, controls44px, inset16 and full-height windows. Sidebar neutral pale blue, active selected blue unchanged. Acceptance: resource descriptions and actions stay close to header; long titles wrap; all records/files accessible with scrolling; no horizontal overflow at375/768/1280; window controls and browser/maximize work.
+
+## Browser chrome and density polish — 2026-09-13
+Browser windows use the 48px titlebar for traffic controls, back, title, reload, and external-open. Detail pages suppress their own home/breadcrumb only when embedded; standalone detail pages retain navigation. External launches show a clipped origin only while it fits, and all browser launches retain external-open. A failure message appears only on an actual iframe error event. The Dock glass becomes more transparent by changing its backdrop layers only, preserving icon and label opacity. The entrance slogan keeps its exact copy and font while tightening word spacing and giving its second line a subtle weight lift. Workflow Finder snippets clamp to two lines while the preview remains the full reading surface. Owner editor inputs use compact, legible field spacing.
 
 Latest hinge correction: rear cover axis is fixed at frame y79.4%. Source rear y73.05% maps there with constant6.35% translation; hover changes only projected depth .5024→.4424 around that axis. Rear endpoints stay stationary; front rises. Refined photographic assets retain a common open chassis. This supersedes the2px whole-cover lift below.
 
@@ -102,3 +114,11 @@ Mobile continuity supersedes earlier photo-swap behavior: keep the same original
 ### Mobile checkpoint and next focus
 - User accepts the current photo transition as a checkpoint. Unequal horizontal/vertical zoom scaling can visibly stretch the phone screen; aspect-preserving enlargement is deferred, not resolved.
 - Continue next with desktop refinement. Keep the current photographic mobile entrance as the default; the solid version is only a comparison prototype.
+# Desktop refinement additions
+
+- Desktop windows close only from the native backdrop or window controls; title-bar dragging and content interaction remain inside the window.
+- Dock labels share one icon/label baseline, keep a single truncated line, and expose the full label through `title`.
+- Project, resource, archive, and workflow browsing follow the same category → folder → item → preview rhythm.
+- Memos are public read-only cards. Owner actions begin or continue a local draft, then may edit text, checklist state, color, and normalized board position before publishing.
+- Archive entries reuse the resource card vocabulary, while their link is optional so a future idea can exist without a destination.
+- Community surfaces use a compact 560px panel, existing contact fields only, and red owner-only deletion controls.
