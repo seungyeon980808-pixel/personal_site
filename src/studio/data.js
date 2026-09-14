@@ -19,7 +19,7 @@ export function workspaceFrom(raw=seed) {
  const drive=safeURL(raw.links?.['channel.drive']);
  if(drive)resources.push({id:'training-drive',area:'training',category:'공유 자료',folder:'자료실',name:'배포 중인 자료',body:'기존 홈페이지에서 공유하던 Google Drive 자료실입니다. 연수별 발표 자료와 실습 파일은 이곳에 연결해 추가할 수 있습니다.',by:'박승연',url:drive,kind:'folder',image:''});
  const note='작업실에 오신 것을 환영합니다.\n아래 Dock에서 도구를, 캘린더에서 그날의 기록을 만나보세요.';
- return {version:1,note,memos:[{id:'welcome-note',name:'방문자에게',text:note,checklist:[],color:'cream',x:0,y:.65}],records,resources,archives:[],projects:[],shortcuts:[],workflowOverrides:normalizeWorkflowOverrides(raw.workflowOverrides),profile:normalizeProfile(raw.profile),schedules:normalizeSchedules(raw.schedules)};
+ return {version:1,note,memos:[{id:'welcome-note',name:'방문자에게',text:note,checklist:[],color:'cream',x:0,y:.65}],records,resources,archives:[],projects:[],shortcuts:[],dockPrograms:[],workflowOverrides:normalizeWorkflowOverrides(raw.workflowOverrides),profile:normalizeProfile(raw.profile),schedules:normalizeSchedules(raw.schedules)};
 }
 const string = (v,max) => typeof v==='string' && v.length<=max;
 const colors=new Set(['cream','blue','green','pink','lavender']);
@@ -30,6 +30,7 @@ function normalizeWorkspace(raw){
  d.memos=d.memos.map((m,index)=>({id:m?.id||`memo-${index}`,name:typeof m?.name==='string'?m.name:'메모',text:typeof m?.text==='string'?m.text:(index===0?fallback:''),checklist:(Array.isArray(m?.checklist)?m.checklist:[]).map(item=>typeof item==='string'?{text:item,done:false}:{text:item?.text,done:item?.done===true}),color:colors.has(m?.color)?m.color:'cream',x:position(m?.x)?m.x:.08,y:position(m?.y)?m.y:.08}));
  d.archives=Array.isArray(d.archives)?d.archives:[];
  d.projects=Array.isArray(d.projects)?d.projects:[];
+ d.dockPrograms=Array.isArray(d.dockPrograms)?d.dockPrograms:[];
  d.workflowOverrides=normalizeWorkflowOverrides(d.workflowOverrides);
  d.profile=normalizeProfile(d.profile);
  d.schedules=normalizeSchedules(d.schedules);
@@ -39,7 +40,7 @@ function normalizeWorkspace(raw){
 export function validateWorkspace(d) {
  d=normalizeWorkspace(d);
  if(!d||d.version!==1||!string(d.note,2000))throw Error('올바른 작업실 백업 파일이 아닙니다.');
- for(const key of ['records','resources','archives','projects','shortcuts'])if(!Array.isArray(d[key])||d[key].length>500)throw Error('항목 수가 허용 범위를 벗어났습니다.');
+ for(const key of ['records','resources','archives','projects','shortcuts','dockPrograms'])if(!Array.isArray(d[key])||d[key].length>500)throw Error('항목 수가 허용 범위를 벗어났습니다.');
  d.workflowOverrides=validateWorkflowOverrides(d.workflowOverrides);
  d.profile=validateProfile(d.profile);
  d.schedules=validateSchedules(d.schedules);
@@ -49,7 +50,7 @@ export function validateWorkspace(d) {
   if(!memo||!string(memo.id,100)||!memo.id||ids.has(memo.id)||!string(memo.name,80)||!memo.name.trim()||!string(memo.text,2000)||!Array.isArray(memo.checklist)||memo.checklist.length>100||!memo.checklist.every(item=>item&&string(item.text,300)&&typeof item.done==='boolean')||!colors.has(memo.color)||!position(memo.x)||!position(memo.y))throw Error('메모의 이름, 내용, 목록 또는 위치를 확인해주세요.');
   ids.add(memo.id);
  }
- for(const key of ['records','resources','archives','projects','shortcuts'])for(const r of d[key]){
+ for(const key of ['records','resources','archives','projects','shortcuts','dockPrograms'])for(const r of d[key]){
   if(!r||!string(r.id,100)||!r.id||ids.has(r.id))throw Error('항목 ID가 없거나 중복됩니다.'); ids.add(r.id);
   if(key==='records'){
    if(!string(r.title,160)||!r.title.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||new Date(r.date).toISOString().slice(0,10)!==r.date||!string(r.body,30000)||!['생각','개발일지','연수'].includes(r.kind))throw Error('기록의 날짜 또는 내용이 올바르지 않습니다.');

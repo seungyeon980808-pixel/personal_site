@@ -142,7 +142,7 @@ export function initEntrance(){
  imagesReady=Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
  $('#enter').onclick=enterDesktop;$('#return').onclick=exitDesktop;
  let entered=false;try{entered=sessionStorage.getItem('studio-entered')==='1';}catch{entered=false;}
- if(entered){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
+ if(entered&&new URLSearchParams(location.search).get('entrance')!=='closed'){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
  window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#entrance').hidden&&intent==='inside'){event.preventDefault();settle(false);}});
  window.addEventListener('resize',()=>{if(animations.length)settle(intent==='inside');layoutEntrance();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&animations.length)settle(intent==='inside');});

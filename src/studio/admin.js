@@ -5,7 +5,7 @@ import {content,open} from './window.js';
 import {routeButton} from './views.js';
 import {resolvedWorkflows} from './workflow-data.js';
 import {workflowEditor,bindWorkflowEditor} from './workflow-editor.js';
-const tabs={memos:'메모',resources:'자료',archives:'자료 아카이브',projects:'프로젝트 분류',workflows:'프로젝트',shortcuts:'바로가기'};
+const tabs={dockPrograms:'Dock 프로그램',memos:'메모',resources:'자료',archives:'자료 아카이브',projects:'프로젝트 분류',workflows:'프로젝트',shortcuts:'바로가기'};
 const input=(name,label,value='',type='text',max=100)=>`<label>${label}<input name="${name}" type="${type}" value="${e(value)}" maxlength="${max}" required></label>`;
 const select=(name,label,options,value)=>`<label>${label}<select name="${name}">${options.map(([v,n])=>`<option value="${v}" ${value===v?'selected':''}>${n}</option>`).join('')}</select></label>`;
 const textarea=(name,label,value='',max=10000)=>`<label>${label}<textarea name="${name}" maxlength="${max}">${e(value)}</textarea></label>`;

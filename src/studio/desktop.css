@@ -111,3 +111,19 @@ body.travelling { overflow: hidden; }
 .context-editor input,.context-editor select { padding: 8px 10px; }
 .context-editor textarea { min-height: 132px; padding: 8px 10px; }
 @media(max-width:700px) { #browser-origin { display: none; } #browser-controls button { width: 40px; height: 40px; min-width: 40px; } .browser-window:not(.maximized) { width: calc(100vw - 16px); height: calc(100dvh - 80px); margin: auto; border: 1px solid var(--border); border-radius: 16px; } }
+
+@media(min-width:701px){
+ #dock,#dock:not(:has(#edit)){background:rgba(238,248,252,.10);backdrop-filter:blur(7px) saturate(1.08);border:1px solid #ffffff65;box-shadow:0 8px 26px #10223d25,inset 0 1px 0 #ffffff65;padding:10px 12px;align-items:center;overflow-x:auto;scrollbar-width:thin}
+ #dock button,#dock .dock-channel{position:relative;min-width:54px;min-height:54px;height:54px;justify-content:center;gap:0;flex-shrink:0}
+ #dock button .app-icon,#dock .dock-channel .app-icon{width:46px;height:46px;flex:0 0 46px}
+ #dock button .app-icon.icon-folder{height:35.88px;flex-basis:35.88px;margin-top:7.82px;border-radius:5px 8px 8px 8px}
+ #dock button .icon-folder::before{width:21.16px;height:7.36px;top:-5.98px}
+ #dock .dock-channel .app-icon svg{width:72%;height:72%;display:block}
+ #dock .dock-channel .app-icon{border-radius:11.04px}
+ #dock button>span:last-child,#dock .dock-channel>span:last-child{display:none}
+ #dock button:hover,#dock .dock-channel:hover{background:transparent;transform:translateY(-4px)}
+ #dock-add .app-icon{background:#fff4f4b8;color:#b4232c;border:1px solid #b4232c55}
+ #dock-add .app-icon svg{width:30px;height:30px}
+}
+.dock-tooltip{position:fixed;z-index:100;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 16px);padding:8px 13px;border-radius:13px;background:rgba(255,255,255,.93);color:#252525;font-size:14px;line-height:20px;box-shadow:0 4px 16px #0002;pointer-events:none}
+.dock-tooltip::after{content:'';position:absolute;left:calc(50% - 6px);bottom:-6px;width:12px;height:12px;background:rgba(255,255,255,.93);transform:rotate(45deg);border-radius:0 0 3px 0}

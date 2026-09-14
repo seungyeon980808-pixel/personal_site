@@ -87,3 +87,25 @@ test('login failure after settings closes does not crash',async({page})=>{
  await page.reload();await expect(page.locator('#entrance')).toBeHidden();
  await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await expect.poll(()=>page.evaluate(()=>typeof window.failLogin)).toBe('function');await close(page);await page.evaluate(()=>window.failLogin());await page.waitForTimeout(100);expect(errors).toEqual([]);
 });
+
+test('Dock programs are owner-only drafts, survive reload and publish with workspace',async({page})=>{
+ const writes=await mock(page);
+ await expect(page.locator('#dock-add')).toHaveCount(0);
+ await page.locator('#dock button[aria-label="5E"]').hover();
+ await expect(page.locator('#dock-tooltip')).toHaveText('5E');await expect(page.locator('#dock-tooltip')).toBeVisible();
+ await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await close(page);
+ await page.getByRole('button',{name:'프로그램 추가',exact:true}).click();
+ await page.locator('#editor-form input[name="name"]').fill('내 새 프로그램');
+ await page.locator('#editor-form input[name="url"]').fill('https://example.com/my-tool');
+ await page.locator('#editor-form button.primary').click();
+ await expect(page.locator('#dock a[aria-label="내 새 프로그램"]')).toHaveAttribute('href','https://example.com/my-tool');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('studio-draft-v1')).workspace.dockPrograms[0].name)).toBe('내 새 프로그램');
+ await page.reload();await expect(page.locator('#entrance')).toBeHidden();
+ await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await close(page);
+ await page.getByRole('button',{name:'프로그램 추가',exact:true}).click();
+ await expect(page.locator('#dock a[aria-label="내 새 프로그램"]')).toHaveCount(1);
+ await close(page);await manage(page);page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'공개 게시',exact:true}).click();
+ await expect.poll(()=>writes.length).toBe(1);
+ expect(writes[0].fields.dockPrograms.arrayValue.values[0].mapValue.fields.name.stringValue).toBe('내 새 프로그램');
+ await expect(page.locator('#draft-banner')).toBeHidden();
+});

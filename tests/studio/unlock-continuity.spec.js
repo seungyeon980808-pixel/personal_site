@@ -1,5 +1,17 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
+test('corner devices stay asleep on hover and Mac remains partly cropped',async({page})=>{
+ await page.setViewportSize({width:1000,height:900});await page.goto('/prototypes/device-unlock.html');
+ const phone=page.frameLocator('#mobile iframe');
+ await phone.locator('#entrance[data-ready="true"]').waitFor();
+ await page.getByRole('button',{name:'휴대폰으로 전환',exact:true}).hover();
+ await expect(phone.locator('html')).not.toHaveClass(/device-peek-hover/);
+ expect(await phone.locator('.screen-viewport').first().evaluate(e=>getComputedStyle(e,'::after').opacity)).toBe('1');
+ await page.getByRole('button',{name:'휴대폰으로 전환',exact:true}).click();await page.waitForTimeout(1100);
+ const mac=page.getByRole('button',{name:'맥북으로 전환',exact:true});
+ const box=await mac.boundingBox();expect(box.x).toBeGreaterThan(650);expect(box.x+box.width).toBeGreaterThan(1000);
+ await mac.hover();await expect(page.frameLocator('#desktop iframe').locator('html')).not.toHaveClass(/device-peek-hover/);
+});
 test('unlock preview keeps one registered phone and hides the shortcut',async({page})=>{
  await page.setViewportSize({width:1000,height:900});
  await page.goto('/prototypes/device-unlock.html');

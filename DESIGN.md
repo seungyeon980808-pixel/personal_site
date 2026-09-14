@@ -140,3 +140,6 @@ Supersedes satin/flattened lid experiment: use original notebook-refined-closed.
 - Hide the inactive device from opening through inside; restore only on closed. Move only the Mac shortcut inward when phone is primary; keep desktop-primary phone coordinates.
 - Unlock demo uses 980808; prepare the phone lock surface before hover can expose it.
 - Laptop material refinements must retain its source silhouette; use a shallow textured interior rather than a solid black slab. Phone ground shadow must not deform with the chassis.
+
+## Approved Dock and brightness — 2026-09-14
+Apply B wallpaper brightness1.62 saturation1.16 to the desktop background only. Desktop Dock surface alpha .10 with7px blur;46px icons, folder body .78 of width and tab .16, social SVG72%. Names appear in a floating tooltip on hover or keyboard focus, never permanently. Custom Dock programs belong to workspace.dockPrograms and use existing owner-authenticated draft/backup/publish validation. Only the Dock exposes their editor. Inactive corner devices never wake on hover; phone position stays unchanged, Mac is large and partially clipped to the right.
