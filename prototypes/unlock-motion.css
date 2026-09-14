@@ -1,0 +1,66 @@
+.unlock-preview{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(145deg,#102938f5,#06131ef5);color:#e7f6ff;opacity:0;visibility:hidden;pointer-events:none}
+.unlock-mark{width:12%;max-width:72px;min-width:30px;aspect-ratio:1;position:relative}
+.unlock-mark svg{display:block;width:100%;height:100%;overflow:visible}
+.finger-lines{color:#80ccff;stroke-dasharray:1;stroke-dashoffset:1}
+.unlock-check{opacity:0;color:#c2edff}
+.unlock-label{position:relative;min-width:100px;height:20px;text-align:center;font-size:13px;letter-spacing:.04em;font-weight:500}
+.unlock-label span{position:absolute;inset:0;white-space:nowrap}
+.unlock-label span+span{opacity:0}
+.unlock-preview.playing{visibility:visible;animation:unlock-surface 1700ms both}
+.playing .finger-lines{animation:unlock-scan 1100ms both}
+.playing .unlock-check{animation:unlock-tick 1700ms both}
+.playing .unlock-label span:first-child{animation:unlock-reading 1700ms both}
+.playing .unlock-label span+span{animation:unlock-greeting 1700ms both}
+@keyframes unlock-surface{0%,72%{opacity:1}100%{opacity:0;visibility:hidden}}
+@keyframes unlock-scan{0%,15%{stroke-dashoffset:1;opacity:.3}72%{stroke-dashoffset:0;opacity:1}90%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes unlock-tick{0%,58%{opacity:0;transform:translateY(3px)}68%,83%{opacity:1;transform:translateY(0)}100%{opacity:0}}
+@keyframes unlock-reading{0%,50%{opacity:1}61%,100%{opacity:0}}
+@keyframes unlock-greeting{0%,59%{opacity:0}69%,85%{opacity:1}100%{opacity:0}}
+@media(max-width:700px){.unlock-mark{width:22%;max-width:54px}.unlock-label{font-size:10px}.unlock-preview{gap:8px}}
+@media(prefers-reduced-motion:reduce){.unlock-preview.playing{display:none;animation:none}.unlock-preview *{animation:none!important}}
+.password-preview{display:block;container-type:inline-size;background:linear-gradient(#00000014,#00000008 45%,#00000030),url('/assets/studio/lake.webp') center/cover;color:white}
+.lock-clock{position:absolute;top:13%;left:0;right:0;text-align:center;text-shadow:0 2px 16px #0002}
+.lock-date{font-size:clamp(12px,2.6cqw,24px);font-weight:500;line-height:1.4}
+.lock-time{display:block;font-size:clamp(48px,12cqw,110px);font-weight:600;letter-spacing:-.055em;line-height:1.08;font-variant-numeric:tabular-nums}
+.lock-account{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.login-avatar{width:48px;height:48px;object-fit:cover;display:block;border-radius:50%;border:1px solid #ffffff50;box-shadow:0 2px 8px #0003}
+.login-avatar svg{width:34px;height:34px}
+.login-name{font-size:12px;font-weight:500;margin-bottom:2px;text-shadow:0 1px 4px #0008}
+.password-dots{display:flex;align-items:center;justify-content:center;gap:9px;width:160px;height:31px;border-radius:7px;border:1px solid #ffffff50;background:#ffffff22;box-shadow:0 2px 8px #0001}
+.password-dots i{width:5px;height:5px;border-radius:50%;background:white;opacity:0}
+.password-dots span{font-size:16px;margin-left:7px;opacity:.8}
+.playing .password-dots i{animation:password-dot 80ms var(--delay) both}
+.typing-keys{position:absolute;inset:0;pointer-events:none;z-index:2}
+.typing-keys img{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+.typing-keys.playing img{animation:key-press 120ms var(--delay) both}
+@keyframes password-dot{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes key-press{0%,100%{opacity:0;transform:translateY(0);filter:brightness(1)}25%,70%{opacity:1;transform:translateY(1.5px);filter:brightness(.55)}}
+@media(prefers-reduced-motion:reduce){.typing-keys{display:none}}
+/* Proportions observed in Apple's Sonoma login reference. */
+.password-preview .lock-clock{top:9%}
+.password-preview .lock-date{font-size:clamp(11px,1.85cqw,20px)}
+.password-preview .lock-time{font-size:clamp(42px,8cqw,88px);font-weight:600;color:#ffffffe6}
+.password-preview .lock-account{bottom:7%;gap:6px}
+.password-preview .login-avatar{width:clamp(24px,3.5cqw,36px);height:clamp(24px,3.5cqw,36px)}
+.password-preview .login-name{font-size:clamp(8px,1.15cqw,12px)}
+.password-preview .password-dots{width:clamp(100px,14cqw,150px);height:23px;gap:6px;border-radius:12px;background:#ffffff30;border-color:#ffffff30}
+.password-preview .password-dots i{width:4px;height:4px}
+.password-preview .password-dots span{font-size:13px;margin-left:3px}
+.passcode-preview{container-type:inline-size;background:linear-gradient(#102430ed,#102430ed),url('/assets/studio/lake.webp') center/cover;justify-content:flex-start;gap:0}
+.passcode-title{font-size:6cqw;font-weight:500;margin-top:27%;margin-bottom:7%}
+.passcode-dots{display:flex;gap:5cqw;margin-bottom:15%}
+.passcode-dots i{width:3.2cqw;height:3.2cqw;border:1px solid white;border-radius:50%;background:transparent}
+.passcode-pad{width:80%;display:grid;grid-template-columns:repeat(3,1fr);gap:5cqw 6cqw}
+.passcode-key{aspect-ratio:1;border-radius:50%;background:#ffffff25;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white}
+.passcode-key b{font-size:10cqw;font-weight:400;line-height:1.05}
+.passcode-key small{font-size:2.4cqw;letter-spacing:.15em;min-height:3cqw}
+.passcode-key:last-child{grid-column:2}
+.playing .passcode-dots i{animation:passcode-dot 1ms var(--delay) both}
+
+@keyframes passcode-dot{to{background:white}}
+@keyframes passcode-press{0%,100%{background:#ffffff25;transform:scale(1)}40%{background:#ffffff90;transform:scale(.94)}}
+#entrance[data-phase='closed']:has(#enter:focus-visible) .passcode-preview,html.device-peek-hover #entrance[data-phase='closed'] .passcode-preview{opacity:1;visibility:visible}
+@media(hover:hover) and (pointer:fine){#entrance[data-phase='closed']:has(#enter:hover) .passcode-preview{opacity:1;visibility:visible}}
+
+.passcode-preview{opacity:1;visibility:visible}
+.passcode-loading .phone-rest-photo .screen-viewport::after{opacity:1!important}

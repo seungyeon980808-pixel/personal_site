@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 test('phone rises in front of nearby copy, enters the same screen and returns',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
- await expect(page.locator('.phone-copy')).toHaveText('게으른 교사의 작업용 휴대폰');await expect(page.locator('.notebook-copy')).toBeHidden();
+ await expect(page.locator('.phone-copy')).toHaveText('게으른 교사의 휴대폰');await expect(page.locator('.notebook-copy')).toBeHidden();
  await page.getByRole('button',{name:'휴대폰 들고 작업실 들어가기',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#notebook-lid').getAnimations().some(a=>a.playState==='running'));
  const overlap=await page.evaluate(()=>{for(const a of document.getAnimations()){a.pause();a.currentTime=450;}const phone=document.querySelector('#notebook-lid').getBoundingClientRect(),copy=document.querySelector('.entrance-copy').getBoundingClientRect();return {overlap:phone.top<copy.bottom&&phone.bottom>copy.top,opacity:Number(getComputedStyle(document.querySelector('.entrance-copy')).opacity),front:Number(getComputedStyle(document.querySelector('#photo-flight')).zIndex)>Number(getComputedStyle(document.querySelector('.entrance-copy')).zIndex)};});
@@ -40,12 +40,12 @@ test('lowering starts from the same upright photo and thickness as lifting ends'
  await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#enter').click();await page.waitForFunction(()=>document.querySelector('#entrance').dataset.phase==='open',null,{polling:'raf'});
  const upright=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
- const hardware=()=>page.evaluate(()=>['.phone-upright-shell','.phone-rest-photo>img','.phone-photo-base'].map(selector=>getComputedStyle(document.querySelector(selector)).opacity));
- expect(await hardware()).toEqual(['1','0','0']);
+ const hardware=()=>page.evaluate(()=>['.phone-upright-shell','.phone-rest-photo>img','.phone-photo-base'].map(selector=>getComputedStyle(document.querySelector(selector)).display==='none'?'0':getComputedStyle(document.querySelector(selector)).opacity));
+ expect(await hardware()).toEqual(['0','1','1']);
  await expect(page.locator('#entrance')).toBeHidden();await page.locator('#return').click();
  const returnStart=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  for(let part=0;part<upright.length;part++)for(let cell=0;cell<16;cell++)expect(returnStart[part][cell]).toBeCloseTo(upright[part][cell],10);
- expect(await hardware()).toEqual(['1','0','0']);
+ expect(await hardware()).toEqual(['0','1','1']);
  await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
 });
 
@@ -73,15 +73,15 @@ test('live screen is present at rest and touch paging preserves its page on retu
 test('hardware and live glass follow the same angle throughout lifting',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#enter').click();
- await page.waitForFunction(()=>document.querySelector('.phone-upright-shell').getAnimations().some(a=>a.playState==='running'));
+ await page.waitForFunction(()=>document.querySelector('.phone-rest-photo').getAnimations().some(a=>a.playState==='running'));
  for(const time of [200,400,650,850,1050]){
   const separation=await page.evaluate(time=>{
    document.getAnimations().forEach(a=>{a.pause();a.currentTime=time;});
-   const screen=document.querySelector('.screen-viewport'),shell=document.querySelector('.phone-upright-shell');
+   const screen=document.querySelector('.screen-viewport'),shell=document.querySelector('.phone-rest-photo');
    const coordinates=[[0,0],[1,0],[1,1],[0,1]];
    return coordinates.map(([x,y])=>{
     const sample=(parent,left,top)=>{const dot=document.createElement('span');dot.style.cssText=`position:absolute;left:${left}%;top:${top}%;width:0;height:0`;parent.append(dot);const r=dot.getBoundingClientRect();dot.remove();return r;};
-    const a=sample(screen,x*100,y*100),b=sample(shell,4.6+x*90.8,2.05+y*95.7);
+    const a=sample(screen,x*100,y*100),b=sample(shell,[[140,25],[477,25],[573,463],[52,463]][coordinates.findIndex(c=>c[0]===x&&c[1]===y)][0]/628*100,[[140,25],[477,25],[573,463],[52,463]][coordinates.findIndex(c=>c[0]===x&&c[1]===y)][1]/593*100);
     return Math.hypot(a.x-b.x,a.y-b.y);
    });
   },time);

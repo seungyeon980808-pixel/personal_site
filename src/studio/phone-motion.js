@@ -41,7 +41,8 @@ export function project(source,target){
 
 export function placePhoneScreen(viewport){
  const photo=$('.phone-rest-photo'),scale=parseFloat(getComputedStyle(photo).width)/628;
- const width=337*scale,height=438*scale;
+ const anchor=getComputedStyle($('.phone-screen-anchor'));
+ const width=337*scale,height=width*parseFloat(anchor.height)/parseFloat(anchor.width);
  $('.phone-screen-clip').append(viewport);
  viewport.style.width=width+'px';viewport.style.height=height+'px';
  viewport.style.transform=project([[0,0],[width,0],[width,height],[0,height]],glassCorners.map(([x,y])=>[x*scale,y*scale]));
@@ -74,10 +75,10 @@ export function phoneCameraFrames(rest){
  camera.style.transform='none';lid.style.transition='none';lid.style.transform='none';
  const r=$('.phone-screen-anchor').getBoundingClientRect();
  camera.style.transform=cameraStyle;lid.style.transform=lidStyle;lid.getBoundingClientRect();lid.style.transition=transition;
- const restY=parseFloat(rest.slice(rest.indexOf('(')+1)),sx=innerWidth/r.width,sy=innerHeight/r.height;
+ const restY=parseFloat(rest.slice(rest.indexOf('(')+1)),scale=Math.max(innerWidth/r.width,innerHeight/r.height);
  const smooth=t=>{const p=Math.max(0,Math.min(1,t));return p*p*(3-2*p);};
  return Array.from({length:91},(_,i)=>{
   const t=i/90,z=smooth((t-.4)/.6),rise=smooth(t/.65);
-  return {offset:t,transform:`translate(${-r.x*sx*z}px,${restY*(1-rise)-r.y*sy*z}px) scale(${1+(sx-1)*z},${1+(sy-1)*z})`};
+  return {offset:t,transform:`translate(${(innerWidth/2-(r.x+r.width/2)*scale)*z}px,${restY*(1-rise)+(innerHeight/2-(r.y+r.height/2)*scale)*z}px) scale(${1+(scale-1)*z})`};
  });
 }

@@ -130,3 +130,13 @@ Phone silhouette correction: remove the source photograph's opaque rectangular m
 
 ## Precise device boundaries — 2026-09-14
 Keep both devices’ existing photographs, dimensions and motion. Clip the phone live display with the photographed glass outline rather than independent percentage corner radii; remove the baked-in display from the photograph with a luminance cutout and place an overlapping black backing behind the photographic silhouette to avoid antialiasing seams. Preserve the four-corner motion registration. Notebook photo masks exclude opaque white canvas, with separate transparent contact/ambient shadows (RGB29,29,31 at .24/.10) aligned to photographed feet around source y915. Phone contact shadow stays unchanged.
+
+## Restore photographic Mac and proportional zoom — 2026-09-14
+Supersedes satin/flattened lid experiment: use original notebook-refined-closed.webp at scaleY(1), masked lid y747–851, base y849–916; hover rotates visually about rear y747 with .8 vertical projection and dark interior behind lid. Closed silhouette matches original photo without upper rear protrusions. Camera cover zoom uses one scale=max(viewport/screen), centered; excess device edges crop outside viewport. Live desktop uses uniform scaling with centered alignment; phone logical screen aspect matches upright glass before projective foreshortening. Unlock prototype phone shows numeric passcode on hover and auto entry on click. Subtitles: 게으른 교사의 노트북 / 게으른 교사의 휴대폰.
+
+## Device continuity correction — 2026-09-14
+- Keep the photographic phone bezel and its glass mask on the same projected parent throughout motion; do not crossfade a different upright chassis over it.
+- Uniform cover scaling crops excess content rather than leaving differently registered background gutters.
+- Hide the inactive device from opening through inside; restore only on closed. Move only the Mac shortcut inward when phone is primary; keep desktop-primary phone coordinates.
+- Unlock demo uses 980808; prepare the phone lock surface before hover can expose it.
+- Laptop material refinements must retain its source silhouette; use a shallow textured interior rather than a solid black slab. Phone ground shadow must not deform with the chassis.

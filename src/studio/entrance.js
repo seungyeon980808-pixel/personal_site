@@ -28,11 +28,9 @@ function animate(element,keyframes,duration,easing=motion.ease){
  const animation=element.animate(keyframes,{duration,easing,fill:'forwards'});animations.push(animation);return animation.finished.catch(()=>{});
 }
 function phoneShell(standing,duration){
- const shell=$('.phone-upright-shell'),parts=[$('.phone-rest-photo>img'),$('.phone-rest-glass')];
- const frames=standing?[{opacity:0},{opacity:0,offset:.25},{opacity:1,offset:.85},{opacity:1}]:[{opacity:1},{opacity:1,offset:.15},{opacity:0,offset:.75},{opacity:0}];
- animate(shell,frames,duration);
- animate($('.phone-photo-base'),standing?[{opacity:1},{opacity:0,offset:.45},{opacity:0}]:[{opacity:0},{opacity:0,offset:.55},{opacity:1}],duration);
- for(const part of parts)animate(part,frames.map(frame=>({...frame,opacity:1-frame.opacity})),duration);
+ $('.phone-upright-shell').style.display='none';
+ for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass')])part.style.opacity='1';
+ animate($('.phone-photo-base'),[{opacity:1},{opacity:1}],duration);
 }
 function cancelAnimations(){for(const animation of animations)animation.cancel();animations=[];}
 function settle(inside){
@@ -43,8 +41,8 @@ function settle(inside){
  (inside?$('#search-button'):$('#enter')).focus({preventScroll:true});
 }
 function flightTransform(){
- const screen=$('.screen-viewport').getBoundingClientRect(),x=innerWidth/screen.width,y=innerHeight/screen.height;
- return `translate(${-screen.x*x}px,${-screen.y*y}px) scale(${x},${y})`;
+ const screen=$('.screen-viewport').getBoundingClientRect(),scale=Math.max(innerWidth/screen.width,innerHeight/screen.height);
+ return `translate(${innerWidth/2-(screen.x+screen.width/2)*scale}px,${innerHeight/2-(screen.y+screen.height/2)*scale}px) scale(${scale})`;
 }
 async function mobileTransition(inside,token){
  const entrance=$('#entrance'),reverse=frames=>frames.slice().reverse().map(frame=>({...frame,offset:1-frame.offset}));
@@ -56,7 +54,7 @@ async function mobileTransition(inside,token){
   animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],0);
   animate($('.phone-rest-photo'),[phonePath.photoFrames.at(-1),phonePath.photoFrames.at(-1)].map(({transform})=>({transform})),0);
   animate($('.phone-upright-shell'),[{transform:'none',opacity:1},{transform:'none',opacity:1}],0);
-  for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
+  animate($('.phone-photo-base'),[{opacity:1},{opacity:1}],0);
   animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
   animate($('.screen-notch'),[{opacity:0},{opacity:1}],700);
   await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],700);
@@ -94,7 +92,7 @@ export async function enterDesktop(){
 
  }
  animate($('.entrance-copy'),phone()?[{opacity:1,offset:0},{opacity:1,offset:.35},{opacity:0,offset:1}]:[{opacity:1},{opacity:0}],phone()?motion.hinge:motion.copy);
- animate($('.device-cover'),[{transform:coverStart,opacity:coverOpacity,offset:0},{transform:'translateY(6.35%) scaleY(0)',opacity:0,offset:.18},{transform:'translateY(6.35%) scaleY(0)',opacity:0,offset:1}],motion.hinge);
+ animate($('.device-cover'),[{transform:coverStart,opacity:coverOpacity,offset:0},{transform:'scaleY(0)',opacity:0,offset:.18},{transform:'scaleY(0)',opacity:0,offset:1}],motion.hinge);
  animate($('#photo-flight'),[{transform:restCamera},{transform:'none'}],motion.hinge);
  await animate($('#notebook-lid'),[{transform:lidStart},{transform:lidOpen}],motion.hinge);
  if(token!==sequence)return;entrance.dataset.phase='open';
@@ -134,7 +132,7 @@ export async function exitDesktop(){
  await Promise.all([
   animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidClosed()}],motion.hinge),
   animate($('#photo-flight'),[{transform:'none'},{transform:restCamera}],motion.hinge),
-  animate($('.device-cover'),[{transform:'translateY(6.35%) scaleY(0)',opacity:0,offset:0},{transform:'translateY(6.35%) scaleY(0)',opacity:0,offset:.82},{transform:'translateY(6.35%) scaleY(.5024)',opacity:1,offset:1}],motion.hinge),
+  animate($('.device-cover'),[{transform:'scaleY(0)',opacity:0,offset:0},{transform:'scaleY(0)',opacity:0,offset:.82},{transform:'scaleY(1)',opacity:1,offset:1}],motion.hinge),
   animate($('.entrance-copy'),[{opacity:0,offset:0},{opacity:0,offset:.7},{opacity:1,offset:1}],motion.hinge)
  ]);
  if(token===sequence)settle(false);

@@ -17,7 +17,7 @@ test('resting phone has no photo matte or blue screen leakage',async({page})=>{
 test('notebook peek raises the front while the rear hinge stays fixed',async({page})=>{
  await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
  const sample=()=>page.locator('.device-cover').evaluate(el=>{
-  const marker=document.createElement('span');marker.style.cssText='position:absolute;left:50%;top:73.05%;width:0;height:0';el.append(marker);const rear=marker.getBoundingClientRect().y;marker.style.top='83.35%';const front=marker.getBoundingClientRect().y;marker.remove();return{rear,front};
+  const marker=document.createElement('span');marker.style.cssText='position:absolute;left:50%;top:72.94921875%;width:0;height:0';el.append(marker);const rear=marker.getBoundingClientRect().y;marker.style.top='83.35%';const front=marker.getBoundingClientRect().y;marker.remove();return{rear,front};
  });
  await page.mouse.move(0,0);const rest=await sample();await page.locator('#enter').hover();await page.waitForTimeout(360);const peek=await sample();
  expect(Math.abs(peek.rear-rest.rear)).toBeLessThan(.2);expect(rest.front-peek.front).toBeGreaterThan(10);
@@ -47,5 +47,18 @@ test('phone display follows the photographed upper and lower glass curves',async
  for(const [y,left,right] of [[30,158,463],[455,88,537]]){
   const row=Math.round(y*info.height/593),xs=[];for(let x=0;x<info.width;x++){const i=(row*info.width+x)*info.channels;if(data[i]>200&&data[i+1]<50&&data[i+2]>200)xs.push(x)}
   expect(xs.length).toBeGreaterThan(0);expect(Math.abs(xs[0]/info.width*628-left)).toBeLessThan(5);expect(Math.abs(xs.at(-1)/info.width*628-right)).toBeLessThan(5);
+ }
+});
+
+test('camera enlargement preserves screen proportions for both devices',async({page})=>{
+ for(const width of [1280,390]){
+  await page.setViewportSize({width,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+  const content=await page.locator('.screen-content').evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return [m.a,m.d];});
+  expect(content[0]).toBeCloseTo(content[1],5);
+  await page.locator('#enter').click();await page.waitForTimeout(1250);
+  const camera=await page.locator('#photo-flight').evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return [m.a,m.d];});
+  expect(camera[0]).toBeCloseTo(camera[1],5);
+  await expect(page.locator('#entrance')).toBeHidden();
+  await page.locator('#return').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
  }
 });

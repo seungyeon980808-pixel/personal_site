@@ -220,3 +220,15 @@
 - Replaced independent phone corner radii with the photographed glass contour. Removed baked-in screen pixels with a luminance cutout and overlapping black backing; preserved motion corner registration.
 - Build passed. Device hover/matte/contour checks 5/5 at DPR2; phone and entrance regression checks 11/11.
 - Manually used device-switch preview: switched devices, viewed hover wake/lid lift, entered phone and returned; no browser console errors. Evidence: `.omo/evidence/device-boundaries/`.
+
+## 2026-09-14 원본 맥북 복원·비율 유지
+- 원본 closed 사진의 두께와 덮개 복원. 후면 축 고정, 호버 내부 면 연결, 배경 투명/그림자 유지.
+- 카메라와 화면 콘텐츠의 가로·세로 독립 배율 제거. 같은 배율로 확대하고 넘치는 기기 가장자리는 화면 밖으로 크롭.
+- 휴대폰 시안: hover 시 숫자 암호 화면, 클릭 시 숫자 입력 후 진입. 맥북 잠금 화면은 유지.
+- 문구: 게으른 교사의 노트북 / 게으른 교사의 휴대폰.
+- 로컬 시안 검증 완료, 추가 커밋·배포 없음.
+
+## 다음 수정 대기
+- 휴대폰 메인에서 맥북은 큰 크기를 유지한 채 오른쪽 일부만 노출.
+- 구석의 두 기기는 호버 반응 없이 클릭 전환만 제공. 메인 기기 호버는 유지.
+- 바탕화면 밝기 3개 비교 시안 후 사용자 승인된 안만 실제 적용.

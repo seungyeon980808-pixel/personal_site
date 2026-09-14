@@ -118,3 +118,11 @@
  .phone-upright-shell{display:block;position:absolute;left:calc((100% - var(--phone-width))/2);top:calc((100% - var(--phone-width)*1.97)/2);width:var(--phone-width);height:calc(var(--phone-width)*1.97);z-index:3;opacity:0;pointer-events:none;overflow:hidden;border-radius:13% / 6.6%;mask-image:url("assets/studio/phone-frame-mask.svg");mask-size:100% 100%;transform-origin:0 0}
  .phone-upright-shell>img{position:absolute;max-width:none;width:385.276%;height:auto;left:-238.76%;top:-21.62%}
 }
+
+@media(max-width:700px){
+ .phone-upright-shell{display:none!important}
+ .phone-photo-base::after{display:none}
+ .phone-rest-photo>img,.phone-rest-glass{opacity:1!important}
+ .phone-ground-shadow{display:block;position:absolute;left:50%;top:calc(50% + min(94vw,380px,48dvh)*.40);width:min(74vw,300px,38dvh);height:14px;transform:translateX(-50%);background:radial-gradient(ellipse,#0002,transparent 70%);filter:blur(5px);pointer-events:none;transition:opacity 300ms}
+ #entrance:not([data-phase="closed"]) .phone-ground-shadow{opacity:0}
+}
