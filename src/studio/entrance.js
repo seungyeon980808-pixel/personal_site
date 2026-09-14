@@ -22,7 +22,7 @@ function layoutEntrance(){
  const top=(innerHeight-copyHeight-gap-bounds.height)/2,restTop=top+copyHeight+gap;
  restCamera=`translateY(${restTop-bounds.top}px)`;
  entrance.style.setProperty('--copy-top',`${top}px`);entrance.style.setProperty('--rest-top',`${restTop}px`);entrance.style.setProperty('--rest-height',`${bounds.height}px`);entrance.style.setProperty('--rest-width',`${bounds.width}px`);
- camera.style.setProperty('--rest-camera',restCamera);camera.style.removeProperty('transform');resizeScreen();entrance.hidden=hidden;
+ camera.style.setProperty('--rest-camera',restCamera);camera.style.removeProperty('transform');resizeScreen();entrance.hidden=hidden;document.dispatchEvent(new Event('studio:entrancelayout'));
 }
 function remember(inside){try{inside?sessionStorage.setItem('studio-entered','1'):sessionStorage.removeItem('studio-entered');}catch{return false;}}
 function animate(element,keyframes,duration,easing=motion.ease){
@@ -36,6 +36,7 @@ function phoneShell(standing,duration){
 function cancelAnimations(){for(const animation of animations)animation.cancel();animations=[];}
 function settle(inside){
  fullscreenTransition=false;sequence++;cancelAnimations();intent=inside?'inside':'closed';
+ if(!inside)layoutEntrance();
  $('#entrance').hidden=inside;$('#entrance').dataset.phase=inside?'inside':'closed';
  inside?releaseDesktop():mountDesktop();document.dispatchEvent(new Event('studio:desktopready'));$('#enter').disabled=false;
  document.body.classList.remove('travelling');remember(inside);
@@ -56,7 +57,7 @@ async function mobileTransition(inside,token){
   animate($('.phone-rest-photo'),[phonePath.photoFrames.at(-1),phonePath.photoFrames.at(-1)].map(({transform})=>({transform})),0);
   animate($('.phone-upright-shell'),[{transform:'none',opacity:1},{transform:'none',opacity:1}],0);
   animate($('.phone-photo-base'),[{opacity:1},{opacity:1}],0);
-  animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
+  animate($('.phone-photo-base'),[{transform:'scaleY(0)'},{transform:'scaleY(0)'}],0);
   animate($('.screen-notch'),[{opacity:0},{opacity:1}],700);
   await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],700);
   if(token!==sequence)return;
@@ -64,7 +65,7 @@ async function mobileTransition(inside,token){
  phoneShell(inside,1100);
  animate($('.phone-upright-shell'),inside?phonePath.shellFrames:reverse(phonePath.shellFrames),1100);
  animate($('.phone-rest-photo'),inside?phonePath.photoFrames:reverse(phonePath.photoFrames),1100);
- animate($('.phone-photo-base'),inside?[{transform:'scaleY(1)'},{transform:'scaleY(.24)'}]:[{transform:'scaleY(.24)'},{transform:'scaleY(1)'}],1100);
+ animate($('.phone-photo-base'),inside?[{transform:'scaleY(1)'},{transform:'scaleY(0)'}]:[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],1100);
  animate($('.entrance-copy'),inside?[{opacity:1},{opacity:1,offset:.25},{opacity:0}]:[{opacity:0},{opacity:0,offset:.65},{opacity:1}],1100);
  await animate($('#notebook-lid'),inside?[{transform:lidClosed()},{transform:lidOpen}]:[{transform:lidOpen},{transform:lidClosed()}],1100);
  if(token!==sequence)return;
@@ -88,7 +89,7 @@ export async function enterDesktop(){
  if(phone()){
   const target=phonePhotoTarget();uprightPhoto=target;phonePath=phoneFrames(target);phoneShell(true,motion.hinge);
   animate($('.phone-upright-shell'),phonePath.shellFrames,motion.hinge);
-  animate($('.phone-photo-base'),[{transform:'scaleY(1)'},{transform:'scaleY(.24)'}],motion.hinge);
+  animate($('.phone-photo-base'),[{transform:'scaleY(1)'},{transform:'scaleY(0)'}],motion.hinge);
   animate($('.phone-rest-photo'),phonePath.photoFrames,motion.hinge);
 
  }
@@ -122,7 +123,7 @@ export async function exitDesktop(){
   animate($('.phone-upright-shell'),[{opacity:1},{opacity:1}],0);
   for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
   animate($('.phone-rest-photo'),[{transform:photoTarget},{transform:photoTarget}],0);
-  animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(.24)'}],0);
+  animate($('.phone-photo-base'),[{transform:'scaleY(0)'},{transform:'scaleY(0)'}],0);
  }
  animate($('.screen-notch'),[{opacity:0},{opacity:1}],motion.flight);
  await animate($('#photo-flight'),[{transform:flightTransform()},{transform:'none'}],motion.flight);
@@ -131,7 +132,7 @@ export async function exitDesktop(){
   phoneShell(false,motion.hinge);
   const reverse=frames=>frames.slice().reverse().map(frame=>({...frame,offset:1-frame.offset}));
   animate($('.phone-upright-shell'),reverse(phonePath.shellFrames),motion.hinge);
-  animate($('.phone-photo-base'),[{transform:'scaleY(.24)'},{transform:'scaleY(1)'}],motion.hinge);
+  animate($('.phone-photo-base'),[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],motion.hinge);
   animate($('.phone-rest-photo'),reverse(phonePath.photoFrames),motion.hinge);
 
  }

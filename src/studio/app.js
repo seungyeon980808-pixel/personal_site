@@ -1,3 +1,5 @@
+import {initPlayful} from './playful.js';
+import {initHammer} from './hammer.js';
 import {initNotch} from './notch.js';
 import {$,escape as e,day,toast} from './utils.js';
 import {state,refresh,editDraft,previewPublic,isAdmin,restoreAuth,restoreDraftIfOwner,update} from './store.js';
@@ -71,3 +73,6 @@ refresh().then(async ok=>{if(!ok){toast('저장된 공개 내용으로 표시하
 initWelcome();
 
 initNotch();
+
+initPlayful();
+initHammer();

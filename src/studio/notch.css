@@ -5,3 +5,4 @@
 @media(prefers-reduced-motion:reduce){.notch-friend{animation:none}.notch-friend.startled{animation:none;opacity:0}}
 
 .notch-friend img{animation:notch-hop 1.5s var(--beat) ease-in-out infinite}.notch-friend.startled img{animation:none}@media(prefers-reduced-motion:reduce){.notch-friend img{animation:none}}
+.desktop-notch{z-index:90}.playful-notch .notch-friend{position:absolute;left:10px;top:10px;width:18px;height:16px;display:grid;place-items:center}.playful-notch .notch-friend img{width:14.256px;height:11.016px;animation:none;object-fit:contain}.notch-quiet .notch-friend{visibility:hidden}.screen-notch .notch-friend{display:none}.notch-friend.startled{animation:notch-startled .42s ease-out both}
