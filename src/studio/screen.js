@@ -10,7 +10,7 @@ export function resizeScreen(){
  content.style.width=`${innerWidth}px`;content.style.height=`${innerHeight}px`;
  const body=getComputedStyle(document.body),size=getComputedStyle(viewport);
  content.style.font=body.font;content.style.lineHeight=String(parseFloat(body.lineHeight)/parseFloat(body.fontSize));content.style.color=body.color;
- const width=parseFloat(size.width),height=parseFloat(size.height),scale=Math.max(width/innerWidth,height/innerHeight);
+ const width=parseFloat(size.width),height=parseFloat(size.height),scale=(matchMedia('(max-width:700px)').matches?Math.max:Math.min)(width/innerWidth,height/innerHeight);
  content.style.transform=`translate(${(width-innerWidth*scale)/2}px,${(height-innerHeight*scale)/2}px) scale(${scale})`;
 }
 export function mountDesktop(){

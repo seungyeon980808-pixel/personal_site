@@ -1,3 +1,4 @@
+import {initNotch} from './notch.js';
 import {$,escape as e,day,toast} from './utils.js';
 import {state,refresh,editDraft,previewPublic,isAdmin,restoreAuth,restoreDraftIfOwner,update} from './store.js';
 import {icon,svg} from './icons.js';
@@ -11,6 +12,7 @@ import {initSolidPhone,enterSolidDesktop} from './solid-phone.js';
 const solid=new URLSearchParams(location.search).get('entrance')==='solid';
 const enterDesktop=solid?enterSolidDesktop:enterPhotoDesktop;
 import {initPages} from './pages.js';
+import {initWelcome} from './welcome.js';
 import {initDockNames} from './dock.js';
 import {initMenuBar} from './menu-bar.js';
 import {guestbook,contact} from './community.js';
@@ -63,5 +65,9 @@ $('#search-button').onclick=()=>open({view:'search'});
 window.addEventListener('keydown',async event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(!$('#entrance').hidden)await enterDesktop();if($('#entrance').hidden)open({view:'search'});}});
 document.addEventListener('studio:change',render);render();
 document.addEventListener('studio:desktopready',render);
-addEventListener('resize',render);
+let resizeRender;addEventListener('resize',()=>{clearTimeout(resizeRender);if(document.body.classList.contains('travelling'))return;resizeRender=setTimeout(render,120);});
 refresh().then(async ok=>{if(!ok){toast('저장된 공개 내용으로 표시하고 있습니다. 네트워크 연결 후 새로고침해주세요.');return;}try{await restoreAuth();restoreDraftIfOwner();}catch{}}).catch(()=>toast('내용을 불러오지 못했습니다. 저장된 공개 내용으로 표시합니다.'));
+
+initWelcome();
+
+initNotch();

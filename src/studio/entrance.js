@@ -6,6 +6,7 @@ import {mountDesktop,releaseDesktop,resizeScreen} from './screen.js';
 const motion={hinge:1100,hold:320,flight:800,copy:240,ease:'cubic-bezier(.4,0,.2,1)',zoom:'cubic-bezier(.65,.02,.3,1)'};
 const phone=()=>matchMedia('(max-width:700px)').matches;
 const lidClosed=()=>phone()?'rotateX(48deg)':'rotateX(-94deg)',lidOpen='rotateX(0deg)';
+let fullscreenTransition=false;
 let sequence=0,animations=[],intent='closed',restCamera='none',uprightPhoto='',phonePath=null,cameraPath=null,imagesReady=Promise.resolve();
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function layoutEntrance(){
@@ -34,14 +35,14 @@ function phoneShell(standing,duration){
 }
 function cancelAnimations(){for(const animation of animations)animation.cancel();animations=[];}
 function settle(inside){
- sequence++;cancelAnimations();intent=inside?'inside':'closed';
+ fullscreenTransition=false;sequence++;cancelAnimations();intent=inside?'inside':'closed';
  $('#entrance').hidden=inside;$('#entrance').dataset.phase=inside?'inside':'closed';
  inside?releaseDesktop():mountDesktop();document.dispatchEvent(new Event('studio:desktopready'));$('#enter').disabled=false;
  document.body.classList.remove('travelling');remember(inside);
  (inside?$('#search-button'):$('#enter')).focus({preventScroll:true});
 }
 function flightTransform(){
- const screen=$('.screen-viewport').getBoundingClientRect(),scale=Math.max(innerWidth/screen.width,innerHeight/screen.height);
+ const screen=$(phone()?'.screen-viewport':'.screen-content').getBoundingClientRect(),scale=Math.max(innerWidth/screen.width,innerHeight/screen.height);
  return `translate(${innerWidth/2-(screen.x+screen.width/2)*scale}px,${innerHeight/2-(screen.y+screen.height/2)*scale}px) scale(${scale})`;
 }
 async function mobileTransition(inside,token){
@@ -97,7 +98,12 @@ export async function enterDesktop(){
  await animate($('#notebook-lid'),[{transform:lidStart},{transform:lidOpen}],motion.hinge);
  if(token!==sequence)return;entrance.dataset.phase='open';
  await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],motion.hold);
- if(token!==sequence)return;entrance.dataset.phase='zooming';
+ if(token!==sequence)return;
+ if(window.frameElement?.closest('#desktop')&&!document.fullscreenElement&&!window.parent.document.fullscreenElement){
+  fullscreenTransition=true;
+  try{await window.parent.document.documentElement.requestFullscreen();await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
+ }
+ entrance.dataset.phase='zooming';
  animate($('.screen-notch'),[{opacity:1},{opacity:0}],motion.flight);
  await animate($('#photo-flight'),[{transform:'none'},{transform:flightTransform()}],motion.flight,motion.zoom);
  if(token===sequence)settle(true);
@@ -144,6 +150,6 @@ export function initEntrance(){
  let entered=false;try{entered=sessionStorage.getItem('studio-entered')==='1';}catch{entered=false;}
  if(entered&&new URLSearchParams(location.search).get('entrance')!=='closed'){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
  window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#entrance').hidden&&intent==='inside'){event.preventDefault();settle(false);}});
- window.addEventListener('resize',()=>{if(animations.length)settle(intent==='inside');layoutEntrance();});
+ window.addEventListener('resize',()=>{if(fullscreenTransition)return;if(animations.length)settle(intent==='inside');layoutEntrance();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&animations.length)settle(intent==='inside');});
 }

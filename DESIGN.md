@@ -143,3 +143,5 @@ Supersedes satin/flattened lid experiment: use original notebook-refined-closed.
 
 ## Approved Dock and brightness — 2026-09-14
 Apply B wallpaper brightness1.62 saturation1.16 to the desktop background only. Desktop Dock surface alpha .10 with7px blur;46px icons, folder body .78 of width and tab .16, social SVG72%. Names appear in a floating tooltip on hover or keyboard focus, never permanently. Custom Dock programs belong to workspace.dockPrograms and use existing owner-authenticated draft/backup/publish validation. Only the Dock exposes their editor. Inactive corner devices never wake on hover; phone position stays unchanged, Mac is large and partially clipped to the right.
+
+Commit messages must always be written in Korean, as requested by the owner.

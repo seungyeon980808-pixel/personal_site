@@ -53,3 +53,13 @@ body.travelling { overflow: hidden; }
 }
 
 .device-frame::before{transform-origin:50% 82.91%;transform:scaleY(.88)}
+
+@media(min-width:701px){
+ .device-frame .device-base{display:none}
+ .device-frame::before,.device-frame::after{opacity:1;transition:none}
+}
+
+@media(min-width:701px){
+ .screen-viewport{background:#72bdcf;isolation:isolate}
+ .screen-viewport::before{content:'';position:absolute;inset:0;z-index:-1;background:url('assets/studio/lake.webp') center/cover;filter:brightness(1.62) saturate(1.16)}
+}
