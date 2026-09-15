@@ -1,5 +1,5 @@
 const frame=document.querySelector('iframe');
-frame.addEventListener('load',async()=>{
+async function initFolder(){
  const doc=frame.contentDocument;
  const style=doc.createElement('link');style.rel='stylesheet';style.href='/prototypes/mobile-program-folder.css';doc.head.append(style);
  let programs=[];
@@ -19,4 +19,6 @@ frame.addEventListener('load',async()=>{
  dialog.addEventListener('close',()=>{doc.documentElement.classList.remove('folder-preview-open');trigger.focus()});
  dialog.querySelector('.folder-close').onclick=()=>dialog.close();
  dialog.addEventListener('click',event=>{if(event.target.closest('[data-route]'))dialog.close();if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close()}});
-});
+}
+if(frame.contentDocument?.readyState==='complete'&&frame.contentDocument.URL!=='about:blank')initFolder();
+else frame.addEventListener('load',initFolder,{once:true});
