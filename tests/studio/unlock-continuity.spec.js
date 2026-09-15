@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
-test('side phone wakes while Mac remains asleep and partly cropped',async({page})=>{
+test('side phone and partly cropped Mac wake on hover',async({page})=>{
  await page.setViewportSize({width:1000,height:900});await page.goto('/prototypes/device-unlock.html');
  const phone=page.frameLocator('#mobile iframe');
  await phone.locator('#entrance[data-ready="true"]').waitFor();
@@ -10,7 +10,7 @@ test('side phone wakes while Mac remains asleep and partly cropped',async({page}
  await page.getByRole('button',{name:'휴대폰으로 전환',exact:true}).click();await page.waitForTimeout(1100);
  const mac=page.getByRole('button',{name:'맥북으로 전환',exact:true});
  const box=await mac.boundingBox();expect(box.x).toBeGreaterThan(650);expect(box.x+box.width).toBeGreaterThan(1000);
- await mac.hover();await expect(page.frameLocator('#desktop iframe').locator('html')).not.toHaveClass(/device-peek-hover/);
+ await mac.hover();await expect(page.frameLocator('#desktop iframe').locator('html')).toHaveClass(/device-peek-hover/);
 });
 test('unlock preview keeps one registered phone and hides the shortcut',async({page})=>{
  await page.setViewportSize({width:1000,height:900});
@@ -58,7 +58,8 @@ test('mobile shortcut stays reachable and Mac entry hides phone',async({page})=>
 
 test('Mac preview contains the complete desktop before zoom',async({page})=>{
  await page.setViewportSize({width:1000,height:900});await page.goto('/prototypes/device-unlock.html');
- const mac=page.frameLocator('#desktop iframe');await mac.locator('#entrance[data-ready="true"]').waitFor();
+ const mac=page.frameLocator('#desktop iframe');await mac.locator('#entrance[data-ready="true"]').waitFor();await page.frameLocator('#mobile iframe').locator('#entrance[data-ready="true"]').waitFor();
+ await page.locator('.device').evaluateAll(async panels=>{await Promise.all(panels.flatMap(panel=>panel.getAnimations().map(animation=>animation.finished.catch(()=>{}))));});
  const fits=await mac.locator('.screen-content').evaluate(e=>{
   const m=new DOMMatrix(getComputedStyle(e).transform),v=e.parentElement;
   return {left:m.e,top:m.f,right:m.e+e.clientWidth*m.a,bottom:m.f+e.clientHeight*m.d,width:v.clientWidth,height:v.clientHeight};
@@ -85,3 +86,5 @@ test('Mac chassis stays identical across closing and closed states',async({page}
  const chassis=()=>page.locator('.device-frame').evaluate(e=>({opacity:getComputedStyle(e,'::before').opacity,transform:getComputedStyle(e,'::before').transform,base:getComputedStyle(e.querySelector('.device-base')).display}));
  const closing=await chassis();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');expect(await chassis()).toEqual(closing);
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

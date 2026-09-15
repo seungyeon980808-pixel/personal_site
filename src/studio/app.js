@@ -7,6 +7,7 @@ import {icon,svg} from './icons.js';
 import {configureWindow,initWindow,open,currentRoute,redraw,close} from './window.js';
 import * as views from './views.js';
 import {admin} from './admin.js';
+import {privateFolder} from './private-folder.js';
 import {physics} from './physics.js';
 import {browserView,separateWindow} from './browser.js';
 import {initEntrance,enterDesktop as enterPhotoDesktop} from './entrance.js';
@@ -36,7 +37,7 @@ function renderMemos(){
 }
 function render(){
  $('#draft-banner').hidden=!state.draft;renderMemos();
- $('#icons').innerHTML=defaults.map(([label,view,kind])=>button(label,view,kind)).join('')+state.workspace.shortcuts.map(s=>`<a class="desktop-icon" href="${e(s.url)}" target="_blank" rel="noopener noreferrer">${icon(s.kind,e(s.image))}<span>${e(s.name)}</span></a>`).join('')+(state.editor?`<button class="shortcut-create" data-route='{"view":"addShortcut"}'>${svg('plus')}<strong>새 바로가기</strong><span>추가하기</span></button>`:'');
+ $('#icons').innerHTML=defaults.map(([label,view,kind])=>button(label,view,kind)).join('')+(isAdmin()?button('비밀 폴더','private','folder'):'')+state.workspace.shortcuts.map(s=>`<a class="desktop-icon" href="${e(s.url)}" target="_blank" rel="noopener noreferrer">${icon(s.kind,e(s.image))}<span>${e(s.name)}</span></a>`).join('')+(state.editor?`<button class="shortcut-create" data-route='{"view":"addShortcut"}'>${svg('plus')}<strong>새 바로가기</strong><span>추가하기</span></button>`:'');
  const mobile=matchMedia('(max-width:700px)').matches,hammer=$('.hammer-tool');
  $('#dock').innerHTML=mobile?`<button data-route='{"view":"programs"}' aria-label="만든 프로그램 폴더" title="만든 프로그램">${icon('folder')}<span>만든 프로그램</span></button><button data-route='{"view":"records"}' title="캘린더">${icon('calendar')}<span>캘린더</span></button><button id="edit" data-route='{"view":"settings"}' aria-label="설정" title="설정">${icon('settings')}<span>설정</span></button>`:`<button class="dock-launcher" data-route='{"view":"workflows"}' aria-label="진행 중인 프로젝트 폴더" title="진행 중인 프로젝트">${icon('folder')}<span>프로젝트</span></button>${state.site.programs.map(p=>`<button data-route='${e(JSON.stringify({view:'program',id:p.id}))}' aria-label="${e(p.label)}" title="${e(p.label)}">${icon('sheet',p.icon)}<span>${e(p.label)}</span></button>`).join('')}`;
  if(!mobile){
@@ -50,6 +51,7 @@ function render(){
 }
 function route(r){
  $('#workspace-window').classList.toggle('calendar-window',r.view==='records');
+ if(r.view==='private')return privateFolder();
  if(r.view==='settings')return admin({tab:'settings'});
  if(r.view==='editNote'){if(!isAdmin())return admin({tab:'settings'});editDraft();return open({view:'admin',tab:'memos',id:r.id},true);}
  if(r.view==='addShortcut'){if(!isAdmin())return admin({tab:'settings'});editDraft();return open({view:'admin',tab:'shortcuts'},true);}

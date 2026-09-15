@@ -19,10 +19,19 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null
-          && request.auth.token.email == 'seungyeon980808@gmail.com';
+          && request.auth.token.email == 'seungyeon980808@gmail.com'
+          && request.auth.token.email_verified == true;
     }
 
     // ---- 사이트 내용 (메인 허브 + 프로젝트 상세) ----
+    match /private-workspaces/owner {
+      allow read: if isAdmin() && request.auth.token.email_verified == true;
+      allow create, update: if isAdmin() && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['items'])
+        && request.resource.data.items is string
+        && request.resource.data.items.size() <= 500000;
+      allow delete: if isAdmin() && request.auth.token.email_verified == true;
+    }
     match /personal-site/{docId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -32,9 +41,12 @@ service cloud.firestore {
     match /comments/{commentId} {
       allow read: if true;
 
-      // 익명 작성 허용하되, 필드/길이를 엄격히 검증해 남용을 막는다.
-      allow create: if
-           request.resource.data.keys().hasOnly(['project', 'name', 'text', 'createdAt'])
+      // An anonymous identity must atomically advance its server-enforced cooldown.
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/comment-cooldowns/$(request.auth.uid)).data.commentId == commentId
+        && getAfter(/databases/$(database)/documents/comment-cooldowns/$(request.auth.uid)).data.lastCreatedAt == request.time
+        && request.resource.data.keys().hasOnly(['project', 'name', 'text', 'createdAt', 'authorId'])
         && request.resource.data.project is string
         && request.resource.data.project.size() > 0
         && request.resource.data.project.size() <= 40
@@ -48,6 +60,10 @@ service cloud.firestore {
 
       // 관리자만 답글 추가/수정 가능 (원본 이름·내용·시각은 변경 불가)
       allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reply', 'repliedAt'])
+        && request.resource.data.reply is string
+        && request.resource.data.reply.size() <= 500
+        && request.resource.data.repliedAt == request.time
         && request.resource.data.project == resource.data.project
         && request.resource.data.name == resource.data.name
         && request.resource.data.text == resource.data.text
@@ -55,6 +71,19 @@ service cloud.firestore {
 
       // 삭제는 관리자만 (스팸/부적절 후기 정리)
       allow delete: if isAdmin();
+    }
+
+    match /comment-cooldowns/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['commentId', 'lastCreatedAt'])
+        && request.resource.data.commentId is string
+        && request.resource.data.lastCreatedAt == request.time
+        && (!exists(/databases/$(database)/documents/comment-cooldowns/$(uid))
+          || request.time >= resource.data.lastCreatedAt + duration.value(60, 's'))
+        && !exists(/databases/$(database)/documents/comments/$(request.resource.data.commentId))
+        && getAfter(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.authorId == uid
+        && getAfter(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.createdAt == request.time;
     }
 
     // ---- 그 외 전부 차단 ----

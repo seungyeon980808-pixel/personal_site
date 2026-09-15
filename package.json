@@ -9,7 +9,9 @@
     "assets:studio": "node tools/studio-assets.mjs",
     "test:studio": "playwright test --config playwright.config.mjs",
     "preview:studio": "node tools/serve-studio.mjs",
-    "audit:studio": "node tools/audit-studio.mjs"
+    "audit:studio": "node tools/audit-studio.mjs",
+    "test:comments": "node --test tests/comments-pagination.test.mjs",
+    "test:rules": "npx --yes firebase-tools@14.22.0 emulators:exec --only firestore --project demo-personal-site-rules --config firebase.rules-test.json \"node --test tests/firestore-rules-runtime.test.mjs\""
   },
   "repository": {
     "type": "git",

@@ -4,7 +4,25 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "tests/**",
+      "test-results/**",
+      "playwright-report/**",
+      "tools/**",
+      "docs/**",
+      "PRD/**",
+      "*.md",
+      "package*.json",
+      "playwright.config.mjs",
+      "firebase.rules-test.json",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "final-index.sha256",
+      "_config.yml"
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }

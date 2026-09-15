@@ -1,6 +1,6 @@
 # 작업실 실행과 관리
 
-현재 브랜치: `codex/interactive-desktop`.
+실제 정적 사이트 배포 경로는 GitHub Pages의 `main` 브랜치 루트입니다. Firebase는 인증과 데이터 저장에 사용합니다.
 
 ```sh
 npm ci
@@ -45,7 +45,14 @@ npm run preview:studio
 - 최초 테스트 브라우저 설치: `npx puppeteer browsers install chrome`
 - 캡처 및 테스트 리포트: `.omo/evidence/studio/` (공개 배포 제외)
 
-이번 작업은 로컬 브랜치 구현입니다. GitHub push, main 병합, Firebase/GitHub Pages 배포, 실제 공개 콘텐츠 변경은 수행하지 않았습니다.
+`npm run test:studio`는 먼저 최신 소스로 `index.html`을 빌드하고 전용 미리보기 서버를 실행합니다. 테스트는 전용 4322 포트를 사용하므로 4321 포트의 수동 미리보기와 함께 실행할 수 있습니다. 기존 서버를 재사용하지 않아 이전 빌드로 테스트하는 일을 방지합니다. 작업실 단독 테스트는 `/?entrance=photo`(탭의 입장 상태 유지) 또는 `/?entrance=closed`(입구부터 시작)를 사용하며, 실제 첫 방문·잠금 해제 흐름은 `/prototypes/device-unlock.html` 통합 테스트로 확인합니다.
+
+### 배포 산출물과 확인
+- 현재 GitHub Pages의 `main` 루트 배포를 유지합니다. Firebase Hosting 설정은 실제 사이트 배포 경로가 아닙니다.
+- 배포 전에 `npm run build`와 `npm run test:studio`를 실행하고 생성된 루트 `index.html`을 소스 변경과 함께 검토합니다.
+- 방문자 실행 파일은 루트 HTML 페이지, `assets/`, `projects/`, 입구가 참조하는 `prototypes/` 파일입니다. `src/`와 `tools/`는 개발 소스이며 비밀을 보관하지 않습니다.
+- `.omo/`, `test-results/`, `playwright-report/`, `node_modules/`, 로컬 초안·인증 자료는 배포 산출물에 포함하지 않습니다.
+- 별도 산출물 디렉터리나 GitHub Actions 배포로 전환하려면 Pages 설정과 모든 기존 경로를 함께 검증해야 합니다. 테스트 안정화 작업은 배포 대상을 변경하지 않습니다.
 
 ## 진입과 프로그램 창
 - 노트북 화면에는 사진 속 예시 UI 대신 실제 `#desktop`을 축소해 넣습니다. 진입 완료 시 같은 DOM을 본문으로 옮기므로 배경·메모·프로그램·캘린더 위치와 내용이 유지됩니다. 바깥에서는 inert로 조작을 막고, 안으로 들어오면 활성화합니다.
@@ -65,3 +72,11 @@ npm run preview:studio
 - `notebook-refined-open.webp` / `notebook-refined-closed.webp`: 기존 제품 시안을 참조해 생성한 이미지. 같은 하부 사진을 유지하면서 금속 가장자리와 키보드 디테일을 보완했습니다.
 - 호버는 상판 뒤쪽 축을 고정하고 앞쪽 투영 깊이만 바꿉니다. 상판 전체를 위로 옮기는 동작은 제거했습니다.
 - 실제 화면 DOM 연결과 밝은 배경은 유지합니다. 힌지 좌표, 입장 전후 배치, 느린 이미지 로딩, 입장 취소·복귀를 검증했습니다.
+
+### 2026-09-15 안정화
+- 관리자 전용 비밀 폴더는 `private-workspaces/owner`에 저장하며 공개 초안·백업·브라우저 저장소에 포함하지 않습니다.
+- 방명록과 프로젝트 후기는 30개씩 조회합니다. 별도 익명 인증으로 관리자 로그인과 분리하며 서버에서 식별자당 60초 간격을 검증합니다. 익명 식별자를 새로 만드는 경우까지 막는 전역 도배 방지는 아닙니다.
+- 규칙 검증: `npm run test:rules` (Java17, 로컬 가상 프로젝트만 사용). 목록 검증: `npm run test:comments`.
+- Firestore 인덱스가 준비된 뒤 보안 규칙과 클라이언트를 함께 배포합니다. 기존 도메인과 GitHub Pages main 루트 배포를 유지합니다.
+- `_config.yml`은 개발 문서·테스트·도구의 Pages 게시를 제외합니다. 승인된 시안 링크와 사용 중인 정적 자산은 유지합니다.
+- 화면 비율·기기 소재·모션은 유지합니다. 최소화 복원 시 작성 내용 보존, Dock 망치 공간 유지, 모바일 노치와 메뉴 충돌 방지, 관리자 편집 중 물리 아이콘의 입력 방해 방지를 포함합니다.

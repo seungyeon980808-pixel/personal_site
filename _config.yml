@@ -1,0 +1,22 @@
+# GitHub Pages serves the existing site without publishing development artifacts.
+exclude:
+  - node_modules
+  - tests
+  - test-results
+  - playwright-report
+  - tools
+  - docs
+  - PRD
+  - package.json
+  - package-lock.json
+  - playwright.config.mjs
+  - firebase.json
+  - firebase.rules-test.json
+  - firestore.rules
+  - firestore.indexes.json
+  - final-index.sha256
+  - CLAUDE.md
+  - DESIGN.md
+  - NEXT-STEPS.md
+  - STUDIO.md
+  - personal-site-plan.md

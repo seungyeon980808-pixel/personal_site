@@ -3,19 +3,20 @@ const sharp=require('sharp');
 test.use({deviceScaleFactor:2});
 
 test('resting phone has no photo matte or blue screen leakage',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.mouse.move(0,0);await page.addStyleTag({content:'#entrance{background:rgb(180,124,150)!important}'});
  const photo=page.locator('.phone-rest-photo');
  await expect.poll(()=>photo.locator('.screen-viewport').evaluate(el=>getComputedStyle(el,'::after').opacity)).toBe('1');
  const png=await photo.screenshot();const {data,info}=await sharp(png).removeAlpha().raw().toBuffer({resolveWithObject:true});
  const x=Math.round(info.width*70/628),y=Math.round(info.height*100/593),offset=(y*info.width+x)*info.channels;
  expect([...data.subarray(offset,offset+3)]).toEqual([180,124,150]);
- let blue=0;for(let i=0;i<data.length;i+=info.channels)if(data[i+2]>60&&data[i+2]>data[i]*1.45&&data[i+1]>data[i]*1.15)blue++;
+ // The approved photographic rim contains dark blue reflections (blue <=66); detect bright display leakage.
+ let blue=0;for(let i=0;i<data.length;i+=info.channels)if(data[i+2]>100&&data[i+2]>data[i]*1.45&&data[i+1]>data[i]*1.15)blue++;
  expect(blue).toBeLessThan(4);
 });
 
 test('notebook peek raises the front while the rear hinge stays fixed',async({page})=>{
- await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  const sample=()=>page.locator('.device-cover').evaluate(el=>{
   const marker=document.createElement('span');marker.style.cssText='position:absolute;left:50%;top:72.94921875%;width:0;height:0';el.append(marker);const rear=marker.getBoundingClientRect().y;marker.style.top='83.35%';const front=marker.getBoundingClientRect().y;marker.remove();return{rear,front};
  });
@@ -25,7 +26,7 @@ test('notebook peek raises the front while the rear hinge stays fixed',async({pa
 });
 
 test('phone glass wakes on hover and stays lit through touch entry',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  const glass=()=>page.locator('.phone-rest-photo .screen-viewport').evaluate(el=>getComputedStyle(el,'::after').opacity);
  await expect.poll(glass).toBe('1');await page.locator('#enter').hover();await expect.poll(glass).toBe('0');await page.mouse.move(0,0);await expect.poll(glass).toBe('1');
  await page.locator('#enter').click();await expect.poll(glass).toBe('0');await expect(page.locator('#entrance')).toBeHidden();
@@ -40,7 +41,7 @@ test('corner phone hover wakes only the display, without a tinted iframe rectang
 });
 
 test('phone display follows the photographed upper and lower glass curves',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();await page.locator('#enter').hover();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();await page.locator('#enter').hover();
  await page.addStyleTag({content:'.phone-rest-photo .screen-content{visibility:hidden}.phone-rest-photo .screen-viewport{background:#ff00ff!important}'});
  await expect.poll(()=>page.locator('.screen-viewport').evaluate(e=>getComputedStyle(e,'::after').opacity)).toBe('0');
  const {data,info}=await sharp(await page.locator('.phone-rest-photo').screenshot()).removeAlpha().raw().toBuffer({resolveWithObject:true});
@@ -52,7 +53,7 @@ test('phone display follows the photographed upper and lower glass curves',async
 
 test('camera enlargement preserves screen proportions for both devices',async({page})=>{
  for(const width of [1280,390]){
-  await page.setViewportSize({width,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+  await page.setViewportSize({width,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
   const content=await page.locator('.screen-content').evaluate(el=>{const m=new DOMMatrix(getComputedStyle(el).transform);return [m.a,m.d];});
   expect(content[0]).toBeCloseTo(content[1],5);
   await page.locator('#enter').click();await page.waitForTimeout(1250);
@@ -62,3 +63,5 @@ test('camera enlargement preserves screen proportions for both devices',async({p
   await page.locator('#return').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
  }
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

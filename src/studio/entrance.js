@@ -108,6 +108,7 @@ export async function enterDesktop(){
  await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],motion.hold);
  if(token!==sequence)return;
  await requestDeviceFullscreen();
+ if(token!==sequence)return;
  entrance.dataset.phase='zooming';
  animate($('.screen-notch'),[{opacity:1},{opacity:0}],motion.flight);
  await animate($('#photo-flight'),[{transform:'none'},{transform:flightTransform()}],motion.flight,motion.zoom);

@@ -4,7 +4,7 @@ const evidence='.omo/evidence/owner-refinement/chrome';
 const encode=value=>typeof value==='string'?{stringValue:value}:typeof value==='number'?{integerValue:String(value)}:typeof value==='boolean'?{booleanValue:value}:value===null?{nullValue:null}:Array.isArray(value)?{arrayValue:{values:value.map(encode)}}:{mapValue:{fields:Object.fromEntries(Object.entries(value).map(([key,item])=>[key,encode(item)]))}};
 async function openStudio(page){
  await page.route('https://firestore.googleapis.com/**',route=>route.fulfill({json:{...encode(seed).mapValue,updateTime:'2026-09-13T00:00:00Z'}}));
- await page.goto('/');
+ await page.goto('/?entrance=photo');
  await page.getByRole('button',{name:/(노트북 열고|휴대폰 들고) 작업실 들어가기/,exact:true}).click();
  await expect(page.locator('#entrance')).toBeHidden();
 }
@@ -33,3 +33,5 @@ test('embedded detail suppresses only its own navigation while standalone detail
  await page.goto('/projects/edunote.html');
  await expect(page.locator('.topbar .home')).toBeVisible();
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

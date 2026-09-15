@@ -6,6 +6,10 @@ for (const frame of document.querySelectorAll('.device iframe')) {
     const stylesheet = doc.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.href = '/prototypes/unlock-motion.css';
+    stylesheet.addEventListener('load', () => {
+      frame.closest('.device').dataset.uiReady = 'true';
+      doc.dispatchEvent(new Event('studio:entrancelayout'));
+    });
     doc.head.append(stylesheet);
     const overlay = doc.createElement('div');
     overlay.className = 'unlock-preview';

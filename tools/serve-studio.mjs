@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gzipSync} from 'node:zlib';
+const port=Number(process.env.PORT||4321);
 const root=fileURLToPath(new URL('../',import.meta.url));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.mp4':'video/mp4','.woff2':'font/woff2'};
 http.createServer(async(req,res)=>{
@@ -15,4 +16,4 @@ http.createServer(async(req,res)=>{
   if(/text|javascript|json|svg/.test(type)&&req.headers['accept-encoding']?.includes('gzip')){data=gzipSync(data);headers['Content-Encoding']='gzip';}
   headers['Content-Length']=data.length;res.writeHead(200,headers);res.end(req.method==='HEAD'?undefined:data);
  }catch(err){res.writeHead(err.code==='ENOENT'?404:400);res.end('요청한 파일을 찾을 수 없습니다.');}
-}).listen(4321,'127.0.0.1',()=>console.log('Studio preview: http://localhost:4321/'));
+}).listen(port,'127.0.0.1',()=>console.log(`Studio preview: http://127.0.0.1:${port}/`));

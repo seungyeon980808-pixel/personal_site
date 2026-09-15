@@ -142,7 +142,7 @@ Supersedes satin/flattened lid experiment: use original notebook-refined-closed.
 - Laptop material refinements must retain its source silhouette; use a shallow textured interior rather than a solid black slab. Phone ground shadow must not deform with the chassis.
 
 ## Approved Dock and brightness — 2026-09-14
-Apply B wallpaper brightness1.62 saturation1.16 to the desktop background only. Desktop Dock surface alpha .10 with7px blur;46px icons, folder body .78 of width and tab .16, social SVG72%. Names appear in a floating tooltip on hover or keyboard focus, never permanently. Custom Dock programs belong to workspace.dockPrograms and use existing owner-authenticated draft/backup/publish validation. Only the Dock exposes their editor. Inactive corner devices never wake on hover; phone position stays unchanged, Mac is large and partially clipped to the right.
+Apply B wallpaper brightness1.62 saturation1.16 to the desktop background only. Desktop Dock surface alpha .10 with7px blur;46px icons, folder body .78 of width and tab .16, social SVG72%. Names appear in a floating tooltip on hover or keyboard focus, never permanently. Custom Dock programs belong to workspace.dockPrograms and use existing owner-authenticated draft/backup/publish validation. Only the Dock exposes their editor. Inactive corner devices wake on hover or keyboard focus, following the later owner approval; phone position stays unchanged, Mac is large and partially clipped to the right.
 
 Commit messages must always be written in Korean, as requested by the owner.
 
@@ -151,3 +151,6 @@ Approved spring about uses k40 mass2, rounded coil, drag threshold5px; training 
 
 ## Fixed Tahoe wallpaper — 2026-09-15
 Use coastal candidate 05, Tiffany Cade's Lake Tahoe photograph, as the fixed background. Shared `--wallpaper-image` points to `/assets/studio/tahoe-blue.webp`; `--wallpaper-filter: none` preserves the approved preview's original color. Desktop wallpaper, physical display fill, mobile display fill and both unlock overlays consume the same image token. Retain existing lock-screen readability overlays, geometry, hardware, motion and foreground UI. Serve one local optimized WebP; no random selection or extra candidate loading. Source: https://unsplash.com/photos/MBO7Pcludec (Unsplash License).
+
+## Stabilization — 2026-09-15
+Preserve approved device photographs, proportions, colors and movement. Keep the hammer's Dock space visible during previews and dialogs; disable interaction instead of removing it. Mobile menu actions use a second row at top40px, left12px to avoid the centered notch while preserving left placement. During owner draft editing, static about/training icons replace the physics layer so it cannot obstruct input controls. Restoring a minimized form preserves its existing DOM and unsaved values.

@@ -10,3 +10,4 @@
 #dock .hammer-tool>span{position:static;inset:auto;transform:none;margin:0;color:inherit;font-size:inherit}
 #dock .hammer-tool .app-icon{background:white;border:1px solid #d8dee6;display:grid;place-items:center}
 #dock .hammer-tool img{width:80%;height:80%;object-fit:contain}
+#dock .hammer-tool:disabled{opacity:1;cursor:default}

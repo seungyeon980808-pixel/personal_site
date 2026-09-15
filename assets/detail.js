@@ -453,10 +453,8 @@ function sanitizeRich(html) {
   Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
     if (!el.parentNode) return;
     const tag = el.tagName;
-    if (tag === "BR") return;
-    if (tag === "U") {
-      el.removeAttribute("style");
-      el.removeAttribute("class");
+    if (tag === "BR" || tag === "U") {
+      Array.from(el.attributes).forEach(attribute => el.removeAttribute(attribute.name));
       return;
     }
     if (tag === "SPAN") {
@@ -464,8 +462,7 @@ function sanitizeRich(html) {
       const spacing = el.style.letterSpacing;
       const size = el.style.fontSize;
       const underlined = /underline/.test(el.style.textDecoration || el.style.textDecorationLine || "");
-      el.removeAttribute("class");
-      el.removeAttribute("style");
+      Array.from(el.attributes).forEach(attribute => el.removeAttribute(attribute.name));
       if (color && COLOR_OK.test(color)) el.style.color = color;
       if (spacing && LS_OK.test(spacing.trim())) el.style.letterSpacing = spacing.trim();
       if (size && FS_OK.test(size.trim())) el.style.fontSize = size.trim();
@@ -1184,25 +1181,24 @@ function renderComments() {
   });
 }
 
-// 최신순 정렬 — 서버 인덱스를 요구하지 않도록 클라이언트에서 정렬한다
-function sortComments() {
-  commentsCache.sort((a, b) => {
-    const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
-    const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
-    return tb - ta;
-  });
-}
-
-// 방문자는 실시간 채널을 열지 않는다. REST 로 한 번 읽고 끝 —
-// 새로 쓰거나 지운 뒤에는 그때 다시 읽는다.
-async function refreshComments() {
+let commentCursor=null,commentsReading=false;
+async function refreshComments(append=false) {
+  if(commentsReading)return;
+  commentsReading=true;
+  let more=document.getElementById('comments-more');
+  if(!more){more=el('button','reply-btn','더 보기');more.id='comments-more';more.type='button';more.hidden=true;document.getElementById('commentList')?.after(more);more.onclick=()=>refreshComments(true);}
+  more.disabled=true;
   try {
-    commentsCache = await restQuery(COMMENTS, "project", PROJECT_ID);
-    sortComments();
+    const {commentPage}=await import('./comments.js');
+    const page=await commentPage(PROJECT_ID,append?commentCursor:null);
+    const entries=page.entries.map(c=>({...c,createdAt:restTs(c.date)}));
+    commentsCache=append?[...commentsCache,...entries]:entries;
+    commentCursor=page.cursor;more.hidden=!page.more;
     renderComments();
   } catch (err) {
-    console.error("[detail] comments load failed", err);
-  }
+    if(!commentsCache.length)document.getElementById('commentList').textContent='후기를 불러오지 못했습니다. 다시 시도해주세요.';
+    more.hidden=false;more.textContent='다시 불러오기';
+  } finally {commentsReading=false;more.disabled=false;}
 }
 
 function initComments() {
@@ -1223,18 +1219,13 @@ function initComments() {
       const btn = form.querySelector("button[type=submit]");
       if (btn) btn.disabled = true;
       try {
-        const { f } = await loadSdk();
-        await f.addDoc(f.collection(db, COMMENTS), {
-          project: PROJECT_ID,
-          name: name.slice(0, 30),
-          text: text.slice(0, 500),
-          createdAt: f.serverTimestamp(),
-        });
+        const {createComment}=await import('./comments.js');
+        await createComment(PROJECT_ID,name,text);
         textEl.value = "";
         await refreshComments();
       } catch (err) {
         console.error("[detail] comment add failed", err);
-        alert("후기 등록 중 오류가 발생했습니다. (보안 규칙 배포 여부를 확인하세요)");
+        alert(err.message || "후기를 등록하지 못했습니다. 잠시 후 다시 시도해주세요.");
       } finally {
         if (btn) btn.disabled = false;
       }

@@ -128,3 +128,4 @@ body.travelling { overflow: hidden; }
 .dock-tooltip{position:fixed;z-index:100;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 16px);padding:8px 13px;border-radius:13px;background:rgba(255,255,255,.93);color:#252525;font-size:14px;line-height:20px;box-shadow:0 4px 16px #0002;pointer-events:none}
 .dock-tooltip::after{content:'';position:absolute;left:calc(50% - 6px);bottom:-6px;width:12px;height:12px;background:rgba(255,255,255,.93);transform:rotate(45deg);border-radius:0 0 3px 0}
 @media(min-width:701px){.menu-bar nav{margin-left:8px}}
+@media(max-width:700px){.menu-bar nav{position:absolute;left:12px;top:40px;margin:0}}

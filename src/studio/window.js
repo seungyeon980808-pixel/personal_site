@@ -20,7 +20,7 @@ export function initWindow(){
  const maximize=()=>{win.classList.toggle('maximized');position={x:0,y:0};win.style.transform='';$('#window-expand').setAttribute('aria-pressed',String(win.classList.contains('maximized')));};
  $('#window-expand').onclick=maximize;bar.ondblclick=e=>{if(!e.target.closest('button'))maximize();};
  $('#window-minimize').onclick=()=>{win.close();$('#restore').hidden=false;$('#restore-label').textContent=$('#window-title').textContent;$('#restore').focus();document.dispatchEvent(new Event('studio:windowclose'));};
- $('#restore').onclick=()=>{win.showModal();$('#restore').hidden=true;if(currentRoute()?.view!=='browser')redraw();$('#window-close').focus();};
+ $('#restore').onclick=()=>{win.showModal();$('#restore').hidden=true;if(currentRoute()?.view==='physics')redraw();$('#window-close').focus();};
  win.addEventListener('cancel',e=>{e.preventDefault();close();});
  win.addEventListener('click',event=>{if(event.target===win&&!drag)close();});
  bar.onpointerdown=e=>{if(e.target.closest('button,input')||innerWidth<700||win.classList.contains('maximized'))return;drag={x:e.clientX,y:e.clientY,start:{...position},rect:win.getBoundingClientRect()};bar.setPointerCapture(e.pointerId);};

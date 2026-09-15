@@ -2,7 +2,7 @@ import {exitDesktop} from './entrance.js';
 export function initHammer(){
  const asset='/assets/about/hammer-cutout.png';
  const tool=document.createElement('button');tool.className='hammer-tool';tool.setAttribute('aria-label','망치 모드 · 더블클릭으로 시작');tool.innerHTML=`<span class="app-icon"><img src="${asset}" alt=""></span><span>망치</span>`;document.querySelector('#dock').prepend(tool);
- const sync=()=>{const hide=!document.querySelector('#entrance').hidden||!document.querySelector('#welcome').hidden||document.querySelector('#workspace-window').open;if(tool.hidden!==hide)tool.hidden=hide;};new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
+ const sync=()=>{const hide=!document.querySelector('#entrance').hidden||!document.querySelector('#welcome').hidden||document.querySelector('#workspace-window').open;tool.disabled=hide;};new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
  const cursor=document.createElement('img');cursor.src=asset;cursor.alt='';cursor.className='hammer-cursor';cursor.hidden=true;document.body.append(cursor);
  const glass=document.createElementNS('http://www.w3.org/2000/svg','svg');glass.classList.add('hammer-glass');glass.setAttribute('aria-hidden','true');document.body.append(glass);
  const hint=document.createElement('div');hint.className='hammer-hint';hint.hidden=true;hint.innerHTML='누르고 있다가 놓으세요 <kbd>Esc</kbd> 종료';document.body.append(hint);
@@ -25,7 +25,7 @@ export function initHammer(){
   if(power===1){explode();return;}chargeFrame=requestAnimationFrame(charge);
  }
  function end(){clearTimeout(returnTimer);resetCharge();exploded=false;boom.hidden=true;gauge.hidden=true;clearTimeout(impact);active=false;document.documentElement.classList.remove('hammer-active');cursor.hidden=true;hint.hidden=true;glass.replaceChildren();count=0;swing?.cancel();}
- function start(e){e.preventDefault();if(active)return;active=true;gauge.hidden=false;document.documentElement.classList.add('hammer-active');cursor.hidden=false;hint.hidden=false;move(e);}
+ function start(e){e.preventDefault();if(active||tool.disabled)return;active=true;gauge.hidden=false;document.documentElement.classList.add('hammer-active');cursor.hidden=false;hint.hidden=false;move(e);}
  tool.ondblclick=start;tool.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();start(e);}};
  function move(e){if(!active)return;cursor.style.left=(Number.isFinite(e.clientX)?e.clientX:innerWidth/2)+'px';cursor.style.top=(Number.isFinite(e.clientY)?e.clientY:innerHeight/2)+'px';}
  document.addEventListener('pointermove',move);

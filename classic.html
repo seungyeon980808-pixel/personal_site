@@ -3956,7 +3956,7 @@
       // <br> 와 그라데이션 강조(<span class="grad">) 만 남기고 나머지 태그는 내용만 남긴다.
       Array.from(box.querySelectorAll("*")).reverse().forEach((el) => {
         if (!el.parentNode) return;
-        if (el.tagName === "BR") return;
+        if (el.tagName === "BR") { Array.from(el.attributes).forEach((a) => el.removeAttribute(a.name)); return; }
         // 편집 모드에서 사용자가 지정한 그라데이션 구간은 보존한다.
         // 속성은 class="grad" 하나만 남겨 style 주입 통로가 되지 않게 한다.
         if (el.tagName === "SPAN" && el.classList.contains("grad")) {

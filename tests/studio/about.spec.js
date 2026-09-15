@@ -10,7 +10,7 @@ async function prepare(page) {
   });
   await page.route('https://www.gstatic.com/firebasejs/**', route => route.fulfill({contentType: 'application/javascript', body: route.request().url().includes('firebase-app') ? 'export const initializeApp=()=>({});' : "const user={email:'seungyeon980808@gmail.com',emailVerified:true,getIdToken:async()=> 'test-token'};export const getAuth=()=>({currentUser:null,authStateReady:async()=>{}});export const onAuthStateChanged=(a,cb)=>cb(null);export class GoogleAuthProvider{};export const signInWithPopup=async()=>({user});export const signOut=async()=>{};"}));
   await page.emulateMedia({reducedMotion: 'reduce'});
-  await page.goto('/');
+  await page.goto('/?entrance=photo');
   await page.getByRole('button', {name: /(노트북 열고|휴대폰 들고) 작업실 들어가기/, exact: true}).click();
   await expect(page.locator('#entrance')).toBeHidden();
 }
@@ -32,7 +32,8 @@ test('visitor sees the approved profile and centered contact without owner contr
   await page.screenshot({path: '.omo/evidence/owner-refinement/about/visitor-bottom-1280.png'});
   await page.locator('#window-body').getByRole('button', {name: '연락하기', exact: true}).click();
   await expect(page.getByRole('heading', {name: '연락하기', exact: true})).toBeVisible();
-  await expect(page.getByRole('link', {name: '전화하기', exact: true})).toHaveAttribute('href', 'tel:01049174332');
+  await expect(page.getByRole('link', {name: '전화하기', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('link', {name: '메일 쓰기', exact: true})).toHaveAttribute('href', 'mailto:'+seed.fields['contact.email']);
   await page.setViewportSize({width: 375, height: 812});
   expect(await page.locator('#window-body').evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   await page.screenshot({path: '.omo/evidence/owner-refinement/about/contact-375.png'});
@@ -115,3 +116,5 @@ test('owner drafts, previews, restores, and edits profile goals and same-month r
   await goal.getByText('삭제', {exact: true}).click();
   await expect(page.locator('.about-goals').first()).not.toContainText('고친 짧은 목표');
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

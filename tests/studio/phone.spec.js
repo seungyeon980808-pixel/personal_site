@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 test('phone rises in front of nearby copy, enters the same screen and returns',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await expect(page.locator('.phone-copy')).toHaveText('게으른 교사의 휴대폰');await expect(page.locator('.notebook-copy')).toBeHidden();
  await page.getByRole('button',{name:'휴대폰 들고 작업실 들어가기',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#notebook-lid').getAnimations().some(a=>a.playState==='running'));
@@ -12,7 +12,7 @@ test('phone rises in front of nearby copy, enters the same screen and returns',a
 });
 
 test('one original phone remains opaque throughout the mobile transition',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.evaluate(()=>{
   window.phoneFrames=[];
   const sample=()=>{
@@ -37,7 +37,7 @@ test('one original phone remains opaque throughout the mobile transition',async(
 });
 
 test('lowering starts from the same upright photo and thickness as lifting ends',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#enter').click();await page.waitForFunction(()=>document.querySelector('#entrance').dataset.phase==='open',null,{polling:'raf'});
  const upright=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  const hardware=()=>page.evaluate(()=>['.phone-upright-shell','.phone-rest-photo>img','.phone-photo-base'].map(selector=>getComputedStyle(document.querySelector(selector)).display==='none'?'0':getComputedStyle(document.querySelector(selector)).opacity));
@@ -50,7 +50,7 @@ test('lowering starts from the same upright photo and thickness as lifting ends'
 });
 
 test('live screen is present at rest and touch paging preserves its page on return',async({page,context})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await expect(page.locator('.phone-rest-photo .screen-viewport #desktop')).toHaveCount(1);
  expect(await page.locator('.screen-content').evaluate(e=>getComputedStyle(e).opacity)).toBe('1');
  await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();
@@ -71,7 +71,7 @@ test('live screen is present at rest and touch paging preserves its page on retu
 });
 
 test('hardware and live glass follow the same angle throughout lifting',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');await page.locator('#entrance[data-ready="true"]').waitFor();
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#enter').click();
  await page.waitForFunction(()=>document.querySelector('.phone-rest-photo').getAnimations().some(a=>a.playState==='running'));
  for(const time of [200,400,650,850,1050]){
@@ -92,7 +92,7 @@ test('hardware and live glass follow the same angle throughout lifting',async({p
 });
 
 test('camera keeps moving across the lift-to-zoom boundary',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');
+ await page.setViewportSize({width:390,height:844});await page.goto('/?entrance=closed');
  await page.locator('#entrance[data-ready="true"]').waitFor();await page.locator('#enter').click();
  await page.waitForFunction(()=>document.querySelector('#photo-flight').getAnimations().some(a=>a.playState==='running'));
  const scales=[];
@@ -106,3 +106,5 @@ test('camera keeps moving across the lift-to-zoom boundary',async({page})=>{
  await page.evaluate(()=>document.getAnimations().forEach(a=>a.play()));
  await expect(page.locator('#entrance')).toBeHidden();
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

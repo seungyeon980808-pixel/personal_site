@@ -6,13 +6,13 @@ function encode(value){
 }
 
 async function mockOwner(page){
- await page.addInitScript(()=>{if(!sessionStorage.getItem('foundation-seeded')){localStorage.clear();sessionStorage.setItem('foundation-seeded','1');}sessionStorage.setItem('studio-entered','1');});
+ await page.addInitScript(()=>{if(!sessionStorage.getItem('foundation-seeded')){localStorage.clear();sessionStorage.setItem('foundation-seeded','1');}localStorage.setItem('studio-welcome-v1','done');sessionStorage.setItem('studio-entered','1');});
  await page.route('https://firestore.googleapis.com/**',async route=>{
   if(route.request().url().includes(':batchGet'))return route.fulfill({json:[{found:{name:'projects/edunote-96bd7/databases/(default)/documents/personal-site/main',...encode(seed).mapValue}},{missing:'projects/edunote-96bd7/databases/(default)/documents/personal-site/desktop-v1'}]});
   return route.fulfill({status:404,json:{error:{code:404}}});
  });
  await page.route('https://www.gstatic.com/firebasejs/**',route=>route.fulfill({contentType:'application/javascript',body:route.request().url().includes('firebase-app')?'export const initializeApp=()=>({});':`const user={email:'seungyeon980808@gmail.com',emailVerified:true,getIdToken:async()=> 'test-token'};export const getAuth=()=>({currentUser:null,authStateReady:async()=>{}});export const onAuthStateChanged=(a,cb)=>cb(null);export class GoogleAuthProvider{};export const signInWithPopup=async()=>({user});export const signOut=async()=>{};`}));
- await page.goto('/');
+ await page.goto('/?entrance=photo');
  await page.getByRole('button',{name:'작업실 설정',exact:true}).click();
  await page.getByRole('button',{name:'Google 관리자 로그인'}).click();
  await page.getByRole('button',{name:'초안 편집 시작'}).click();

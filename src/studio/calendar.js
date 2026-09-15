@@ -22,7 +22,7 @@ function render(){
 
 function period(delta){
  const date=fromISO(activeRoute.date);
- if(activeRoute.mode==='week')activeRoute.date=moveDate(activeRoute.date,delta*7);else{date.setMonth(date.getMonth()+delta);activeRoute.date=iso(date);}
+ if(activeRoute.mode==='week')activeRoute.date=moveDate(activeRoute.date,delta*7);else{const day=date.getDate();date.setDate(1);date.setMonth(date.getMonth()+delta);date.setDate(Math.min(day,new Date(date.getFullYear(),date.getMonth()+1,0).getDate()));activeRoute.date=iso(date);}
  editor=null;render();
 }
 

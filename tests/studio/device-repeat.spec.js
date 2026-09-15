@@ -10,3 +10,5 @@ test('repeated viewport changes and switches keep device centered and corner Mac
   await page.getByRole('button',{name:'맥북으로 전환',exact:true}).click();await page.waitForTimeout(1100);
  }
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});

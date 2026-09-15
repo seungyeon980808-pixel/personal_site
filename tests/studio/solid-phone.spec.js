@@ -9,7 +9,7 @@ test('solid phone rotates rigidly, enters live desktop, and reverses',async({pag
  const side=await page.locator('.solid-bottom').boundingBox(),front=await page.locator('.solid-front').boundingBox();
  expect(side.height/front.width).toBeGreaterThan(.08);
  expect(side.height/front.width).toBeLessThan(.13);
- await expect(page.locator('.solid-rig img')).toHaveCount(0);
+ await expect(page.locator('.solid-rig img:not(#desktop img)')).toHaveCount(0);
  await page.locator('#desktop').evaluate(e=>e.dataset.solidIdentity='same');
  await page.locator('#enter').click();
  await page.waitForFunction(()=>document.querySelector('.solid-rig').getAnimations().some(a=>a.playState==='running'));
@@ -44,3 +44,5 @@ test('solid entrance supports reduced motion and cancellation',async({page})=>{
  await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();
  await page.locator('#return').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
 });
+
+test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});
