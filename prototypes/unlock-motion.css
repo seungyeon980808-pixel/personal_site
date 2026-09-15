@@ -18,7 +18,7 @@
 @keyframes unlock-greeting{0%,59%{opacity:0}69%,85%{opacity:1}100%{opacity:0}}
 @media(max-width:700px){.unlock-mark{width:22%;max-width:54px}.unlock-label{font-size:10px}.unlock-preview{gap:8px}}
 @media(prefers-reduced-motion:reduce){.unlock-preview.playing{display:none;animation:none}.unlock-preview *{animation:none!important}}
-.password-preview{display:block;container-type:inline-size;background:linear-gradient(#00000014,#00000008 45%,#00000030),url('/assets/studio/lake.webp') center/cover;color:white}
+.password-preview{display:block;container-type:inline-size;background:linear-gradient(#00000014,#00000008 45%,#00000030),var(--wallpaper-image) center/cover;color:white}
 .lock-clock{position:absolute;top:13%;left:0;right:0;text-align:center;text-shadow:0 2px 16px #0002}
 .lock-date{font-size:clamp(12px,2.6cqw,24px);font-weight:500;line-height:1.4}
 .lock-time{display:block;font-size:clamp(48px,12cqw,110px);font-weight:600;letter-spacing:-.055em;line-height:1.08;font-variant-numeric:tabular-nums}
@@ -46,7 +46,7 @@
 .password-preview .password-dots{width:clamp(100px,14cqw,150px);height:23px;gap:6px;border-radius:12px;background:#ffffff30;border-color:#ffffff30}
 .password-preview .password-dots i{width:4px;height:4px}
 .password-preview .password-dots span{font-size:13px;margin-left:3px}
-.passcode-preview{container-type:inline-size;background:linear-gradient(#102430ed,#102430ed),url('/assets/studio/lake.webp') center/cover;justify-content:flex-start;gap:0}
+.passcode-preview{container-type:inline-size;background:linear-gradient(#102430ed,#102430ed),var(--wallpaper-image) center/cover;justify-content:flex-start;gap:0}
 .passcode-title{font-size:6cqw;font-weight:500;margin-top:27%;margin-bottom:7%}
 .passcode-dots{display:flex;gap:5cqw;margin-bottom:15%}
 .passcode-dots i{width:3.2cqw;height:3.2cqw;border:1px solid white;border-radius:50%;background:transparent}

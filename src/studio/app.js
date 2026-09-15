@@ -37,7 +37,7 @@ function renderMemos(){
 function render(){
  $('#draft-banner').hidden=!state.draft;renderMemos();
  $('#icons').innerHTML=defaults.map(([label,view,kind])=>button(label,view,kind)).join('')+state.workspace.shortcuts.map(s=>`<a class="desktop-icon" href="${e(s.url)}" target="_blank" rel="noopener noreferrer">${icon(s.kind,e(s.image))}<span>${e(s.name)}</span></a>`).join('')+(state.editor?`<button class="shortcut-create" data-route='{"view":"addShortcut"}'>${svg('plus')}<strong>새 바로가기</strong><span>추가하기</span></button>`:'');
- const mobile=matchMedia('(max-width:700px)').matches;
+ const mobile=matchMedia('(max-width:700px)').matches,hammer=$('.hammer-tool');
  $('#dock').innerHTML=mobile?`<button data-route='{"view":"programs"}' aria-label="만든 프로그램 폴더" title="만든 프로그램">${icon('folder')}<span>만든 프로그램</span></button><button data-route='{"view":"records"}' title="캘린더">${icon('calendar')}<span>캘린더</span></button><button id="edit" data-route='{"view":"settings"}' aria-label="설정" title="설정">${icon('settings')}<span>설정</span></button>`:`<button class="dock-launcher" data-route='{"view":"workflows"}' aria-label="진행 중인 프로젝트 폴더" title="진행 중인 프로젝트">${icon('folder')}<span>프로젝트</span></button>${state.site.programs.map(p=>`<button data-route='${e(JSON.stringify({view:'program',id:p.id}))}' aria-label="${e(p.label)}" title="${e(p.label)}">${icon('sheet',p.icon)}<span>${e(p.label)}</span></button>`).join('')}`;
  if(!mobile){
   $('#dock').insertAdjacentHTML('beforeend',(state.workspace.dockPrograms||[]).map(p=>`<a class="dock-channel" href="${e(p.url)}" target="_blank" rel="noopener noreferrer" aria-label="${e(p.name)}">${icon(p.kind,p.image)}<span>${e(p.name)}</span></a>`).join('')+(isAdmin()?`<button id="dock-add" class="admin-only" data-route='{"view":"admin","tab":"dockPrograms"}' aria-label="프로그램 추가">${icon('plus')}<span>프로그램 추가</span></button>`:''));
@@ -45,6 +45,7 @@ function render(){
  }
  const channels=['github','threads','brunch'].map(id=>state.site.channels.find(c=>c.id===id)).filter(c=>c?.url);
  if(!mobile)$('#dock').insertAdjacentHTML('beforeend',channels.length?`<span class="dock-divider" aria-hidden="true"></span>${channels.map(c=>`<a class="dock-channel" href="${e(c.url)}" target="_blank" rel="noopener noreferrer" aria-label="${e(c.id==='brunch'?'브런치':c.id==='threads'?'Threads':'GitHub')} 열기">${icon(c.id)}<span>${c.id==='brunch'?'브런치':c.id==='threads'?'Threads':'GitHub'}</span></a>`).join('')}`:'');
+ if(hammer)$('#dock').prepend(hammer);
  renderCalendarWidget();
 }
 function route(r){

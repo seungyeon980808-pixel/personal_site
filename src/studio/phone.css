@@ -65,7 +65,7 @@
 
 @media(max-width:700px){.phone-rest-photo{transform-origin:0 0;will-change:auto}}
 
-@media(max-width:700px){.device-lid .screen-content{opacity:0}.device-lid .screen-viewport{background:#458898}.device-lid .screen-viewport::before{content:"";position:absolute;inset:0;background:url("assets/studio/lake.webp") center/cover;filter:brightness(1.62) saturate(1.16)}}
+@media(max-width:700px){.device-lid .screen-content{opacity:0}.device-lid .screen-viewport{background:#458898}.device-lid .screen-viewport::before{content:"";position:absolute;inset:0;background:var(--wallpaper-image) center/cover;filter:var(--wallpaper-filter)}}
 
 @media(max-width:700px){.phone-rest-photo>img{clip-path:inset(0 0 13.57% 0)}.phone-photo-base{position:absolute;inset:0;clip-path:inset(79.26% 0 0);transform-origin:50% 79.26%;}}
 

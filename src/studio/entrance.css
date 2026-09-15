@@ -25,7 +25,7 @@ body:has(#entrance:not([hidden])) { overflow: hidden; }
 .device-cover { transform-origin: 50% 72.94921875%; transform: scaleY(1); transition: transform 320ms cubic-bezier(.2,.8,.2,1),opacity 320ms ease; }
 .device-lid { position: absolute; left: 11.98%; top: 8.4%; width: 76.3%; height: 71.25%; overflow: hidden; border-radius: 2.8% 2.8% .2% .2%; transform-origin: 50% 100%; transform: rotateX(-94deg); backface-visibility: hidden; transition: transform 320ms cubic-bezier(.2,.8,.2,1); }
 .device-lid > img { position: absolute; width: 131.0616%; height: auto; max-width: none; left: -15.7012%; top: -11.8227%; }
-.screen-viewport { position: absolute; left: 1.96%; top: 3.02%; width: 95.91%; height: 92.37%; overflow: hidden; border-radius: 1.1%; background: url('assets/studio/lake.webp') center / cover; }
+.screen-viewport { position: absolute; left: 1.96%; top: 3.02%; width: 95.91%; height: 92.37%; overflow: hidden; border-radius: 1.1%; background: var(--wallpaper-image) center / cover; }
 .screen-content { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
 .screen-notch { position: absolute; top: 2.4%; left: 44.6%; width: 10.8%; height: 3.3%; background: #050607; border-radius: 0 0 6px 6px; }
 .screen-notch:after { content: ''; position: absolute; left: 49%; top: 35%; width: 3px; height: 3px; border-radius: 50%; background: #172337; }
@@ -61,5 +61,5 @@ body.travelling { overflow: hidden; }
 
 @media(min-width:701px){
  .screen-viewport{background:#72bdcf;isolation:isolate}
- .screen-viewport::before{content:'';position:absolute;inset:0;z-index:-1;background:url('assets/studio/lake.webp') center/cover;filter:brightness(1.62) saturate(1.16)}
+ .screen-viewport::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--wallpaper-image) center/cover;filter:var(--wallpaper-filter)}
 }
