@@ -46,6 +46,12 @@ function flightTransform(){
  const screen=$(phone()?'.screen-viewport':'.screen-content').getBoundingClientRect(),scale=Math.max(innerWidth/screen.width,innerHeight/screen.height);
  return `translate(${innerWidth/2-(screen.x+screen.width/2)*scale}px,${innerHeight/2-(screen.y+screen.height/2)*scale}px) scale(${scale})`;
 }
+async function requestDeviceFullscreen(){
+ if(window.frameElement?.closest('.device')&&!document.fullscreenElement&&!window.parent.document.fullscreenElement){
+  fullscreenTransition=true;
+  try{await window.parent.document.documentElement.requestFullscreen();await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
+ }
+}
 async function mobileTransition(inside,token){
  const entrance=$('#entrance'),reverse=frames=>frames.slice().reverse().map(frame=>({...frame,offset:1-frame.offset}));
  if(!phonePath){uprightPhoto=phonePhotoTarget();phonePath=phoneFrames(uprightPhoto);}
@@ -77,6 +83,7 @@ async function mobileTransition(inside,token){
   entrance.dataset.phase='zooming';
  }
  await cameraDone;
+ if(inside&&token===sequence)await requestDeviceFullscreen();
  if(token===sequence)settle(inside);
 }
 export async function enterDesktop(){
@@ -100,10 +107,7 @@ export async function enterDesktop(){
  if(token!==sequence)return;entrance.dataset.phase='open';
  await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],motion.hold);
  if(token!==sequence)return;
- if(window.frameElement?.closest('#desktop')&&!document.fullscreenElement&&!window.parent.document.fullscreenElement){
-  fullscreenTransition=true;
-  try{await window.parent.document.documentElement.requestFullscreen();await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
- }
+ await requestDeviceFullscreen();
  entrance.dataset.phase='zooming';
  animate($('.screen-notch'),[{opacity:1},{opacity:0}],motion.flight);
  await animate($('#photo-flight'),[{transform:'none'},{transform:flightTransform()}],motion.flight,motion.zoom);

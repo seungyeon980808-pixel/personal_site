@@ -3,7 +3,7 @@ test('integrated Mac enters fullscreen after login and shows first visit welcome
  await page.goto('/prototypes/device-unlock.html');
  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href','/assets/about/hammer.webp');
  const mac=page.frameLocator('#desktop iframe');await mac.locator('#entrance[data-ready="true"]').waitFor();
- await mac.locator('#enter').click();
+ await page.locator('#desktop').evaluate(e=>Promise.all(e.getAnimations().map(animation=>animation.finished)));await mac.locator('#enter').click();
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBe(true);
  await expect(mac.locator('#entrance')).toBeHidden();await expect(mac.locator('#welcome')).toBeVisible();
  await mac.getByRole('button',{name:'넘어가기',exact:true}).click();

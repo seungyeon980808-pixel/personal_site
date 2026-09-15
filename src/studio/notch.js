@@ -12,6 +12,22 @@ export function initNotch(){
   });
  }
  function sync(){desktop.hidden=!entrance.hidden;desktop.classList.toggle('phone-notch',matchMedia('(max-width:700px)').matches);}
- let last=performance.now();function tick(now){const dt=Math.min(.04,(now-last)/1000);last=now;const welcome=document.querySelector('#welcome');const quiet=!welcome.hidden;desktop.classList.toggle('notch-quiet',quiet);for(const p of particles){if(p.container!==desktop||desktop.hidden||quiet||p.button.hidden||p.button.disabled)continue;if(!matchMedia('(prefers-reduced-motion:reduce)').matches){p.x+=p.vx*dt*pace;p.y+=p.vy*dt*pace;}const w=p.container.clientWidth-18,h=p.container.clientHeight-16;if(p.x<0||p.x>w){p.x=Math.max(0,Math.min(w,p.x));p.vx*=-1;}if(p.y<0||p.y>h){p.y=Math.max(0,Math.min(h,p.y));p.vy*=-1;}p.button.style.left=p.x+'px';p.button.style.top=p.y+'px';}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)'),welcome=document.querySelector('#welcome');
+ let last=0,raf=0;
+ function tick(now){raf=0;if(document.hidden||desktop.hidden||!welcome.hidden)return;
+  const dt=Math.min(.04,(now-last)/1000);last=now;
+  const w=desktop.clientWidth-18,h=desktop.clientHeight-16;
+  for(const p of particles){if(p.container!==desktop||p.button.hidden||p.button.disabled)continue;
+   if(!reduced.matches){p.x+=p.vx*dt*pace;p.y+=p.vy*dt*pace;}
+   if(p.x<0||p.x>w){p.x=Math.max(0,Math.min(w,p.x));p.vx*=-1;}
+   if(p.y<0||p.y>h){p.y=Math.max(0,Math.min(h,p.y));p.vy*=-1;}
+   p.button.style.left='0px';p.button.style.top='0px';p.button.style.translate=p.x+'px '+p.y+'px';
+  }
+  if(!reduced.matches)raf=requestAnimationFrame(tick);
+ }
+ function wake(){desktop.classList.toggle('notch-quiet',!welcome.hidden);if(raf)cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(tick);}
+ new MutationObserver(wake).observe(desktop,{attributes:true,attributeFilter:['hidden']});
+ new MutationObserver(wake).observe(welcome,{attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('visibilitychange',wake);window.addEventListener('resize',wake);reduced.addEventListener('change',wake);wake();
  new MutationObserver(sync).observe(entrance,{attributes:true,attributeFilter:['hidden']});window.addEventListener('resize',sync);sync();
 }

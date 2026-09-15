@@ -4,6 +4,10 @@ export function initPlayful(){
  const layer=document.createElement('div');layer.id='playful-desktop';layer.hidden=true;
  layer.innerHTML=`<svg class="spring-wire" aria-hidden="true"><path/></svg><button class="playful-about desktop-icon" aria-label="인사드립니다">${icon('greeting')}<span>인사드립니다</span></button><button class="playful-training desktop-icon" aria-label="연수 자료">${icon('folder')}<span>연수 자료</span></button>`;document.body.append(layer);
  const about=layer.querySelector('.playful-about'),training=layer.querySelector('.playful-training'),wire=layer.querySelector('path');
+ const coil=Array.from({length:201},(_,j)=>{const t=j/200,a=t*Math.PI*20,taper=Math.min(1,t*12,(1-t)*12);return {t,across:11*Math.sin(a)*taper,along:3.5*(Math.cos(a)-1)*taper};});
+ let raf=0;
+ function wake(){if(raf)cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(tick);}
+ document.addEventListener('visibilitychange',wake);
  let frozen=matchMedia('(prefers-reduced-motion:reduce)').matches,last=performance.now();
  const spring={x:0,y:0,vx:40,vy:0},fly={x:100,y:150,vx:250,vy:180};
  let anchorX=0,anchorY=55,limits;
@@ -18,9 +22,9 @@ export function initPlayful(){
  }
  bind(about,spring,'about');bind(training,fly,'training');
  bounds();window.addEventListener('resize',bounds);
- function sync(){const entry=document.querySelector('#entrance'),welcome=document.querySelector('#welcome');const hide=!entry.hidden||(!welcome.hidden)||document.querySelector('#workspace-window').open;if(layer.hidden!==hide)layer.hidden=hide;document.body.classList.toggle('playful-ready',entry.hidden);}
+ function sync(){const entry=document.querySelector('#entrance'),welcome=document.querySelector('#welcome');const hide=!entry.hidden||(!welcome.hidden)||document.querySelector('#workspace-window').open;if(layer.hidden!==hide){layer.hidden=hide;wake();}document.body.classList.toggle('playful-ready',entry.hidden);}
  new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
- function tick(now){const dt=Math.min(.02,(now-last)/1000);last=now;
+ function tick(now){raf=0;if(layer.hidden||document.hidden)return;const dt=Math.min(.02,(now-last)/1000);last=now;
   if(!layer.hidden){
    if(!frozen&&!document.documentElement.classList.contains('hammer-active')){
     if(!spring.hold()){const dx=spring.x-anchorX,dy=spring.y-anchorY,r=Math.hypot(dx,dy)||1,f=-40*(r-115);spring.vx+=(f*dx/r-.45*spring.vx)/2*dt;spring.vy+=((f*dy/r-.45*spring.vy)/2+290)*dt;spring.x+=spring.vx*dt;spring.y+=spring.vy*dt;}
@@ -29,7 +33,7 @@ export function initPlayful(){
    }
    about.style.transform=`translate(${spring.x}px,${spring.y}px)`;training.style.transform=`translate(${fly.x}px,${fly.y}px)`;
    const ax=anchorX+40,ay=anchorY,dx=spring.x+40-ax,dy=spring.y+12-ay,len=Math.hypot(dx,dy)||1;let d=`M${ax} ${ay}`;
-   for(let j=0;j<=200;j++){const t=j/200,a=t*Math.PI*20,taper=Math.min(1,t*12,(1-t)*12),across=11*Math.sin(a)*taper,along=3.5*(Math.cos(a)-1)*taper;d+=` L${ax+dx*t-dy/len*across+dx/len*along} ${ay+dy*t+dx/len*across+dy/len*along}`;}wire.setAttribute('d',d);
-  }requestAnimationFrame(tick);
- }requestAnimationFrame(tick);
+   for(const {t,across,along} of coil){d+=` L${ax+dx*t-dy/len*across+dx/len*along} ${ay+dy*t+dx/len*across+dy/len*along}`;}wire.setAttribute('d',d);
+  }raf=requestAnimationFrame(tick);
+ }wake();
 }
