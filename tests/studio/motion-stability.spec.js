@@ -22,7 +22,7 @@ test('reduced motion stops wire writes and reacts to preference changes',async({
  await page.goto('/?entrance=closed');await page.locator('#enter').click();
  const skip=page.getByRole('button',{name:'넘어가기',exact:true});if(await skip.isVisible())await skip.click();
  await expect(page.locator('#playful-desktop')).toBeVisible();
- await page.evaluate(()=>{window.wireWrites=0;new MutationObserver(records=>window.wireWrites+=records.length).observe(document.querySelector('.spring-wire path'),{attributes:true,attributeFilter:['d']});});
+ await page.evaluate(()=>{window.wireWrites=0;const stroke=CanvasRenderingContext2D.prototype.stroke;CanvasRenderingContext2D.prototype.stroke=function(...args){if(this.canvas.matches('.spring-wire'))window.wireWrites++;return stroke.apply(this,args);};});
  await page.waitForTimeout(200);const before=await page.evaluate(()=>window.wireWrites);
  await page.waitForTimeout(250);expect(await page.evaluate(()=>window.wireWrites)).toBe(before);
  await page.emulateMedia({reducedMotion:'no-preference'});

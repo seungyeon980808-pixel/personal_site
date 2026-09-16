@@ -1,11 +1,11 @@
+import {springWire} from './spring-wire.js';
 import {icon} from './icons.js';
 import {open} from './window.js';
 import {state} from './store.js';
 export function initPlayful(){
  const layer=document.createElement('div');layer.id='playful-desktop';layer.hidden=true;
- layer.innerHTML=`<svg class="spring-wire" aria-hidden="true"><path/></svg><button class="playful-about desktop-icon" aria-label="인사드립니다">${icon('greeting')}<span>인사드립니다</span></button><button class="playful-training desktop-icon" aria-label="연수 자료">${icon('folder')}<span>연수 자료</span></button>`;document.body.append(layer);
- const about=layer.querySelector('.playful-about'),training=layer.querySelector('.playful-training'),wire=layer.querySelector('path');
- const coil=Array.from({length:201},(_,j)=>{const t=j/200,a=t*Math.PI*20,taper=Math.min(1,t*12,(1-t)*12);return {t,across:11*Math.sin(a)*taper,along:3.5*(Math.cos(a)-1)*taper};});
+ layer.innerHTML=`<canvas class="spring-wire" aria-hidden="true"></canvas><button class="playful-about desktop-icon" aria-label="인사드립니다">${icon('greeting')}<span>인사드립니다</span></button><button class="playful-training desktop-icon" aria-label="연수 자료">${icon('folder')}<span>연수 자료</span></button>`;document.body.append(layer);
+ const about=layer.querySelector('.playful-about'),training=layer.querySelector('.playful-training'),wire=springWire(layer.querySelector('.spring-wire'));
  let raf=0;
  function wake(){if(raf)cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(tick);}
  document.addEventListener('visibilitychange',wake);
@@ -24,7 +24,7 @@ export function initPlayful(){
   button.onpointercancel=()=>{drag=null;skip=true;};button.onclick=()=>{if(!skip)open({view});skip=false;};
  }
  bind(about,spring,'about');bind(training,fly,'training');
- bounds();window.addEventListener('resize',()=>{bounds();wake();});
+ bounds();window.addEventListener('resize',()=>{wire.resize();bounds();wake();});
  function sync(){const entry=document.querySelector('#entrance'),welcome=document.querySelector('#welcome');const hide=state.editor||!entry.hidden||(!welcome.hidden)||document.querySelector('#workspace-window').open;if(layer.hidden!==hide){layer.hidden=hide;wake();}document.body.classList.toggle('playful-ready',entry.hidden&&!state.editor);}
  document.addEventListener('studio:change',sync);
  new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
@@ -36,8 +36,7 @@ export function initPlayful(){
     for(const s of [spring,fly]){if(s.x<limits.left){s.x=limits.left;s.vx=Math.abs(s.vx);}if(s.x>limits.right){s.x=limits.right;s.vx=-Math.abs(s.vx);}if(s.y<limits.top){s.y=limits.top;s.vy=Math.abs(s.vy);}if(s.y>limits.bottom){s.y=limits.bottom;s.vy=-Math.abs(s.vy);}}
    }
    about.style.transform=`translate(${spring.x}px,${spring.y}px)`;training.style.transform=`translate(${fly.x}px,${fly.y}px)`;
-   const ax=anchorX+40,ay=anchorY,dx=spring.x+40-ax,dy=spring.y+12-ay,len=Math.hypot(dx,dy)||1;let d=`M${ax} ${ay}`;
-   for(const {t,across,along} of coil){d+=` L${ax+dx*t-dy/len*across+dx/len*along} ${ay+dy*t+dx/len*across+dy/len*along}`;}wire.setAttribute('d',d);
+   wire.paint(anchorX+40,anchorY,spring.x+40,spring.y+12);
   }if(!frozen)raf=requestAnimationFrame(tick);
  }wake();
 }

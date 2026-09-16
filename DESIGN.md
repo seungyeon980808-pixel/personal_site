@@ -154,3 +154,6 @@ Use coastal candidate 05, Tiffany Cade's Lake Tahoe photograph, as the fixed bac
 
 ## Stabilization — 2026-09-15
 Preserve approved device photographs, proportions, colors and movement. Keep the hammer's Dock space visible during previews and dialogs; disable interaction instead of removing it. Mobile menu actions use a second row at top40px, left12px to avoid the centered notch while preserving left placement. During owner draft editing, static about/training icons replace the physics layer so it cannot obstruct input controls. Restoring a minimized form preserves its existing DOM and unsaved values.
+
+## Mobile rendering stability — 2026-09-16
+Preserve all approved photographs, masks, proportions, motion duration and physics constants. Show embedded devices only once unlock styling is ready; touch pointer entry does not impersonate mouse hover. Render the spring using the same 201 coordinates, 1.5px stroke and white contact highlight on a device-pixel-ratio canvas, avoiding per-frame SVG layout. Cache notch dimensions through ResizeObserver; retain its free motion and interactions.
