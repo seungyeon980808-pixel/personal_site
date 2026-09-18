@@ -11,3 +11,4 @@
 #dock .hammer-tool .app-icon{background:white;border:1px solid #d8dee6;display:grid;place-items:center}
 #dock .hammer-tool img{width:80%;height:80%;object-fit:contain}
 #dock .hammer-tool:disabled{opacity:1;cursor:default}
+@media(max-width:700px){#desktop #icons{grid-template-columns:repeat(4,minmax(0,1fr))}#desktop #dock button .mobile-ios-icon svg{width:60px;height:60px;max-width:none}#desktop #dock .hammer-tool img{clip-path:none;object-fit:cover;width:60px;height:60px;border-radius:16px;padding:0;background:white}}

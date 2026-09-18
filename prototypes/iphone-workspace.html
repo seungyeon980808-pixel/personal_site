@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="게으른 교사의 작업실 — iPhone 스타일 모바일 미리보기">
+<title>모바일 작업실 미리보기</title>
+<link rel="stylesheet" href="iphone-workspace.css">
+<link rel="stylesheet" href="iphone-icon-variants.css">
+<script type="module" src="iphone-workspace.js"></script>
+</head>
+<body>
+<aside class="preview-caption"><span>MOBILE WORKSPACE</span><h1>손안의 작업실.</h1><p>도구는 홈 화면에,<br>자료와 기록은 한 번의 터치 안에.</p><a href="../">기존 작업실로 돌아가기 ↗</a></aside>
+<main class="phone" aria-label="모바일 작업실">
+<div class="preview-notch" aria-label="노치 안의 작은 친구들"></div>
+<div class="home">
+<header class="home-heading"><span>게으른 교사의</span><h2>작업실</h2></header>
+<button class="calendar-widget" data-open="calendar" aria-label="캘린더와 기록 열기"><span class="today"><span class="weekday"></span><strong class="day"></strong><small class="month"></small></span><span class="widget-record"><span class="eyebrow">최근 기록</span><strong>개학하고 2주밖에<br>안 지났건만...</strong><small>8월 30일 · 생각 <span aria-hidden="true">›</span></small></span></button>
+<nav class="home-grid" aria-label="작업실 앱">
+<button class="app" data-open="programs"><span class="icon folder-icon" id="folder-mini"></span><span>프로그램</span></button>
+<button class="app" data-open="resources"><span class="icon blue" data-symbol="folder"></span><span>공유 자료</span></button>
+<button class="app" data-open="recommend"><span class="icon coral" data-symbol="star"></span><span>추천 도구</span></button>
+<button class="app" data-open="about"><span class="icon lavender" data-symbol="person"></span><span>작업실 소개</span></button>
+<button class="app" data-open="training"><span class="icon blue" data-symbol="note"></span><span>연수 자료</span></button>
+<button class="app" data-open="archive"><span class="icon lavender" data-symbol="sheet"></span><span>보관함</span></button>
+<button class="app" data-open="guestbook"><span class="icon coral" data-symbol="guestbook"></span><span>방명록</span></button>
+<button class="app" data-open="contact"><span class="icon blue" data-symbol="message"></span><span>연락하기</span></button>
+</nav>
+<div class="home-space" aria-hidden="true"></div>
+<div class="home-bottom"><span class="home-tag">교사가 한가해야, 교육이 성장한다.</span>
+<nav class="dock" aria-label="자주 쓰는 앱"><button class="app" data-open="hammer"><span class="icon hammer"><img src="../assets/about/hammer.webp" width="60" height="60" alt=""></span><span>망치</span></button><button class="app" data-open="calendar"><span class="icon calendar-icon"><small class="month"></small><strong class="day"></strong></span><span>캘린더</span></button><button class="app" data-open="resources"><span class="icon blue" data-symbol="folder"></span><span>자료실</span></button><button class="app" data-open="settings"><span class="icon silver" data-symbol="settings"></span><span>설정</span></button></nav></div>
+</div>
+<dialog id="workspace-dialog" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title"></h2><button class="close" aria-label="닫기" data-close>닫기</button></div><div id="dialog-content"></div></dialog>
+</main>
+</body></html>

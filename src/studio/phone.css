@@ -94,7 +94,7 @@
  .desktop-layout::-webkit-scrollbar{display:none}
  .desktop-layout>#widgets,.desktop-layout>#icons{flex:0 0 100%;min-width:0;margin:0;box-sizing:border-box;scroll-snap-align:start;overflow-y:auto;align-content:start;padding:4px 4px 18px}
  .desktop-layout>#widgets{display:grid;gap:12px}
- .desktop-layout>#icons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 8px;padding-top:20px}
+ .desktop-layout>#icons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 8px;padding-top:20px}
  .mobile-pages{display:flex;justify-content:center;gap:8px;margin-top:8px}
  .mobile-pages button{width:28px;height:28px;padding:10px;border:0;border-radius:50%;background:transparent}
  .mobile-pages button::after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#ffffff70;box-shadow:0 1px 3px #0003}

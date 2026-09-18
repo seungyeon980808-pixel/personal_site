@@ -129,3 +129,17 @@ body.travelling { overflow: hidden; }
 .dock-tooltip::after{content:'';position:absolute;left:calc(50% - 6px);bottom:-6px;width:12px;height:12px;background:rgba(255,255,255,.93);transform:rotate(45deg);border-radius:0 0 3px 0}
 @media(min-width:701px){.menu-bar nav{margin-left:8px}}
 @media(max-width:700px){.menu-bar nav{position:absolute;left:12px;top:40px;margin:0}}
+@media(max-width:700px){
+ #icons{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ .desktop-icon .app-icon,#dock button .app-icon{width:60px;height:60px;flex:0 0 60px;border-radius:16px}
+ .mobile-ios-icon{color:white;display:grid;place-items:center;box-shadow:inset 0 1px 1px #ffffff60,0 4px 9px #091b4129}
+ .mobile-ios-icon svg{width:60px;height:60px}
+ #dock{padding:16px 12px;border-radius:32px;gap:12px;background:#ffffff33;backdrop-filter:blur(12px);bottom:max(16px,env(safe-area-inset-bottom));overflow:visible}
+ #dock button{min-width:60px;min-height:82px;padding:0;gap:8px}
+ #dock button>span:last-child{font-size:12px;line-height:16px;width:64px}
+ #dock .icon-calendar{grid-template-rows:20px 1fr}#dock .icon-calendar small{font-size:12px;line-height:20px}#dock .icon-calendar b{font-size:28px}
+ #dock .hammer-tool{width:60px;background:transparent;box-shadow:none;backdrop-filter:none}
+ #dock .hammer-tool img{width:60px;height:60px;object-fit:cover;background:white;border-radius:16px;clip-path:none}
+ .mobile-program-folder{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3px;padding:7px;background:#ffffff55;border:1px solid #ffffff70}
+ .mobile-program-folder img{width:100%;height:100%;object-fit:contain;border-radius:4px}
+}
