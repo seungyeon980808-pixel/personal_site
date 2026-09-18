@@ -178,3 +178,6 @@ User selected ios as default mobile preview icon direction; comparison query var
 
 ### Production mobile integration — 2026-09-18
 Apply selected iOS symbol geometry and60px mobile Dock sizing to the existing live application. Keep pages.js horizontal paging, playful.js greeting spring/training throwing, device unlock, auth, private folders, search, calendar and all resource routes intact; no replacement static preview app. Program folder miniature icons consume actual public program assets. Desktop rendering unchanged. Hammer fills its60px white tile on mobile.
+
+### 모바일 화면 높이 보정
+모바일 작업실은 100dvh 안에서 상단 여백, 홈 페이지, 페이지 선택점, Dock 여백을 배분한다. 홈 페이지가 남은 높이를 사용하며 내용은 각 페이지 내부에서 스크롤한다. 기기 비율, 모션, Dock 아이콘 크기와 좌우 넘기기를 보존한다.

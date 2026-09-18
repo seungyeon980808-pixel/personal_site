@@ -108,3 +108,11 @@ test('camera keeps moving across the lift-to-zoom boundary',async({page})=>{
 });
 
 test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('studio-welcome-v1','done'));});
+
+test('mobile workspace fits the viewport instead of growing below its Dock',async({page})=>{
+ for(const size of [{width:390,height:844},{width:375,height:667},{width:430,height:932}]){
+  await page.setViewportSize(size);await page.goto('/?entrance=closed');await page.locator('#entrance[data-ready="true"]').waitFor();await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();
+  const geometry=await page.locator('#desktop').evaluate(e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height,viewportWidth:innerWidth,viewportHeight:innerHeight,bodyHeight:document.body.scrollHeight}));
+  expect(geometry.width).toBe(geometry.viewportWidth);expect(geometry.height).toBe(geometry.viewportHeight);expect(geometry.bodyHeight).toBe(geometry.viewportHeight);
+ }
+});

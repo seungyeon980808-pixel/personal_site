@@ -126,3 +126,10 @@
  .phone-ground-shadow{display:block;position:absolute;left:50%;top:calc(50% + min(94vw,380px,48dvh)*.40);width:min(74vw,300px,38dvh);height:14px;transform:translateX(-50%);background:radial-gradient(ellipse,#0002,transparent 70%);filter:blur(5px);pointer-events:none;transition:opacity 300ms}
  #entrance:not([data-phase="closed"]) .phone-ground-shadow{opacity:0}
 }
+
+/* Fit the live workspace; only each home page may scroll. */
+@media(max-width:700px){
+ #desktop{height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ #desktop .desktop-layout{flex:1;min-height:0;height:auto}
+ #desktop .mobile-pages{flex:0 0 28px}
+}
