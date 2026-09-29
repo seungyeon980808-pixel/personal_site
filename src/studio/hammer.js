@@ -1,6 +1,6 @@
 import {exitDesktop} from './entrance.js';
 export function initHammer(){
- const asset='/assets/about/hammer-cutout.png';
+ const asset='/assets/about/hammer-cutout.webp';
  const tool=document.createElement('button');tool.className='hammer-tool';tool.setAttribute('aria-label','망치 모드 · 더블클릭으로 시작');tool.innerHTML=`<span class="app-icon"><img src="${asset}" alt=""></span><span>망치</span>`;document.querySelector('#dock').prepend(tool);
  const sync=()=>{const hide=!document.querySelector('#entrance').hidden||!document.querySelector('#welcome').hidden||document.querySelector('#workspace-window').open;tool.disabled=hide;};new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
  const cursor=document.createElement('img');cursor.src=asset;cursor.alt='';cursor.className='hammer-cursor';cursor.hidden=true;document.body.append(cursor);
