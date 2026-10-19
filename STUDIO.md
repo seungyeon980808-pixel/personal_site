@@ -80,3 +80,15 @@ npm run preview:studio
 - Firestore 인덱스가 준비된 뒤 보안 규칙과 클라이언트를 함께 배포합니다. 기존 도메인과 GitHub Pages main 루트 배포를 유지합니다.
 - `_config.yml`은 개발 문서·테스트·도구의 Pages 게시를 제외합니다. 승인된 시안 링크와 사용 중인 정적 자산은 유지합니다.
 - 화면 비율·기기 소재·모션은 유지합니다. 최소화 복원 시 작성 내용 보존, Dock 망치 공간 유지, 모바일 노치와 메뉴 충돌 방지, 관리자 편집 중 물리 아이콘의 입력 방해 방지를 포함합니다.
+
+### 2026-10-20 성능·모바일 하단·아이콘 다듬기 (`improve/mobile-perf-icons`)
+- 입구(`prototypes/device-unlock.html`)는 보이는 기기의 iframe만 먼저 불러오고, 그 입구가 준비되면 한가할 때 다른 기기를 불러온다(`data-src`). 휴대폰 첫 화면 4.2MB → 2.5MB.
+- 대기 중 반복 그리기를 없앴다: 노치 친구는 CSS 애니메이션(`notch.css` 끝, 속도·시작 위치는 `notch.js`가 변수로), '연수 자료'는 날다가 제자리(독 위 왼쪽, 끌어다 놓으면 그 자리)로 앉고, 스프링 감쇠 .45 → .9. 둘 다 멈추면 rAF를 요청하지 않고 잡기·던지기·크기 변경 때 다시 깨운다.
+- 로그인 SDK는 이 브라우저에서 관리자로 로그인한 적이 있을 때(`localStorage studio-admin-hint`)나 `?admin`일 때만 시작 시 복원한다. 설정 창을 열면 그때 받는다.
+- 전체화면 요청은 1.2초, 입구 그림 준비 대기는 3초 상한(브라우저가 답하지 않아 'zooming'에서 멈추던 문제).
+- 모바일 하단: `viewport-fit=cover`, 입구 페이지가 안전 여백을 재서 iframe에 `--safe-top/--safe-bottom`으로 넘김, 들어가 있는 동안 브라우저 막대 뒤 색을 배경화면 아래쪽 색 `#979085`로(`chrome.js`, 입구 페이지의 `tint`). 독은 이름표 없이 86px.
+- 실제 터치 휴대폰(`hover:none`·`pointer:coarse`)에서는 가짜 다이내믹 아일랜드를 숨긴다.
+- 이번 값은 `src/studio/polish.css`(빌드 목록 맨 끝)에 모았다. 아이콘 모서리는 모두 22.5%.
+- 망치 원본(`hammer-cutout.webp`)은 체크무늬가 그림으로 박혀 있다. `tools/hammer-alpha.mjs`로 만든 `hammer-alpha.webp`(커서)·`hammer-alpha-192.webp`(독)를 쓴다.
+- 공유 미리보기 `assets/og-site.jpg`(입구 화면), 홈 화면 아이콘 `assets/about/apple-touch-icon.png`, 파비콘 PNG 32·192.
+- 기존 실패 검사 4개(달력 날짜 고정 3, 기록 1)는 이번 변경 전부터 실패한다.

@@ -49,7 +49,7 @@ function flightTransform(){
 async function requestDeviceFullscreen(){
  if(window.frameElement?.closest('.device')&&!document.fullscreenElement&&!window.parent.document.fullscreenElement){
   fullscreenTransition=true;
-  try{await window.parent.document.documentElement.requestFullscreen();await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
+  try{await Promise.race([window.parent.document.documentElement.requestFullscreen(),new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(Error('timeout'),{name:'TimeoutError'})),1200))]);await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
  }
 }
 async function mobileTransition(inside,token){
@@ -151,7 +151,7 @@ export async function exitDesktop(){
 }
 export function initEntrance(){
  layoutEntrance();
- imagesReady=Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
+ imagesReady=Promise.race([Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,3000))]).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
  $('#enter').onclick=enterDesktop;$('#return').onclick=exitDesktop;
  let entered=false;try{entered=sessionStorage.getItem('studio-entered')==='1';}catch{entered=false;}
  if(entered&&new URLSearchParams(location.search).get('entrance')!=='closed'){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();

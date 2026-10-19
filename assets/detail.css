@@ -49,7 +49,7 @@ body { transition: background-color 0.4s var(--ease), color 0.4s var(--ease); }
 
 /* Theme toggle (fixed) */
 .theme-toggle {
-  position: fixed; right: 18px; bottom: 18px; z-index: 50;
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 50;
   width: 44px; height: 44px; border-radius: 50%;
   border: 1px solid var(--divider); background: var(--surface); color: var(--text);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -1585,3 +1585,10 @@ body.edit-mode [data-editable]:focus { outline: 2px solid var(--main); backgroun
 :root[data-embedded="true"] #themeToggle,
 :root[data-embedded="true"] #adminBtn,
 :root[data-embedded="true"] .topbar { display: none !important; }
+
+/* 2026-10-20: 모바일에서 오른쪽 아래 테마 버튼이 맨 아래 글(게으른 교사 · 2026)을 덮지 않게 바닥 여백을 둔다 */
+@media (max-width: 720px) {
+  .detail-foot { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+}
+/* 상세 페이지 아이콘도 작업실과 같은 모서리 비율(22.5%) — 각진 바탕 로고가 섞여도 모양이 같다 */
+.detail-icon { border-radius: 22.5%; }

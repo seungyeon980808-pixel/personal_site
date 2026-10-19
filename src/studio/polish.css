@@ -1,0 +1,30 @@
+/* ===== 2026-10-20 다듬기: 모바일 하단 · 아이콘 비율 =====
+   앞 파일들의 겹친 규칙을 고치지 않고, 이번에 정한 값만 마지막에 덮어쓴다. */
+
+/* 안전 여백: 맨 위 창에서는 env(), 입구 페이지 iframe 안에서는 바깥이 재서 --safe-* 로 넣어 준다 */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+
+@media(max-width:700px){
+ /* iOS 독처럼 이름표 없이 아이콘만 — 이름은 화면 읽기용으로 남긴다. 독 높이 118 → 84px */
+ #desktop #dock{bottom:calc(12px + var(--safe-bottom));padding:12px 14px;gap:14px;border-radius:30px}
+ #desktop #dock button{min-height:60px;gap:0}
+ #desktop #dock button>span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ /* 독이 낮아진 만큼 홈 화면을 아래로 늘리고, 홈 막대·브라우저 막대 위로 여백을 둔다 */
+ #desktop{padding-top:calc(64px + var(--safe-top));padding-bottom:calc(112px + var(--safe-bottom))}
+ #desktop .menu-bar{top:var(--safe-top)}
+ #desktop .mobile-pages{margin-top:4px}
+}
+
+/* 진짜 휴대폰에서는 기기에 실제 다이내믹 아일랜드·노치가 있으므로 화면 속 가짜 아일랜드를 그리지 않는다
+   (컴퓨터에서 보는 휴대폰 미리보기에서는 그대로 보인다) */
+@media(max-width:700px) and (hover:none) and (pointer:coarse){.desktop-notch.phone-notch{display:none!important}}
+
+/* 아이콘: 크기와 상관없이 같은 모서리 비율(iOS 앱 아이콘 22.5%) */
+.app-icon:not(.icon-folder){border-radius:22.5%!important}
+/* 밝은 바탕 로고(DocFinder 등)가 배경에 녹지 않도록 아주 옅은 테두리 */
+img.app-icon{outline:1px solid #1020301a;outline-offset:-1px}
+
+/* 망치: 체크무늬가 박힌 사진 대신 진짜 투명 이미지 → 가위질(clip-path) 없이 흰 타일 가운데 88% 크기로 */
+.hammer-tool img,.hammer-cursor{clip-path:none!important}
+#dock .hammer-tool .app-icon{background:linear-gradient(160deg,#ffffff,#eef2f6)}
+#desktop #dock .hammer-tool img,#dock .hammer-tool img{width:88%!important;height:88%!important;object-fit:contain!important;border-radius:0!important;background:transparent!important;padding:0}

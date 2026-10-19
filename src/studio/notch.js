@@ -12,23 +12,26 @@ export function initNotch(){
   });
  }
  function sync(){desktop.hidden=!entrance.hidden;desktop.classList.toggle('phone-notch',matchMedia('(max-width:700px)').matches);}
- const reduced=matchMedia('(prefers-reduced-motion:reduce)'),welcome=document.querySelector('#welcome');
- let last=0,raf=0,width=0,height=0;
+ const welcome=document.querySelector('#welcome');
+ let width=0,height=0;
  new ResizeObserver(entries=>{const box=entries[0].contentRect;width=box.width-18;height=box.height-16;wake();}).observe(desktop);
- function tick(now){raf=0;if(document.hidden||desktop.hidden||!welcome.hidden||width<=0||height<=0)return;
-  const dt=Math.min(.04,(now-last)/1000);last=now;
-  const w=width,h=height;
-  for(const p of particles){if(p.container!==desktop||p.button.hidden||p.button.disabled)continue;
-   if(!reduced.matches){p.x+=p.vx*dt*pace;p.y+=p.vy*dt*pace;}
-   if(p.x<0||p.x>w){p.x=Math.max(0,Math.min(w,p.x));p.vx*=-1;}
-   if(p.y<0||p.y>h){p.y=Math.max(0,Math.min(h,p.y));p.vy*=-1;}
-   p.button.style.translate=p.x+'px '+p.y+'px';
+ // 노치 안 친구들의 튕기기는 CSS 애니메이션(가로·세로 왕복)으로 돌린다. 매 프레임 JS를 돌리지 않아 대기 중 메인 스레드가 쉰다.
+ // 같은 속도로 벽에 튕기는 움직임 = 가로·세로 각각의 등속 왕복이므로 이전 모습과 같다.
+ function place(){
+  if(width<=0||height<=0)return;
+  desktop.style.setProperty('--notch-w',width+'px');desktop.style.setProperty('--notch-h',height+'px');
+  for(const p of particles){if(p.container!==desktop)continue;
+   const x=Math.max(0,Math.min(width,p.x)),y=Math.max(0,Math.min(height,p.y));
+   const dx=width/(Math.abs(p.vx)*pace),dy=height/(Math.abs(p.vy)*pace);
+   const phase=(pos,size,dir,d)=>-(dir>0?pos/size*d:d+(size-pos)/size*d);
+   p.button.style.translate='';
+   p.button.style.setProperty('--dx',dx+'s');p.button.style.setProperty('--dy',dy+'s');
+   p.button.style.setProperty('--x0',x+'px');p.button.style.setProperty('--y0',y+'px');p.button.style.setProperty('--delay-x',phase(x,width,p.vx,dx)+'s');p.button.style.setProperty('--delay-y',phase(y,height,p.vy,dy)+'s');
   }
-  if(!reduced.matches)raf=requestAnimationFrame(tick);
  }
- function wake(){desktop.classList.toggle('notch-quiet',!welcome.hidden);if(raf)cancelAnimationFrame(raf);last=performance.now();raf=requestAnimationFrame(tick);}
+ function wake(){desktop.classList.toggle('notch-quiet',!welcome.hidden);place();}
  new MutationObserver(wake).observe(desktop,{attributes:true,attributeFilter:['hidden']});
  new MutationObserver(wake).observe(welcome,{attributes:true,attributeFilter:['hidden']});
- document.addEventListener('visibilitychange',wake);window.addEventListener('resize',wake);reduced.addEventListener('change',wake);wake();
+ window.addEventListener('resize',wake);wake();
  new MutationObserver(sync).observe(entrance,{attributes:true,attributeFilter:['hidden']});window.addEventListener('resize',sync);sync();
 }
