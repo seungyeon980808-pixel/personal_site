@@ -11,7 +11,7 @@ export function initNotch(){
    button.onclick=event=>{event.preventDefault();event.stopPropagation();if(gone.has(name))return;gone.add(name);document.querySelectorAll('[data-friend="'+name+'"]').forEach(item=>{item.classList.add('startled');item.disabled=true;setTimeout(()=>{item.hidden=true;},420);});};
   });
  }
- function sync(){desktop.hidden=!entrance.hidden;desktop.classList.toggle('phone-notch',matchMedia('(max-width:700px)').matches);}
+ function sync(){desktop.hidden=!entrance.hidden||matchMedia('(max-width:700px)').matches;desktop.classList.toggle('phone-notch',matchMedia('(max-width:700px)').matches);}
  const welcome=document.querySelector('#welcome');
  let width=0,height=0;
  new ResizeObserver(entries=>{const box=entries[0].contentRect;width=box.width-18;height=box.height-16;wake();}).observe(desktop);

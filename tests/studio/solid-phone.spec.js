@@ -28,8 +28,9 @@ test('solid phone rotates rigidly, enters live desktop, and reverses',async({pag
  await expect(page.locator('#entrance')).toBeHidden();
  await expect(page.locator('#desktop')).toHaveAttribute('data-solid-identity','same');
  await page.screenshot({path:'.omo/evidence/solid/inside.png'});
+ // 휴대폰 폭의 「프로그램」은 아이폰 폴더로 열린다
  await page.getByRole('button',{name:'만든 프로그램 폴더',exact:true}).click();
- await expect(page.locator('#workspace-window')).toBeVisible();await page.locator('#window-close').click();
+ await expect(page.locator('#phone-folder')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#phone-folder')).toBeHidden();
  await page.locator('#return').click();
  await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
  await page.screenshot({path:'.omo/evidence/solid/returned.png'});

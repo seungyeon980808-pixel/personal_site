@@ -95,3 +95,13 @@ npm run preview:studio
 - 휴대폰 일어서기: 누운 사진의 금속 옆면·밑면은 화면과 다른 면이라 화면 원근을 같이 받으면 아래 모서리가 휘었다. 밑면은 윗변이 화면 아랫변을 따라가며 두께가 앞 절반 안에 0이 되고(`phone-motion.js` baseFrames), 누운 사진·유리 바탕·밑면은 빠지며 같은 사진 속 '일어선 모습' 테두리(`assets/studio/phone-upright-frame.webp`, `tools/phone-upright-frame.mjs`로 생성, 안쪽은 검은 유리)가 화면 뒤에서 드러난다. 이전의 "일어선 테두리는 계속 숨김" 검사 2개는 이 동작에 맞춰 바꿨다.
 - 앱 안 브라우저(인스타·스레드·페북·카톡·네이버·라인·다음): `shell.html`·`device-unlock.html` 맨 앞에서 감지해 무거운 입구 대신 `/?entrance=inside&inapp=<앱>` 가벼운 모드로 보낸다. `inapp.js`가 위쪽에 「Safari/Chrome에서 열기」 띠를 띄워 앱별 방법(instagram://extbrowser, barcelona://extbrowser, kakaotalk://web/openExternal, 라인 openExternalBrowser, 안드로이드 intent, x-safari)을 시도하고 1.5초 안에 안 넘어가면 직접 여는 방법과 링크 복사를 보여 준다. 앱별 주소는 실제 앱에서 아직 확인하지 않았다(`tests/studio/inapp.spec.js`는 흉내 낸 브라우저 정보로 확인).
 - 미리보기 `https://www.psy.ai.kr/preview/`: `node tools/build-preview.mjs <main 작업 폴더>/preview` 로 브랜치의 방문자용 파일을 만들어 **main의 preview/ 폴더에만** 커밋·푸시한다(루트는 그대로). 루트 기준 주소(/assets/…, /?…, location.origin+'/')를 /preview/ 기준으로 바꾸고, 영상·시안 사진은 복사하지 않고 루트 파일을 쓴다. 모든 미리보기 페이지는 noindex. 지울 때는 main에서 preview/ 폴더를 삭제 커밋한다. 미리보기는 실제 데이터(Firestore)를 쓴다.
+
+### 2026-10-20 아이폰식 휴대폰 화면 (시안 `personal-site-compare/ios/` 승인 후 적용)
+- 휴대폰 폭(700px 이하)에서만 바뀐다. 데스크톱 화면·데이터·열리는 화면의 내용은 그대로이고, 감싸는 모양만 다르다.
+- 홈은 `src/studio/phone-home.js`가 같은 state로 그린다: 1쪽 캘린더 중간 위젯(오늘 + 최근 기록 3개)·메모 작은 위젯·앱 격자·「채널」 폴더, 2쪽 기록 위젯·채널 앱·(관리자) 비밀 폴더·바로가기. 기존 `#widgets`·`#icons`·페이지 점은 휴대폰에서 숨긴다.
+- 독 위 「검색」 알약, 독의 「프로그램」·1쪽 「채널」은 흐린 배경 위 유리 판 폴더(`#phone-folder`)로 연다. 프로그램 폴더에는 프로젝트·놀이터도 들어 있다.
+- 앱 화면(`#workspace-window`)은 화면 전체 + 큰 제목 + 왼쪽 위 둥근 ‹ (앞 화면이 있으면 ‹=뒤로, 오른쪽 위 ×=닫기) + 흰 묶음 목록. 목록 앱은 알약형 분야 선택. 스타일은 `src/studio/phone-ios.css`(빌드 목록 맨 끝).
+- 위 메뉴 줄은 없애고, 「휴대폰 내려놓기」만 오른쪽 위 자물쇠 유리 단추로 남겼다. 설정은 독의 「설정」 앱.
+- 휴대폰 폭에서는 스프링·날아다니는 아이콘·노치 친구를 끄고, 꾹 누르면 아이콘이 흔들린다(「완료」·빈 곳·Esc로 끝, 방문자는 아무것도 바뀌지 않음).
+- 노치: 진짜 휴대폰(hover:none·pointer:coarse)에서는 기기 노치가 있으므로 그리지 않고, 컴퓨터에서 보는 휴대폰 화면에서만 검은 알약을 홈·폴더·앱 화면 위에 그린다.
+- 바뀐 동작에 맞춰 휴대폰 검사 5개(mobile-performance·phone·screen·solid-phone·workspace 375)를 고쳤다.

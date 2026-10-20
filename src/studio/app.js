@@ -23,6 +23,7 @@ import {guestbook,contact} from './community.js';
 import {calendarView,renderCalendarWidget,changeWidgetMonth,resetWidgetMonth} from './calendar.js';
 import {initChromeTint} from './chrome.js';
 import {initInApp} from './inapp.js';
+import {initPhoneHome,renderPhoneHome} from './phone-home.js';
 let memoDrag,memoBoardObserver;
 const defaults=[['연수 자료','training','folder'],['공유 자료','shared','folder'],['추천 도구함','recommend','folder'],['자료 아카이브','archives','folder'],['방명록','guestbook','guestbook'],['연락하기','contact','message'],['인사드립니다','about','greeting']];
 const button=(label,view,kind,image='')=>`<button class="desktop-icon" data-route='${JSON.stringify({view})}' title="${e(label)}">${icon(kind,image)}<span>${e(label)}</span></button>`;
@@ -42,7 +43,7 @@ function render(){
  $('#draft-banner').hidden=!state.draft;renderMemos();
  $('#icons').innerHTML=defaults.map(([label,view,kind])=>button(label,view,kind)).join('')+(isAdmin()?button('비밀 폴더','private','folder'):'')+state.workspace.shortcuts.map(s=>`<a class="desktop-icon" href="${e(s.url)}" target="_blank" rel="noopener noreferrer">${icon(s.kind,e(s.image))}<span>${e(s.name)}</span></a>`).join('')+(state.editor?`<button class="shortcut-create" data-route='{"view":"addShortcut"}'>${svg('plus')}<strong>새 바로가기</strong><span>추가하기</span></button>`:'');
  const mobile=matchMedia('(max-width:700px)').matches,hammer=$('.hammer-tool');
- $('#dock').innerHTML=mobile?`<button data-route='{"view":"programs"}' aria-label="만든 프로그램 폴더" title="만든 프로그램"><span class="app-icon mobile-program-folder">${state.site.programs.slice(0,9).map(p=>`<img src="${e(p.icon)}" alt="">`).join('')}</span><span>프로그램</span></button><button data-route='{"view":"records"}' title="캘린더">${icon('calendar')}<span>캘린더</span></button><button id="edit" data-route='{"view":"settings"}' aria-label="설정" title="설정">${icon('settings')}<span>설정</span></button>`:`<button class="dock-launcher" data-route='{"view":"workflows"}' aria-label="진행 중인 프로젝트 폴더" title="진행 중인 프로젝트">${icon('folder')}<span>프로젝트</span></button>${state.site.programs.map(p=>`<button data-route='${e(JSON.stringify({view:'program',id:p.id}))}' aria-label="${e(p.label)}" title="${e(p.label)}">${icon('sheet',p.icon)}<span>${e(p.label)}</span></button>`).join('')}`;
+ $('#dock').innerHTML=mobile?`<button data-folder="programs" aria-label="만든 프로그램 폴더" title="만든 프로그램"><span class="app-icon mobile-program-folder">${state.site.programs.slice(0,9).map(p=>`<img src="${e(p.icon)}" alt="">`).join('')}</span><span>프로그램</span></button><button data-route='{"view":"records"}' title="캘린더">${icon('calendar').replace(/<small>[^<]*<\/small>/,`<small>${'일월화수목금토'[new Date().getDay()]}요일</small>`)}<span>캘린더</span></button><button id="edit" data-route='{"view":"settings"}' aria-label="설정" title="설정">${icon('settings')}<span>설정</span></button>`:`<button class="dock-launcher" data-route='{"view":"workflows"}' aria-label="진행 중인 프로젝트 폴더" title="진행 중인 프로젝트">${icon('folder')}<span>프로젝트</span></button>${state.site.programs.map(p=>`<button data-route='${e(JSON.stringify({view:'program',id:p.id}))}' aria-label="${e(p.label)}" title="${e(p.label)}">${icon('sheet',p.icon)}<span>${e(p.label)}</span></button>`).join('')}`;
  if(!mobile){
   $('#dock').insertAdjacentHTML('beforeend',(state.workspace.dockPrograms||[]).map(p=>`<a class="dock-channel" href="${e(p.url)}" target="_blank" rel="noopener noreferrer" aria-label="${e(p.name)}">${icon(p.kind,p.image)}<span>${e(p.name)}</span></a>`).join('')+(isAdmin()?`<button id="dock-add" class="admin-only" data-route='{"view":"admin","tab":"dockPrograms"}' aria-label="프로그램 추가">${icon('plus')}<span>프로그램 추가</span></button>`:''));
   $('#dock').querySelectorAll('[title]').forEach(item=>item.removeAttribute('title'));
@@ -51,6 +52,7 @@ function render(){
  if(!mobile)$('#dock').insertAdjacentHTML('beforeend',channels.length?`<span class="dock-divider" aria-hidden="true"></span>${channels.map(c=>`<a class="dock-channel" href="${e(c.url)}" target="_blank" rel="noopener noreferrer" aria-label="${e(c.id==='brunch'?'브런치':c.id==='threads'?'Threads':'GitHub')} 열기">${icon(c.id)}<span>${c.id==='brunch'?'브런치':c.id==='threads'?'Threads':'GitHub'}</span></a>`).join('')}`:'');
  if(hammer)$('#dock').prepend(hammer);
  renderMobileIcons();
+ if(mobile)renderPhoneHome();
  renderCalendarWidget();
 }
 function route(r){
@@ -79,6 +81,7 @@ refresh().then(async ok=>{if(!ok){toast('저장된 공개 내용으로 표시하
 
 initWelcome();
 
+initPhoneHome();
 initNotch();
 initChromeTint();
 initInApp();

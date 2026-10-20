@@ -8,7 +8,8 @@ test('phone enters fullscreen and closes without losing its entry',async({page})
  await expect(phone.locator('#entrance')).toBeHidden();
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBe(true);
  await phone.getByRole('button',{name:'넘어가기',exact:true}).click();
- await expect(phone.locator('.playful-training')).toBeVisible();
+ // 휴대폰 폭은 아이폰식 홈(떠다니는 아이콘 없음)
+ await expect(phone.locator('#phone-home')).toBeVisible();await expect(phone.locator('.playful-training')).toBeHidden();
  await phone.locator('#return').click();
  await expect(phone.locator('#entrance')).toHaveAttribute('data-phase','closed');
 });

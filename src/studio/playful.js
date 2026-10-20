@@ -27,7 +27,7 @@ export function initPlayful(){
  }
  bind(about,spring,'about');bind(training,fly,'training');
  bounds();window.addEventListener('resize',()=>{wire.resize();bounds();wake();});
- function sync(){const entry=document.querySelector('#entrance'),welcome=document.querySelector('#welcome');const hide=state.editor||!entry.hidden||(!welcome.hidden)||document.querySelector('#workspace-window').open;if(layer.hidden!==hide){layer.hidden=hide;wake();}document.body.classList.toggle('playful-ready',entry.hidden&&!state.editor);}
+ function sync(){const entry=document.querySelector('#entrance'),welcome=document.querySelector('#welcome');const hide=state.editor||!entry.hidden||(!welcome.hidden)||document.querySelector('#workspace-window').open||matchMedia('(max-width:700px)').matches;if(layer.hidden!==hide){layer.hidden=hide;wake();}document.body.classList.toggle('playful-ready',entry.hidden&&!state.editor);}
  document.addEventListener('studio:change',sync);
  new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','open']});sync();
  function tick(now){raf=0;if(layer.hidden||document.hidden)return;const dt=Math.min(.02,(now-last)/1000);last=now;

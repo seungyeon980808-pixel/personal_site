@@ -60,14 +60,14 @@ test('live screen is present at rest and touch paging preserves its page on retu
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:330,y:450}]});
  for(let x=300;x>=60;x-=30){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:450}]});await page.waitForTimeout(16);}
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- await expect(page.getByLabel('자료와 바로가기 화면',{exact:true})).toHaveAttribute('aria-current','true');
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(1);
  expect(await page.locator('#dock').boundingBox()).toEqual(dock);
  await page.locator('#return').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
  await expect(page.locator('.phone-rest-photo .screen-viewport #desktop')).toHaveCount(1);
  await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();
- await expect(page.getByLabel('자료와 바로가기 화면',{exact:true})).toHaveAttribute('aria-current','true');
- await page.getByLabel('캘린더와 메모 화면',{exact:true}).click();
- await expect(page.getByLabel('캘린더와 메모 화면',{exact:true})).toHaveAttribute('aria-current','true');
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(1);
+ await page.locator('#phone-home .ph-pages').evaluate(e=>e.scrollTo({left:0}));
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(0);
 });
 
 test('hardware and live glass follow the same angle throughout lifting',async({page})=>{
