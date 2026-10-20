@@ -1,0 +1,17 @@
+:root[data-icon-style] .icon[data-symbol]{width:60px;height:60px;border:0;border-radius:16px;color:#fff;overflow:visible;box-shadow:none;background:none}
+:root[data-icon-style] .icon[data-symbol] svg{width:60px;height:60px;display:block;overflow:visible}
+:root[data-icon-style="ios"] .icon[data-symbol]{background:linear-gradient(155deg,var(--variant-top),var(--variant-bottom));box-shadow:inset 0 1px 1px #ffffff60,0 4px 9px #091b4129}
+:root[data-icon-style="ios"] .icon[data-symbol="star"]{color:#fffdf2}
+:root[data-icon-style="ios"] .icon[data-symbol="settings"]{color:#f5f7fa}
+:root[data-icon-style="glass"] .icon[data-symbol]{color:#f5ffff;background:linear-gradient(145deg,#ffffff58,#defaff13 48%,#d4efff36);border:1px solid #ffffffa6;box-shadow:inset 0 1px 1px #fff9,inset 0 -1px 2px #b4e6ff80,0 5px 12px #03244728;backdrop-filter:blur(10px) saturate(135%)}
+:root[data-icon-style="glass"] .icon[data-symbol] svg{width:54px;height:54px;filter:drop-shadow(0 1px 1px #07344870)}
+:root[data-icon-style="glass"] .folder-icon{background:linear-gradient(145deg,#ffffff58,#defaff13 48%,#d4efff36);border-color:#ffffffa6;box-shadow:inset 0 1px 1px #fff9,0 5px 12px #03244728}
+:root[data-icon-style="mono"] .icon[data-symbol]{background:#f5f0e5;color:#282c2e;box-shadow:0 4px 8px #07192926}
+:root[data-icon-style="mono"] .icon[data-symbol="star"],:root[data-icon-style="mono"] .icon[data-symbol="note"],:root[data-icon-style="mono"] .icon[data-symbol="guestbook"],:root[data-icon-style="mono"] .icon[data-symbol="settings"]{background:#282c2e;color:#f5f0e5}
+:root[data-icon-style="mono"] .folder-icon{background:#f5f0e5d9;border-color:#f5f0e580;box-shadow:0 4px 8px #07192926}
+:root[data-icon-style="object"] .icon[data-symbol]{background:transparent;border-radius:0;filter:drop-shadow(0 5px 3px #07224045)}
+:root[data-icon-style="object"] .folder-icon{background:linear-gradient(145deg,#eaf4f49c,#9eb6bd5c);border-color:#effaff8c;box-shadow:inset 0 1px 1px #ffffff80,0 5px 12px #152d4630}
+:root[data-icon-style="color"] .icon[data-symbol]{background:#fff7e5;border-radius:15px;box-shadow:0 4px 0 #19203335}
+:root[data-icon-style="color"] .icon[data-symbol] svg{width:49px;height:49px}
+:root[data-icon-style="color"] .folder-icon{background:#fff7e5d9;border-color:#fff7e5;box-shadow:0 4px 0 #19203335}
+@media(prefers-reduced-transparency:reduce){:root[data-icon-style="glass"] .icon[data-symbol]{background:#5b8195;backdrop-filter:none}}
