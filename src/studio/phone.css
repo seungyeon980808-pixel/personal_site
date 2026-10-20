@@ -120,9 +120,9 @@
 }
 
 @media(max-width:700px){
- .phone-upright-shell{display:none!important}
+ /* 일어서는 동안에만 보인다(opacity 는 entrance.js 의 phoneShell 이 움직인다) */
  .phone-photo-base::after{display:none}
- .phone-rest-photo>img,.phone-rest-glass{opacity:1!important}
+ .phone-rest-photo>img,.phone-rest-glass{opacity:1}
  .phone-ground-shadow{display:block;position:absolute;left:50%;top:calc(50% + min(94vw,380px,48dvh)*.40);width:min(74vw,300px,38dvh);height:14px;transform:translateX(-50%);background:radial-gradient(ellipse,#0002,transparent 70%);filter:blur(5px);pointer-events:none;transition:opacity 300ms}
  #entrance:not([data-phase="closed"]) .phone-ground-shadow{opacity:0}
 }

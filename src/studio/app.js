@@ -22,6 +22,7 @@ import {initMenuBar} from './menu-bar.js';
 import {guestbook,contact} from './community.js';
 import {calendarView,renderCalendarWidget,changeWidgetMonth,resetWidgetMonth} from './calendar.js';
 import {initChromeTint} from './chrome.js';
+import {initInApp} from './inapp.js';
 let memoDrag,memoBoardObserver;
 const defaults=[['연수 자료','training','folder'],['공유 자료','shared','folder'],['추천 도구함','recommend','folder'],['자료 아카이브','archives','folder'],['방명록','guestbook','guestbook'],['연락하기','contact','message'],['인사드립니다','about','greeting']];
 const button=(label,view,kind,image='')=>`<button class="desktop-icon" data-route='${JSON.stringify({view})}' title="${e(label)}">${icon(kind,image)}<span>${e(label)}</span></button>`;
@@ -80,6 +81,7 @@ initWelcome();
 
 initNotch();
 initChromeTint();
+initInApp();
 
 initPlayful();
 initHammer();

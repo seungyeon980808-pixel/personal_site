@@ -15,6 +15,8 @@ export function initPlayful(){
  const spring={x:0,y:0,vx:40,vy:0},fly={x:100,y:150,vx:250,vy:180};
  let anchorX=0,anchorY=55,limits;
  function bounds(){const dock=document.querySelector('#dock').getBoundingClientRect();limits={left:8,right:Math.max(8,innerWidth-88),top:45,bottom:Math.max(100,(dock.top||innerHeight-100)-92)};anchorX=Math.max(100,innerWidth-(innerWidth>700?340:130));spring.x=anchorX;spring.y=190;}
+ // 처음 앉을 자리: 독 위 왼쪽. 위젯(달력·메모)이 아래까지 내려와 있으면 그 아래로 비켜 앉는다
+ function homeY(){const bottom=Math.max(0,...[...document.querySelectorAll('#widgets>*')].map(widget=>widget.getBoundingClientRect().bottom));const dock=document.querySelector('#dock').getBoundingClientRect().top||innerHeight-100;return Math.min(dock-106,Math.max(limits.bottom-48,bottom-6));}
  function bind(button,state,view){let drag,hover=false,skip=false,launched=0;
   button.onpointerenter=()=>hover=true;button.onpointerleave=()=>hover=false;
   state.hold=()=>!!drag||(view==='training'&&hover&&performance.now()>launched);
@@ -34,7 +36,7 @@ export function initPlayful(){
     if(!spring.hold()){const dx=spring.x-anchorX,dy=spring.y-anchorY,r=Math.hypot(dx,dy)||1,f=-40*(r-115);spring.vx+=(f*dx/r-.9*spring.vx)/2*dt;spring.vy+=((f*dy/r-.9*spring.vy)/2+290)*dt;spring.x+=spring.vx*dt;spring.y+=spring.vy*dt;}
     if(!fly.hold()){const drag=Math.exp(-.55*dt);fly.vx*=drag;fly.vy*=drag;
      // 느려지면 제자리(처음엔 독 위 왼쪽 빈 곳, 끌어다 놓으면 그 자리)로 미끄러져 앉는다
-     if(Math.hypot(fly.vx,fly.vy)<90){const hx=fly.homeX??limits.left+8,hy=fly.homeY??limits.bottom-48;fly.vx+=(14*(hx-fly.x)-7.5*fly.vx)*dt;fly.vy+=(14*(hy-fly.y)-7.5*fly.vy)*dt;if(Math.hypot(fly.vx,fly.vy)<3&&Math.hypot(hx-fly.x,hy-fly.y)<1){fly.x=hx;fly.y=hy;fly.vx=fly.vy=0;}}
+     if(Math.hypot(fly.vx,fly.vy)<90){const hx=fly.homeX??limits.left+8,hy=fly.homeY??homeY();fly.vx+=(14*(hx-fly.x)-7.5*fly.vx)*dt;fly.vy+=(14*(hy-fly.y)-7.5*fly.vy)*dt;if(Math.hypot(fly.vx,fly.vy)<3&&Math.hypot(hx-fly.x,hy-fly.y)<1){fly.x=hx;fly.y=hy;fly.vx=fly.vy=0;}}
      fly.x+=fly.vx*dt;fly.y+=fly.vy*dt;}
     for(const s of [spring,fly]){if(s.x<limits.left){s.x=limits.left;s.vx=Math.abs(s.vx);}if(s.x>limits.right){s.x=limits.right;s.vx=-Math.abs(s.vx);}if(s.y<limits.top){s.y=limits.top;s.vy=Math.abs(s.vy);}if(s.y>limits.bottom){s.y=limits.bottom;s.vy=-Math.abs(s.vy);}}
    }

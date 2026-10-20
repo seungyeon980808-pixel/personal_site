@@ -41,11 +41,11 @@ test('lowering starts from the same upright photo and thickness as lifting ends'
  await page.locator('#enter').click();await page.waitForFunction(()=>document.querySelector('#entrance').dataset.phase==='open',null,{polling:'raf'});
  const upright=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  const hardware=()=>page.evaluate(()=>['.phone-upright-shell','.phone-rest-photo>img','.phone-photo-base'].map(selector=>getComputedStyle(document.querySelector(selector)).display==='none'?'0':getComputedStyle(document.querySelector(selector)).opacity));
- expect(await hardware()).toEqual(['0','1','1']);
+ expect(await hardware()).toEqual(['1','0','0']);
  await expect(page.locator('#entrance')).toBeHidden();await page.locator('#return').click();
  const returnStart=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  for(let part=0;part<upright.length;part++)for(let cell=0;cell<16;cell++)expect(returnStart[part][cell]).toBeCloseTo(upright[part][cell],10);
- expect(await hardware()).toEqual(['0','1','1']);
+ expect(await hardware()).toEqual(['1','0','0']);
  await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
 });
 

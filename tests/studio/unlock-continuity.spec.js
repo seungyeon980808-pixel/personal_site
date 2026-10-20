@@ -30,8 +30,10 @@ test('unlock preview keeps one registered phone and hides the shortcut',async({p
  for(const time of [0,250,550,850,1100,1450]){
   await frame.evaluate(time=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=time;}),time);
   await page.screenshot({path:'.omo/evidence/unlock-continuity/phone-'+time+'.png'});
-  await expect(phone.locator('.phone-upright-shell')).toBeHidden();
-  expect(await phone.locator('.phone-rest-photo>img').evaluate(e=>getComputedStyle(e).opacity)).toBe('1');
+  // 처음엔 누운 사진, 일어선 끝에서는 같은 사진 속 '일어선 모습' 테두리로 바뀌어 있다(아래 모서리가 둥글게 이어지도록)
+  const [shell,photo]=await Promise.all([phone.locator('.phone-upright-shell').evaluate(e=>getComputedStyle(e).opacity),phone.locator('.phone-rest-photo>img').evaluate(e=>getComputedStyle(e).opacity)]);
+  if(time===0)expect([shell,photo]).toEqual(['0','1']);
+  if(time>=1100)expect([shell,photo]).toEqual(['1','0']);
  }
  await frame.evaluate(()=>document.getAnimations().forEach(a=>a.play()));
  await expect(phone.locator('#entrance')).toBeHidden();

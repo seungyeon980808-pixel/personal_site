@@ -1,6 +1,8 @@
 import {$} from './utils.js';
 
 const glassCorners=[[140,25],[477,25],[573,463],[52,463]];
+// 누운 사진에서 보이는 휴대폰 밑면(스피커·단자 면). 윗변은 화면 아랫변 바로 아래다.
+const chinTop=[[44,468],[584,468]],chinBottom=[[584,526],[44,526]];
 
 export function phonePhotoTarget(){
  const photo=$('.phone-rest-photo'),lid=$('#notebook-lid');
@@ -55,18 +57,33 @@ export function phoneFrames(target){
  const inverse=end.inverse(),scale=photo.width/628;
  const source=glassCorners.map(([x,y])=>[x*scale,y*scale]);
  const destination=source.map(([x,y])=>{const p=new DOMPoint(x,y).matrixTransform(end);return [p.x/p.w,p.y/p.w];});
- const photoFrames=[],shellFrames=[];
+ const photoFrames=[],shellFrames=[],baseFrames=[];
+ const chinSource=[...chinTop,...chinBottom].map(([x,y])=>[x*scale,y*scale]);
+ const apply=(matrix,[x,y])=>{const p=new DOMPoint(x,y).matrixTransform(matrix);return [p.x/p.w,p.y/p.w];};
  for(let i=0;i<=60;i++){
   const progress=i/60;
-  const corners=source.map(([x,y],index)=>[x+(destination[index][0]-x)*progress,y+(destination[index][1]-y)*progress]);
+  // 아랫변을 경첩처럼 바닥에 붙인 채 윗부분만 들리면 아래가 고정돼 보인다 → 일어서는 동안 전체가 살짝 떠올랐다 내려앉는다
+  const lift=-photo.height*.09*Math.sin(Math.PI*progress);
+  const corners=source.map(([x,y],index)=>[x+(destination[index][0]-x)*progress,y+(destination[index][1]-y)*progress+lift]);
   const matrix=new DOMMatrix(project(source,corners));
   photoFrames.push({offset:progress,transform:`translate(-50%,-50%) ${matrix.toString()}`,opacity:1});
   shellFrames.push({offset:progress,transform:offset.inverse().multiply(matrix).multiply(inverse).multiply(offset).toString()});
+  // 밑면: 윗변은 화면과 같은 변환을 따라가고(폭도 화면과 함께), 두께는 휴대폰이 일어설수록 0으로 준다.
+  // 화면 변환을 그대로 아래로 늘리면 밑면이 화면보다 넓게 벌어진 채 남아 '아래만 고정된' 것처럼 보였다.
+  const [left,right]=[chinSource[0],chinSource[1]].map(point=>apply(matrix,point));
+  const grow=Math.hypot(right[0]-left[0],right[1]-left[1])/(chinSource[1][0]-chinSource[0][0]);
+  const thick=(chinSource[2][1]-chinSource[1][1])*grow*Math.max(.002,1-progress/.5);
+  const chinTarget=[left,right,[right[0],right[1]+thick],[left[0],left[1]+thick]];
+  const base=matrix.inverse().multiply(new DOMMatrix(project(chinSource,chinTarget)));
+  // 같은 모양이라도 행렬 전체에 배율이 곱해져 있으면 브라우저가 보간한 값과 숫자가 달라진다 → 마지막 칸(m44)을 1로 맞춘다
+  const unit=DOMMatrix.fromFloat64Array(base.toFloat64Array().map(value=>value/base.m44));
+  baseFrames.push({offset:progress,transform:unit.toString()});
  }
  photoFrames[0].transform='translate(-50%,-50%)';
  photoFrames[60].transform=target;
  shellFrames[60].transform='none';
- return {photoFrames,shellFrames};
+ baseFrames[0].transform='none';
+ return {photoFrames,shellFrames,baseFrames};
 }
 
 export function phoneCameraFrames(rest){

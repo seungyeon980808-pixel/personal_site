@@ -92,3 +92,5 @@ npm run preview:studio
 - 망치 원본(`hammer-cutout.webp`)은 체크무늬가 그림으로 박혀 있다. `tools/hammer-alpha.mjs`로 만든 `hammer-alpha.webp`(커서)·`hammer-alpha-192.webp`(독)를 쓴다.
 - 공유 미리보기 `assets/og-site.jpg`(입구 화면), 홈 화면 아이콘 `assets/about/apple-touch-icon.png`, 파비콘 PNG 32·192.
 - 기존 실패 검사 4개(달력 날짜 고정 3, 기록 1)는 이번 변경 전부터 실패한다.
+- 휴대폰 일어서기: 누운 사진의 금속 옆면·밑면은 화면과 다른 면이라 화면 원근을 같이 받으면 아래 모서리가 휘었다. 밑면은 윗변이 화면 아랫변을 따라가며 두께가 앞 절반 안에 0이 되고(`phone-motion.js` baseFrames), 누운 사진·유리 바탕·밑면은 빠지며 같은 사진 속 '일어선 모습' 테두리(`assets/studio/phone-upright-frame.webp`, `tools/phone-upright-frame.mjs`로 생성, 안쪽은 검은 유리)가 화면 뒤에서 드러난다. 이전의 "일어선 테두리는 계속 숨김" 검사 2개는 이 동작에 맞춰 바꿨다.
+- 앱 안 브라우저(인스타·스레드·페북·카톡·네이버·라인·다음): `shell.html`·`device-unlock.html` 맨 앞에서 감지해 무거운 입구 대신 `/?entrance=inside&inapp=<앱>` 가벼운 모드로 보낸다. `inapp.js`가 위쪽에 「Safari/Chrome에서 열기」 띠를 띄워 앱별 방법(instagram://extbrowser, barcelona://extbrowser, kakaotalk://web/openExternal, 라인 openExternalBrowser, 안드로이드 intent, x-safari)을 시도하고 1.5초 안에 안 넘어가면 직접 여는 방법과 링크 복사를 보여 준다. 앱별 주소는 실제 앱에서 아직 확인하지 않았다(`tests/studio/inapp.spec.js`는 흉내 낸 브라우저 정보로 확인).
