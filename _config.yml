@@ -1,14 +1,12 @@
 # GitHub Pages serves the existing site without publishing development artifacts.
-# Keep the approved public library even though the docs exclusion matches its prefix.
-include:
-  - docsbox
 exclude:
   - node_modules
   - tests
   - test-results
   - playwright-report
   - tools
-  - docs
+  # Match the development docs directory without also excluding docsbox.
+  - docs/**
   - PRD
   - package.json
   - package-lock.json
