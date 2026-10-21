@@ -180,7 +180,9 @@
        가로폭을 거의 다 쓰고 높이는 영상 비율에 맡긴다(1280×722 가로 영상). */
     @media (max-width: 760px) {
       #introOverlay video { width: 94%; height: auto; max-height: 70%; }
-      #introCtl { right: 50%; transform: translateX(50%); bottom: 18px; }
+      /* right:50% 로 가운데에 두면 남은 폭이 반으로 줄어 버튼 글자가 두 줄로 깨졌다 → 양쪽을 열고 가운데 정렬 */
+      #introCtl { left: 16px; right: 16px; justify-content: center; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+      #introCtl button { white-space: nowrap; }
     }
   </style>
   <div id="introOverlay" hidden>

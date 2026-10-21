@@ -2,6 +2,7 @@ for (const frame of document.querySelectorAll('.device iframe')) {
   frame.addEventListener('load', () => {
     const doc = frame.contentDocument;
     const entrance = doc.querySelector('#entrance');
+    if (!entrance) return; // 늦게 불러오는 iframe의 빈 문서(about:blank)
     const screen = doc.querySelector('.screen-viewport');
     const stylesheet = doc.createElement('link');
     stylesheet.rel = 'stylesheet';

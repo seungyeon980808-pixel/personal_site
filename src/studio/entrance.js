@@ -29,9 +29,14 @@ function animate(element,keyframes,duration,easing=motion.ease){
  const animation=element.animate(keyframes,{duration,easing,fill:'forwards'});animations.push(animation);return animation.finished.catch(()=>{});
 }
 function phoneShell(standing,duration){
- $('.phone-upright-shell').style.display='none';
- for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass')])part.style.opacity='1';
- animate($('.phone-photo-base'),[{opacity:1},{opacity:1}],duration);
+ // 누운 사진의 금속 옆면·밑면은 화면과 다른 면이라 화면 원근을 같이 받으면 아래 모서리가 바깥으로 휘어진다.
+ // 일어서는 동안 누운 사진은 빼고, 같은 원근으로 따라오는 '일어선 사진의 테두리'로 바꿔 낀다.
+ const flip=frames=>frames.slice().reverse().map(frame=>({...frame,offset:1-frame.offset}));
+ // 테두리(안쪽은 검은 유리)는 화면 뒤에 깔려 먼저 나타나고, 그 위의 누운 사진·밑면·유리 바탕이 빠지면서 드러난다.
+ const showShell=[{opacity:0,offset:0},{opacity:0,offset:.06},{opacity:1,offset:.32},{opacity:1,offset:1}];
+ const hidePhoto=[{opacity:1,offset:0},{opacity:1,offset:.14},{opacity:0,offset:.5},{opacity:0,offset:1}];
+ animate($('.phone-upright-shell'),standing?showShell:flip(showShell),duration);
+ for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,standing?hidePhoto:flip(hidePhoto),duration);
 }
 function cancelAnimations(){for(const animation of animations)animation.cancel();animations=[];}
 function settle(inside){
@@ -49,7 +54,7 @@ function flightTransform(){
 async function requestDeviceFullscreen(){
  if(window.frameElement?.closest('.device')&&!document.fullscreenElement&&!window.parent.document.fullscreenElement){
   fullscreenTransition=true;
-  try{await window.parent.document.documentElement.requestFullscreen();await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
+  try{await Promise.race([window.parent.document.documentElement.requestFullscreen(),new Promise((_,reject)=>setTimeout(()=>reject(Object.assign(Error('timeout'),{name:'TimeoutError'})),1200))]);await new Promise(resolve=>{let timer;const done=()=>{clearTimeout(timer);timer=setTimeout(()=>{window.parent.removeEventListener('resize',done);resolve();},180);};window.parent.addEventListener('resize',done);done();});resizeScreen();}catch(error){console.info('전체화면 전환 불가:',error.name);}finally{if(!window.parent.document.fullscreenElement)fullscreenTransition=false;}
  }
 }
 async function mobileTransition(inside,token){
@@ -62,8 +67,9 @@ async function mobileTransition(inside,token){
   animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],0);
   animate($('.phone-rest-photo'),[phonePath.photoFrames.at(-1),phonePath.photoFrames.at(-1)].map(({transform})=>({transform})),0);
   animate($('.phone-upright-shell'),[{transform:'none',opacity:1},{transform:'none',opacity:1}],0);
-  animate($('.phone-photo-base'),[{opacity:1},{opacity:1}],0);
-  animate($('.phone-photo-base'),[{transform:'scaleY(0)'},{transform:'scaleY(0)'}],0);
+  // 내려놓기 직전은 들어 올린 끝 모습 그대로: 일어선 테두리만 보이고 누운 사진은 숨어 있다
+  for(const part of [$('.phone-rest-photo>img'),$('.phone-rest-glass'),$('.phone-photo-base')])animate(part,[{opacity:0},{opacity:0}],0);
+  animate($('.phone-photo-base'),[phonePath.baseFrames.at(-1),phonePath.baseFrames.at(-1)].map(({transform})=>({transform})),0);
   animate($('.screen-notch'),[{opacity:0},{opacity:1}],700);
   await animate($('#notebook-lid'),[{transform:lidOpen},{transform:lidOpen}],700);
   if(token!==sequence)return;
@@ -71,7 +77,7 @@ async function mobileTransition(inside,token){
  phoneShell(inside,1100);
  animate($('.phone-upright-shell'),inside?phonePath.shellFrames:reverse(phonePath.shellFrames),1100);
  animate($('.phone-rest-photo'),inside?phonePath.photoFrames:reverse(phonePath.photoFrames),1100);
- animate($('.phone-photo-base'),inside?[{transform:'scaleY(1)'},{transform:'scaleY(0)'}]:[{transform:'scaleY(0)'},{transform:'scaleY(1)'}],1100);
+ animate($('.phone-photo-base'),inside?phonePath.baseFrames:reverse(phonePath.baseFrames),1100);
  animate($('.entrance-copy'),inside?[{opacity:1},{opacity:1,offset:.25},{opacity:0}]:[{opacity:0},{opacity:0,offset:.65},{opacity:1}],1100);
  await animate($('#notebook-lid'),inside?[{transform:lidClosed()},{transform:lidOpen}]:[{transform:lidOpen},{transform:lidClosed()}],1100);
  if(token!==sequence)return;
@@ -151,10 +157,10 @@ export async function exitDesktop(){
 }
 export function initEntrance(){
  layoutEntrance();
- imagesReady=Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
+ imagesReady=Promise.race([Promise.all([...document.querySelectorAll('.device-frame img')].map(img=>img.decode().catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,3000))]).then(()=>{layoutEntrance();$('#entrance').dataset.ready='true';});
  $('#enter').onclick=enterDesktop;$('#return').onclick=exitDesktop;
  let entered=false;try{entered=sessionStorage.getItem('studio-entered')==='1';}catch{entered=false;}
- if(entered&&new URLSearchParams(location.search).get('entrance')!=='closed'){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
+ if(new URLSearchParams(location.search).get('entrance')==='inside'||entered&&new URLSearchParams(location.search).get('entrance')!=='closed'){intent='inside';$('#entrance').hidden=true;releaseDesktop();}else mountDesktop();
  window.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#entrance').hidden&&intent==='inside'){event.preventDefault();settle(false);}});
  window.addEventListener('resize',()=>{if(fullscreenTransition)return;if(animations.length)settle(intent==='inside');layoutEntrance();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&animations.length)settle(intent==='inside');});

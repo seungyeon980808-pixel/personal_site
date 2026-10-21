@@ -1,4 +1,7 @@
 <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ExamPool 아이콘 — 미색 시험지가 물에 떠다니고 한 장이 다이빙하는 모습">
+  <!-- 다른 로고와 같은 모서리 비율(rx 20/96 ≈ 25/120)로 바탕을 둥글게 자른다 -->
+  <defs><clipPath id="ep-round"><rect width="120" height="120" rx="25"/></clipPath></defs>
+  <g clip-path="url(#ep-round)">
   <rect width="120" height="120" fill="#d8ecfd"/>
 
   <g transform="rotate(-11 38 72)">
@@ -29,4 +32,5 @@
   <circle cx="82" cy="76" r="4" fill="#bfe0fb"/>
   <circle cx="90" cy="70" r="2.8" fill="#bfe0fb"/>
   <circle cx="86" cy="66" r="2" fill="#eaf6ff"/>
+  </g>
 </svg>

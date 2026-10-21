@@ -51,9 +51,13 @@ export async function adminToken(){
  return user.getIdToken();
 }
 async function authSdk(){
- if(!sdk){sdk=(async()=>{const version='https://www.gstatic.com/firebasejs/12.14.0/';const [app,a]=await Promise.all([import(version+'firebase-app.js'),import(version+'firebase-auth.js')]);const auth=a.getAuth(app.initializeApp(config,'desktop'));await auth.authStateReady();user=auth.currentUser;a.onAuthStateChanged(auth,u=>{user=u;if(!isAdmin()&&state.editor)previewPublic();else notify();});return{a,auth};})();}
+ if(!sdk){sdk=(async()=>{const version='https://www.gstatic.com/firebasejs/12.14.0/';const [app,a]=await Promise.all([import(version+'firebase-app.js'),import(version+'firebase-auth.js')]);const auth=a.getAuth(app.initializeApp(config,'desktop'));await auth.authStateReady();user=auth.currentUser;rememberAdmin();a.onAuthStateChanged(auth,u=>{user=u;rememberAdmin();if(!isAdmin()&&state.editor)previewPublic();else notify();});return{a,auth};})();}
  return sdk;
 }
+// 방문자는 로그인 SDK를 받지 않는다. 이 브라우저에서 관리자로 로그인한 적이 있을 때만 시작할 때 복원한다.
+const adminHintKey='studio-admin-hint';
+function rememberAdmin(){try{isAdmin()?localStorage.setItem(adminHintKey,'1'):localStorage.removeItem(adminHintKey);}catch{}}
+export function hasAdminHint(){try{return localStorage.getItem(adminHintKey)==='1'||new URLSearchParams(location.search).has('admin');}catch{return false;}}
 export async function restoreAuth(){await authSdk();}
 export async function login(){const {a,auth}=await authSdk();const credential=await a.signInWithPopup(auth,new a.GoogleAuthProvider());user=credential.user;if(!isAdmin()){await a.signOut(auth);throw Error('등록된 관리자 계정으로 로그인해주세요.');}notify();}
 export async function logout(){const {a,auth}=await authSdk();await a.signOut(auth);user=null;previewPublic();}

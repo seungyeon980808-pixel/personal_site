@@ -41,11 +41,11 @@ test('lowering starts from the same upright photo and thickness as lifting ends'
  await page.locator('#enter').click();await page.waitForFunction(()=>document.querySelector('#entrance').dataset.phase==='open',null,{polling:'raf'});
  const upright=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  const hardware=()=>page.evaluate(()=>['.phone-upright-shell','.phone-rest-photo>img','.phone-photo-base'].map(selector=>getComputedStyle(document.querySelector(selector)).display==='none'?'0':getComputedStyle(document.querySelector(selector)).opacity));
- expect(await hardware()).toEqual(['0','1','1']);
+ expect(await hardware()).toEqual(['1','0','0']);
  await expect(page.locator('#entrance')).toBeHidden();await page.locator('#return').click();
  const returnStart=await page.evaluate(()=>['.phone-rest-photo','.phone-photo-base'].map(selector=>Array.from(new DOMMatrix(getComputedStyle(document.querySelector(selector)).transform).toFloat64Array())));
  for(let part=0;part<upright.length;part++)for(let cell=0;cell<16;cell++)expect(returnStart[part][cell]).toBeCloseTo(upright[part][cell],10);
- expect(await hardware()).toEqual(['0','1','1']);
+ expect(await hardware()).toEqual(['1','0','0']);
  await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
 });
 
@@ -60,14 +60,14 @@ test('live screen is present at rest and touch paging preserves its page on retu
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:330,y:450}]});
  for(let x=300;x>=60;x-=30){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:450}]});await page.waitForTimeout(16);}
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
- await expect(page.getByLabel('자료와 바로가기 화면',{exact:true})).toHaveAttribute('aria-current','true');
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(1);
  expect(await page.locator('#dock').boundingBox()).toEqual(dock);
  await page.locator('#return').click();await expect(page.locator('#entrance')).toHaveAttribute('data-phase','closed');
  await expect(page.locator('.phone-rest-photo .screen-viewport #desktop')).toHaveCount(1);
  await page.locator('#enter').click();await expect(page.locator('#entrance')).toBeHidden();
- await expect(page.getByLabel('자료와 바로가기 화면',{exact:true})).toHaveAttribute('aria-current','true');
- await page.getByLabel('캘린더와 메모 화면',{exact:true}).click();
- await expect(page.getByLabel('캘린더와 메모 화면',{exact:true})).toHaveAttribute('aria-current','true');
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(1);
+ await page.locator('#phone-home .ph-pages').evaluate(e=>e.scrollTo({left:0}));
+ await expect.poll(()=>page.locator('#phone-home .ph-pages').evaluate(e=>Math.round(e.scrollLeft/e.clientWidth))).toBe(0);
 });
 
 test('hardware and live glass follow the same angle throughout lifting',async({page})=>{

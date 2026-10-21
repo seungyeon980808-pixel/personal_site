@@ -40,9 +40,13 @@ test('non-owner login cannot access editing controls',async({page})=>{const writ
 for(const width of [375,768,1280])test(`responsive surfaces ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await page.emulateMedia({reducedMotion:'reduce'});await mock(page);
  await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/desktop-${width}.png`,fullPage:false});
- for(const name of [width===375?'만든 프로그램 폴더':'ExamPool','추천 도구함','연수 자료','공유 자료','인사드립니다']){await page.getByRole('button',{name,exact:true}).first().click();await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/${name}-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await close(page);}
+ for(const name of [width===375?'만든 프로그램 폴더':'ExamPool','추천 도구함','연수 자료','공유 자료','인사드립니다']){await page.getByRole('button',{name,exact:true}).first().click();
+  // 휴대폰 폭의 「프로그램」은 창이 아니라 아이폰 폴더로 열린다
+  if(name==='만든 프로그램 폴더'){await expect(page.locator('#phone-folder')).toBeVisible();await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/${name}-${width}.png`});expect(await page.locator('.ph-folder-panel').evaluate(el=>el.getBoundingClientRect().right<=innerWidth)).toBe(true);await page.keyboard.press('Escape');await expect(page.locator('#phone-folder')).toBeHidden();continue;}
+  await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/${name}-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await close(page);}
  if(width===375){await page.getByRole('button',{name:'캘린더',exact:true}).click();await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/records-${width}.png`});await close(page);}
- await manage(page);await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/admin-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ // 휴대폰 폭은 위 메뉴 줄 대신 독의 「설정」 앱이 같은 설정 화면을 연다
+ if(width===375)await page.locator('#dock').getByRole('button',{name:'설정',exact:true}).click();else await manage(page);await page.screenshot({animations:'disabled',path:`.omo/evidence/studio/admin-${width}.png`});expect(await page.locator('#window-body').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
 });
 test('reduced motion, physics pause and keyboard Escape',async({page})=>{await page.setViewportSize({width:375,height:812});await page.emulateMedia({reducedMotion:'reduce'});await mock(page);await page.getByRole('button',{name:'만든 프로그램 폴더',exact:true}).click();await page.getByRole('button',{name:'놀이터',exact:true}).click();await expect(page.getByRole('button',{name:'재생',exact:true})).toBeVisible();await page.getByRole('slider').fill('200');await expect(page.locator('#period')).toContainText('2.84');await page.keyboard.press('Escape');await expect(page.locator('#workspace-window')).not.toBeVisible();});
 

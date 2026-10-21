@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 test('integrated Mac enters fullscreen after login and shows first visit welcome',async({page})=>{
  await page.goto('/prototypes/device-unlock.html');
- await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href','/assets/about/hammer.webp');
+ await expect(page.locator('link[rel="icon"]').first()).toHaveAttribute('href','/assets/about/favicon-32.png');
  const mac=page.frameLocator('#desktop iframe');await mac.locator('#entrance[data-ready="true"]').waitFor();
  await page.locator('#desktop').evaluate(e=>Promise.all(e.getAnimations().map(animation=>animation.finished)));await mac.locator('#enter').click();
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBe(true);

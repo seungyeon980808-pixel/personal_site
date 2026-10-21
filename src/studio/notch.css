@@ -6,3 +6,10 @@
 
 .notch-friend img{animation:notch-hop 1.5s var(--beat) ease-in-out infinite}.notch-friend.startled img{animation:none}@media(prefers-reduced-motion:reduce){.notch-friend img{animation:none}}
 .desktop-notch{z-index:90}.playful-notch .notch-friend{position:absolute;left:10px;top:10px;width:18px;height:16px;display:grid;place-items:center}.playful-notch .notch-friend img{width:14.256px;height:11.016px;animation:none;object-fit:contain}.notch-quiet .notch-friend{visibility:hidden}.screen-notch .notch-friend{display:none}.notch-friend.startled{animation:notch-startled .42s ease-out both}
+
+/* 노치 친구들의 튕기기: 가로는 버튼, 세로는 그림이 각자 등속 왕복한다(notch.js가 속도·시작 위치를 변수로 넣는다) */
+.desktop-notch .notch-friend:not(.startled){pointer-events:none;animation:notch-x var(--dx,3s) var(--delay-x,0s) linear infinite alternate}
+.desktop-notch .notch-friend:not(.startled) img{pointer-events:auto;animation:notch-y var(--dy,2s) var(--delay-y,0s) linear infinite alternate}
+@keyframes notch-x{from{translate:0 0}to{translate:var(--notch-w,0px) 0}}
+@keyframes notch-y{from{translate:0 0}to{translate:0 var(--notch-h,0px)}}
+@media(prefers-reduced-motion:reduce){.desktop-notch .notch-friend:not(.startled){animation:none;translate:var(--x0,0px) 0}.desktop-notch .notch-friend:not(.startled) img{animation:none;translate:0 var(--y0,0px)}}

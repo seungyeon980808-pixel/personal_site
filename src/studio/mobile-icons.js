@@ -63,3 +63,9 @@ export function renderMobileIcons(){
   node.className='app-icon mobile-ios-icon';node.style.background=`linear-gradient(155deg,${colors[name][0]},${colors[name][1]})`;node.innerHTML=renderIcon(name,'ios');
  });
 }
+
+// 휴대폰 홈(phone-home.js)에서 쓰는 아이폰식 아이콘 한 칸: 색 바탕 + 흰 그림
+export function iosIcon(name,cls='ph-ic'){
+ const palette=colors[name]||colors.folder;
+ return `<span class="${cls}" style="background:linear-gradient(155deg,${palette[0]},${palette[1]})">${renderIcon(name,'ios')}</span>`;
+}
