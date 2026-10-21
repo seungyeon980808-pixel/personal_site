@@ -401,7 +401,7 @@ dialog .desk-head{padding:18px 22px 10px}
       <div class="desk">
         <div class="desk-head">
           <h2><svg class="icon"><use href="#i-lock"/></svg>내 번호를 누르세요</h2>
-          <span class="caption">선생님께 받은 6자리 번호예요</span>
+          <span class="caption">선생님께 받은 4자리 번호예요</span>
         </div>
         <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
         <div class="lock-msg" id="lockMsg">&nbsp;</div>
@@ -549,7 +549,7 @@ dialog .desk-head{padding:18px 22px 10px}
 const DEMO=new URLSearchParams(location.search).has('demo');
 const SDK='https://www.gstatic.com/firebasejs/12.14.0/';
 const firebaseConfig={apiKey:'AIzaSyAbHRNi10RttJNoLJCuxZQHucwp5Vttn90',authDomain:'edunote-96bd7.firebaseapp.com',projectId:'edunote-96bd7',storageBucket:'edunote-96bd7.firebasestorage.app',messagingSenderId:'769455023609',appId:'1:769455023609:web:3cdaa733ef3bf47aaa0928'};
-const CODE_LEN=6, SALT='sc-v1:';
+const CODE_LEN=4, SALT='sc-v1:';
 const ROOMS={council:{name:'학생회'},science:{name:'과학부장'}};
 const SITE='www.psy.ai.kr/sc';
 
@@ -576,7 +576,7 @@ const dlabel=s=>{ const d=fromIso(s); return `${d.getMonth()+1}월 ${d.getDate()
 const dshort=s=>{ const d=fromIso(s); return `${d.getMonth()+1}/${d.getDate()} (${W[d.getDay()]})` };
 const dayOf=t=>iso(new Date(t));
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-const newCode=used=>{ let c; do{ c=String(crypto.getRandomValues(new Uint32Array(1))[0]%900000+100000) }while(used.has(c)||/^(\d)\1+$/.test(c)||'0123456789'.includes(c)||'9876543210'.includes(c)); return c };
+const newCode=used=>{ let c; do{ c=String(crypto.getRandomValues(new Uint32Array(1))[0]%9000+1000) }while(used.has(c)||/^(\d)\1+$/.test(c)||'0123456789'.includes(c)||'9876543210'.includes(c)); return c };
 
 /* ---------- 상태 ---------- */
 const emptyRoom=()=>({notices:[],events:[],todos:[],polls:[],chat:[],dms:{}});
@@ -672,9 +672,9 @@ async function serverLogout(){
 /* ---------- 시안(?demo) ---------- */
 const demo=(()=>{
   const COUNCIL=['학생회장','3학년 학생부회장','2학년 학생부회장','서기']; ['문화','영상','질서지도','진행','홍보','기획'].forEach(d=>COUNCIL.push(d+'부장',d+'차장'));
-  const people=[{id:'t',name:'선생님',room:'all',role:'teacher',code:'000000'},
-    ...COUNCIL.map((n,i)=>({id:'c'+(i+1),name:n,room:'council',role:i===0?'leader':'student',code:String(100001+i)})),
-    ...Array.from({length:9},(_,i)=>({id:'s'+(i+1),name:'과학부장 '+'①②③④⑤⑥⑦⑧⑨'[i],room:'science',role:'student',code:String(200001+i)}))];
+  const people=[{id:'t',name:'선생님',room:'all',role:'teacher',code:'0000'},
+    ...COUNCIL.map((n,i)=>({id:'c'+(i+1),name:n,room:'council',role:i===0?'leader':'student',code:String(1001+i)})),
+    ...Array.from({length:9},(_,i)=>({id:'s'+(i+1),name:'과학부장 '+'①②③④⑤⑥⑦⑧⑨'[i],room:'science',role:'student',code:String(2001+i)}))];
   const seed=()=>({
     council:{
       notices:[{id:'1',pin:true,c:'amber',title:'축제 부스 신청은 금요일까지',body:'반별로 한 장씩 받아서 기획부에 내 주세요.\n신청서에 부스 이름, 담당 학생, 필요한 물품을 꼭 적어 주세요.',links:[{name:'부스 신청서',url:'https://forms.google.com'}],at:at(-1,9)},
@@ -714,7 +714,7 @@ const demo=(()=>{
 /* ---------- 로그인 화면 ---------- */
 $('#dots').innerHTML='<i></i>'.repeat(CODE_LEN);
 $('#pad').innerHTML=[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')+`<button class="fn" data-k="clear">${ic('i-x')}모두 지우기</button><button data-n="0">0</button><button class="fn" data-k="del">${ic('i-del')}지우기</button>`;
-if(DEMO) $('.demo').textContent='시안 모드 · 이 기기에만 저장 · 선생님 000000 · 학생회장 100001 · 홍보부장 100013 · 과학부장① 200001';
+if(DEMO) $('.demo').textContent='시안 모드 · 이 기기에만 저장 · 선생님 0000 · 학생회장 1001 · 홍보부장 1013 · 과학부장① 2001';
 else $('.demo').hidden=true;
 const dots=()=>[...$('#dots').children].forEach((d,i)=>d.classList.toggle('f',i<entry.length));
 const lockMsg=(h,err)=>{ $('#lockMsg').innerHTML=h; $('#lockMsg').classList.toggle('err',!!err) };
@@ -1079,7 +1079,7 @@ $('#printSlips').onclick=()=>{
   w.document.write(slipsHtml(list,ROOMS[room].name)); w.document.close(); setTimeout(()=>w.print(),400);
 };
 function slipsHtml(list,title){
-  const card=p=>`<div class="slip"><div class="top"><b>sc 소통 창구</b><span>${esc(title)}</span></div><div class="who">${esc(p.name)}</div><div class="code">${p.code.replace(/(\d{3})(\d{3})/,'$1 $2')}</div><div class="foot">${SITE} · 번호는 나만 알고 있기</div></div>`;
+  const card=p=>`<div class="slip"><div class="top"><b>sc 소통 창구</b><span>${esc(title)}</span></div><div class="who">${esc(p.name)}</div><div class="code">${p.code}</div><div class="foot">${SITE} · 번호는 나만 알고 있기</div></div>`;
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)} 번호 쪽지</title><style>
   @page{size:A4;margin:10mm}body{margin:0;font-family:"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#111}
   .grid{display:grid;grid-template-columns:repeat(3,1fr)}.slip{border:1px dashed #999;padding:4mm 5mm;height:32mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;break-inside:avoid}
