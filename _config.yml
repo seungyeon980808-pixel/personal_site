@@ -5,7 +5,7 @@ exclude:
   - test-results
   - playwright-report
   - tools
-  # Match the development docs directory without also excluding docsbox.
+  # Exclude only the development docs directory and its contents.
   - docs/**
   - PRD
   - package.json
