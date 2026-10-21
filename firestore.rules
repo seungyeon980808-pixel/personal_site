@@ -86,6 +86,109 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/comments/$(request.resource.data.commentId)).data.createdAt == request.time;
     }
 
+    // ---- 소통 창구 (/sc) ----
+    //  학생·선생님은 개인 번호로 들어온다. 번호는 저장하지 않고 해시만 문서 이름으로 쓴다.
+    //  익명 로그인한 기기가 sc-sessions/{uid} 에 "나는 이 해시의 주인" 이라고 적으면,
+    //  규칙이 sc-members/{해시} 와 맞춰 보고 그 뒤로 모든 읽기·쓰기를 이 세션으로 판단한다.
+    function scSessPath() { return /databases/$(database)/documents/sc-sessions/$(request.auth.uid); }
+    function scSess() { return get(scSessPath()).data; }
+    function scIn() {
+      return request.auth != null && exists(scSessPath())
+        && exists(/databases/$(database)/documents/sc-members/$(scSess().key));
+    }
+    function scMe() { return scSess().member; }
+    function scTeacher() { return scIn() && scSess().role == 'teacher'; }
+    function scInRoom(room) { return scIn() && (scSess().role == 'teacher' || scSess().room == room); }
+    function scLeader(room) { return scInRoom(room) && scSess().role == 'leader'; }
+    function scText(v, max) { return v is string && v.size() > 0 && v.size() <= max; }
+
+    match /sc-members/{key} {
+      allow get: if request.auth != null;
+      allow list: if false;
+      allow write: if scTeacher();
+    }
+    match /sc-sessions/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['member', 'key', 'room', 'role'])
+        && request.resource.data.key is string
+        && exists(/databases/$(database)/documents/sc-members/$(request.resource.data.key))
+        && get(/databases/$(database)/documents/sc-members/$(request.resource.data.key)).data.id == request.resource.data.member
+        && get(/databases/$(database)/documents/sc-members/$(request.resource.data.key)).data.room == request.resource.data.room
+        && get(/databases/$(database)/documents/sc-members/$(request.resource.data.key)).data.role == request.resource.data.role;
+    }
+    match /sc-admin/{docId} {
+      allow read, write: if scTeacher();
+    }
+    match /sc-directory/{room} {
+      allow read: if scInRoom(room);
+      allow write: if scTeacher();
+    }
+    match /sc-rooms/{room} {
+      match /notices/{id} { allow read: if scInRoom(room); allow write: if scTeacher(); }
+      match /events/{id}  { allow read: if scInRoom(room); allow write: if scTeacher(); }
+
+      match /chat/{id} {
+        allow read: if scInRoom(room);
+        allow create: if scTeacher() || (scInRoom(room)
+          && request.resource.data.keys().hasOnly(['from', 'text', 'at'])
+          && request.resource.data.from == scMe()
+          && scText(request.resource.data.text, 300)
+          && request.resource.data.at == request.time);
+        allow update, delete: if scTeacher();
+      }
+
+      // 1:1 — 학생 본인과 선생님만
+      match /dm/{id} {
+        allow read: if scTeacher() || (scInRoom(room) && resource.data.student == scMe());
+        allow create: if scTeacher() || (scInRoom(room)
+          && request.resource.data.keys().hasOnly(['student', 'from', 'text', 'at'])
+          && request.resource.data.student == scMe()
+          && request.resource.data.from == scMe()
+          && scText(request.resource.data.text, 300)
+          && request.resource.data.at == request.time);
+        allow update, delete: if scTeacher();
+      }
+
+      // 할 일 — 맡긴 일(private=false)은 방 전체, 내 체크리스트(private=true)는 본인만
+      match /todos/{id} {
+        allow read: if scInRoom(room) && (resource.data.private == false || resource.data.owner == scMe());
+        allow create: if scInRoom(room)
+          && request.resource.data.keys().hasOnly(['text', 'owner', 'private', 'by', 'due', 'doneBy', 'at'])
+          && scText(request.resource.data.text, 50)
+          && request.resource.data.private is bool
+          && request.resource.data.doneBy is map
+          && request.resource.data.by == scMe()
+          && (request.resource.data.private == true
+              ? request.resource.data.owner == scMe()
+              : (scTeacher() || scLeader(room)));
+        allow update: if scTeacher()
+          || (scInRoom(room)
+            && (resource.data.owner == null || resource.data.owner == scMe())
+            && (resource.data.private == false || resource.data.owner == scMe())
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['doneBy'])
+            && request.resource.data.doneBy.diff(resource.data.doneBy).affectedKeys().hasOnly([scMe()]));
+        allow delete: if scTeacher() || (scInRoom(room) && resource.data.by == scMe());
+      }
+
+      // 투표 — 학생은 자기 표 하나만 바꾼다
+      match /polls/{id} {
+        allow read: if scInRoom(room);
+        allow create, delete: if scTeacher();
+        allow update: if scTeacher()
+          || (scInRoom(room) && resource.data.closed == false
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+            && request.resource.data.votes.diff(resource.data.votes).affectedKeys().hasOnly([scMe()])
+            && request.resource.data.votes[scMe()] is int);
+      }
+
+      // 읽음 표시·새 공지 기준 시각 — 문서 이름이 곧 주인
+      match /seen/{memberId} {
+        allow read: if scInRoom(room);
+        allow write: if scInRoom(room) && memberId == scMe();
+      }
+    }
+
     // ---- 그 외 전부 차단 ----
     match /{document=**} {
       allow read, write: if false;
