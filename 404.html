@@ -4,6 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Page Not Found</title>
+    <script>
+      // /upload/<주소 이름> 은 파일 수합 제출 화면으로 보여 준다(주소는 그대로 둠).
+      (function () {
+        if (!/^\/upload\/[^/]+\/?$/.test(location.pathname)) return;
+        document.documentElement.style.visibility = 'hidden';
+        fetch('/upload/app.html', { cache: 'no-cache' })
+          .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+          .then(function (t) { document.open(); document.write(t); document.close(); })
+          .catch(function () { document.documentElement.style.visibility = ''; });
+      })();
+    </script>
 
     <style media="screen">
       body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
