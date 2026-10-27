@@ -7,356 +7,441 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b44c9%27/%3E%3Cpath d=%27M16 21V9m-5 5 5-5 5 5M9 20v2.5A1.5 1.5 0 0 0 10.5 24h11a1.5 1.5 0 0 0 1.5-1.5V20%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <meta name="robots" content="noindex">
 <meta property="og:title" content="파일 제출">
-<meta property="og:description" content="이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다.">
+<meta property="og:description" content="이름과 필요한 내용을 적고 파일을 올려 주세요.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
     --bg:#f3f4f7; --card:#ffffff; --text:#14161c; --muted:#6b7080; --faint:#9aa0ad;
     --line:#e4e6ec; --field:#f7f8fa; --accent:#2b44c9; --accent-hover:#2238ad; --accent-soft:#eef1fd;
-    --ok:#12805c; --ok-soft:#e7f6ef; --err:#c9302c; --err-soft:#fdeeee;
+    --ok:#12805c; --ok-soft:#e7f6ef; --err:#c9302c; --err-soft:#fdeeee; --dash:#c9cedb;
     --shadow:0 1px 2px rgba(20,22,28,.04),0 8px 28px rgba(20,22,28,.06);
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0f1115; --card:#171a21; --text:#eceef3; --muted:#9aa0ad; --faint:#6b7080;
       --line:#2a2e38; --field:#1d2029; --accent:#7189ff; --accent-hover:#8a9dff; --accent-soft:#1f2540;
-      --ok:#4cc79a; --ok-soft:#15302a; --err:#ff7a74; --err-soft:#3a1d1d;
+      --ok:#4cc79a; --ok-soft:#15302a; --err:#ff7a74; --err-soft:#3a1d1d; --dash:#3a3f4c;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
     }
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--text)}
   body{font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-    -webkit-font-smoothing:antialiased;letter-spacing:-.01em;word-break:keep-all;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 16px 32px}
-  .wrap{width:100%;max-width:480px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:32px 28px}
-  .badge{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:14px}
+    -webkit-font-smoothing:antialiased;letter-spacing:-.01em;word-break:keep-all;padding:48px 24px 64px}
+  .wrap{max-width:860px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+  .head{padding:40px 48px 28px;border-bottom:1px solid var(--line)}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px}
   .badge i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
-  h1{font-size:23px;line-height:1.35;font-weight:700;margin:0 0 8px;letter-spacing:-.025em}
-  .lead{font-size:14.5px;line-height:1.6;color:var(--muted);margin:0 0 28px}
+  h1{font-size:26px;line-height:1.35;font-weight:700;margin:0 0 8px;letter-spacing:-.025em}
+  .lead{font-size:15px;line-height:1.6;color:var(--muted);margin:0;white-space:pre-line}
+  .state{padding:48px;text-align:center}
+  .state h1{margin-bottom:10px}
 
-  .step{margin-bottom:24px}
-  .step-head{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
-  .num{width:20px;height:20px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;display:grid;place-items:center}
+  .rows{padding:8px 48px}
+  .row{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;padding:26px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .lab{padding-top:11px}
+  .lab b{display:block;font-size:15px;font-weight:600;line-height:1.4;word-break:break-all}
+  .tag{display:inline-block;margin-top:5px;font-size:12px;font-weight:600;color:var(--accent)}
+  .tag.opt{color:var(--faint);font-weight:500}
+  .lab p{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.5;white-space:pre-line}
 
-  input[type=text]{width:100%;height:50px;padding:0 16px;font:inherit;font-size:16px;color:var(--text);background:var(--field);
-    border:1px solid var(--line);border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
-  input[type=text]::placeholder{color:var(--faint)}
-  input[type=text]:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 4px var(--accent-soft)}
+  input[type=text],input[type=date],textarea{width:100%;height:48px;padding:0 16px;font:inherit;font-size:16px;color:var(--text);background:var(--field);
+    border:1px solid var(--line);border-radius:11px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+  textarea{height:auto;min-height:110px;padding:12px 16px;line-height:1.55;resize:vertical}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:focus,textarea:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 4px var(--accent-soft)}
+  input.short{max-width:320px}
+  input[type=date]{max-width:220px}
+  input.bad,textarea.bad{border-color:var(--err)}
+  .rule{display:flex;justify-content:space-between;gap:12px;max-width:320px;font-size:12.5px;color:var(--faint);margin-top:7px;min-height:1px}
+  .rule.wide{max-width:none}
+  .rule.err{color:var(--err)}
 
-  .saveas{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5;word-break:break-all}
-  .saveas b{font-weight:600;color:var(--text)}
-  .saveas .hl{color:var(--accent);font-weight:700}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+  .choices label{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;user-select:none}
+  .choices label:hover{border-color:var(--accent)}
+  .choices label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .choices input{margin:0;accent-color:var(--accent)}
 
-  .drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;
-    padding:28px 16px;border:1.5px dashed var(--line);border-radius:14px;background:var(--field);cursor:pointer;transition:border-color .15s,background .15s}
+  .drop{display:flex;align-items:center;gap:20px;padding:26px 28px;border:2px dashed var(--dash);border-radius:14px;background:var(--field);cursor:pointer;transition:border-color .15s,background .15s}
   .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
-  .drop svg{width:28px;height:28px;color:var(--accent);margin-bottom:4px}
-  .drop strong{font-size:15px;font-weight:600}
-  .drop span{font-size:13px;color:var(--muted)}
-  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop .ico{flex:none;width:52px;height:52px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+  .drop .ico svg{width:24px;height:24px}
+  .drop .txt{flex:1;min-width:0}
+  .drop .txt b{display:block;font-size:15.5px;font-weight:600}
+  .drop .txt span{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .drop .btn-pick{flex:none;height:42px;padding:0 18px;border-radius:10px;border:0;background:var(--accent);color:#fff;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+  .drop.compact{padding:14px 18px;border-width:1.5px}
+  .drop.compact .ico{width:36px;height:36px;border-radius:10px}
+  .drop.compact .ico svg{width:18px;height:18px}
+  .drop.compact .txt b{font-size:14px}
+  .drop.compact .btn-pick{height:36px;padding:0 14px;font-size:13.5px;background:var(--card);color:var(--accent);border:1px solid var(--line)}
+  .ferr{font-size:12.5px;color:var(--err);margin-top:8px}
 
-  .files{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-  .file{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
-  .ext{flex:none;width:38px;height:38px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:700;
-    display:grid;place-items:center;text-transform:uppercase;letter-spacing:0}
-  .meta{flex:1;min-width:0}
-  .fname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .fsub{font-size:12px;color:var(--muted);margin-top:2px}
-  .file.done .fsub{color:var(--ok)} .file.fail .fsub{color:var(--err)}
-  .file.fail{border-color:var(--err)}
-  .x{flex:none;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
-  .x:hover{background:var(--field);color:var(--text)}
-  .x svg{width:16px;height:16px}
-  .spin{flex:none;width:18px;height:18px;margin-right:6px;border:2px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:r .7s linear infinite}
-  .tick{flex:none;width:22px;height:22px;margin-right:4px;color:var(--ok)}
+  .flist{list-style:none;margin:0 0 10px;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .flist li{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .flist li:last-child{border-bottom:0}
+  .ext{width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;display:grid;place-items:center;text-transform:uppercase}
+  .fn{font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fs{font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fs b{color:var(--text);font-weight:600}
+  .size{font-size:12.5px;color:var(--faint)}
+  .rm{height:32px;padding:0 12px;border:1px solid var(--line);background:var(--card);border-radius:8px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}
+  .rm:hover{color:var(--err);border-color:var(--err)}
+  .st{font-size:12.5px;font-weight:600;white-space:nowrap}
+  .st.up{color:var(--accent)} .st.done{color:var(--ok)} .st.fail{color:var(--err)}
+
+  .consent{background:var(--field);border-radius:12px;padding:18px 20px;font-size:14px;line-height:1.7;color:var(--muted)}
+  .consent dl{display:grid;grid-template-columns:52px 1fr;gap:2px 10px;margin:0 0 8px}
+  .consent dt{font-weight:600;color:var(--text)} .consent dd{margin:0;white-space:pre-line}
+  .check{display:inline-flex;align-items:center;gap:10px;margin-top:10px;font-size:15px;font-weight:600;color:var(--text);cursor:pointer}
+  .check input{width:20px;height:20px;margin:0;accent-color:var(--accent)}
+
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 48px;border-top:1px solid var(--line);background:var(--field);border-radius:0 0 20px 20px}
+  .foot .left{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .foot .left b{color:var(--err);font-weight:600}
+  .foot .left.ok b{color:var(--ok)}
+  .foot .left.busy b{color:var(--accent)}
+  .submit{flex:none;height:52px;padding:0 36px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+  .submit:hover:not(:disabled){background:var(--accent-hover)}
+  .submit:disabled{opacity:.4;cursor:default}
+  .submit.busy:disabled{opacity:.85}
+  .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite}
   @keyframes r{to{transform:rotate(360deg)}}
+  .note{text-align:center;font-size:13px;color:var(--muted);margin-top:18px;line-height:1.6}
 
-  .msg{min-height:0;font-size:13.5px;line-height:1.5;border-radius:10px;margin-top:4px}
-  .msg.err{padding:10px 12px;background:var(--err-soft);color:var(--err)}
-
-  .btn{width:100%;height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;
-    cursor:pointer;transition:background .15s,opacity .15s,transform .05s;display:flex;align-items:center;justify-content:center;gap:10px}
-  .btn:hover:not(:disabled){background:var(--accent-hover)}
-  .btn:active:not(:disabled){transform:translateY(1px)}
-  .btn:disabled{opacity:.4;cursor:default}
-  .btn.busy:disabled{opacity:.85}
-  .btn .spin{border-color:rgba(255,255,255,.35);border-top-color:#fff;margin:0}
-  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
-  .btn.ghost:hover{background:var(--accent-soft)}
-
-  .note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:18px;font-size:12.5px;color:var(--muted)}
-  .note{text-align:center;line-height:1.6}
-  .note svg{flex:none;width:14px;height:14px}
-  .state-view{padding:4px 0}
-  .state-view .lead{margin:0}
-
-  .done-view{text-align:center;padding:12px 0 4px}
-  .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
-  .check svg{width:30px;height:30px}
-  .check path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .4s .15s ease-out forwards}
-  @keyframes pop{from{transform:scale(.6);opacity:0}}
-  @keyframes draw{to{stroke-dashoffset:0}}
-  .done-view h2{font-size:21px;font-weight:700;margin:0 0 6px;letter-spacing:-.02em}
-  .done-view p{font-size:14.5px;color:var(--muted);margin:0 0 22px;line-height:1.6}
-  .saved{list-style:none;margin:0 0 22px;padding:14px 16px;text-align:left;background:var(--field);border-radius:12px;display:flex;flex-direction:column;gap:8px}
-  .saved li{display:flex;gap:8px;font-size:13px;line-height:1.45;word-break:break-all}
-  .saved svg{flex:none;width:16px;height:16px;margin-top:1px;color:var(--ok)}
-
-  footer{margin-top:20px;text-align:center;font-size:12px;color:var(--faint)}
+  .done{padding:48px;text-align:center}
+  .ring{width:68px;height:68px;margin:0 auto 18px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center}
+  .ring svg{width:32px;height:32px}
+  .done h1{margin-bottom:6px}
+  .done > p{font-size:15px;color:var(--muted);margin:0 0 26px}
+  .summary{text-align:left;max-width:560px;margin:0 auto 26px;background:var(--field);border-radius:14px;padding:6px 20px}
+  .summary .r{display:grid;grid-template-columns:120px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .summary .r:last-child{border-bottom:0}
+  .summary .k{color:var(--muted)}
+  .summary .v{word-break:break-all;line-height:1.6}
+  .again{height:46px;padding:0 22px;border:1px solid var(--line);background:var(--card);border-radius:11px;font:inherit;font-size:15px;font-weight:600;color:var(--accent);cursor:pointer}
+  .preview-tag{position:fixed;top:12px;right:12px;background:var(--text);color:var(--bg);font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px}
   [hidden]{display:none!important}
-  @media (max-width:480px){ body{padding-top:20px} .card{padding:26px 20px;border-radius:18px} h1{font-size:21px} }
+  @media (max-width:720px){
+    body{padding:20px 12px 40px}
+    .head,.state,.done{padding:28px 22px 22px}
+    .rows{padding:4px 22px}
+    .row{grid-template-columns:1fr;gap:12px}
+    .lab{padding-top:0}
+    .foot{flex-direction:column;align-items:stretch;padding:18px 22px}
+    .drop{flex-wrap:wrap}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <main class="card">
-    <section id="stateView" class="state-view">
-      <div class="badge"><i></i><span>파일 제출</span></div>
-      <h1 id="stateTitle">불러오는 중…</h1>
-      <p class="lead" id="stateText"></p>
-    </section>
+  <div class="card" id="stateView">
+    <div class="state"><div class="badge"><i></i><span>파일 제출</span></div><h1 id="stateTitle">불러오는 중…</h1><p class="lead" id="stateText"></p></div>
+  </div>
 
-    <section id="formView" hidden>
+  <div class="card" id="formView" hidden>
+    <div class="head">
       <div class="badge"><i></i><span>파일 제출</span></div>
       <h1 id="title"></h1>
-      <p class="lead">이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다. 로그인은 필요 없습니다.</p>
+      <p class="lead" id="lead"></p>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="foot">
+      <div class="left" id="status"></div>
+      <button class="submit" id="submit" type="button">제출하기</button>
+    </div>
+  </div>
 
-      <div class="step">
-        <div class="step-head"><span class="num">1</span>이름</div>
-        <input type="text" id="name" maxlength="30" placeholder="예: 홍길동" autocomplete="name">
-        <div class="saveas" id="saveas"></div>
-      </div>
-
-      <div class="step">
-        <div class="step-head"><span class="num">2</span>파일</div>
-        <label class="drop" id="drop">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-          <strong>파일을 끌어다 놓거나 눌러서 선택</strong>
-          <span id="limit"></span>
-          <input type="file" id="picker" multiple>
-        </label>
-        <ul class="files" id="list"></ul>
-      </div>
-
-      <div class="msg" id="msg"></div>
-      <button class="btn" id="submit" disabled>제출하기</button>
-      <div class="note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-        다른 분이 낸 파일은 보이지 않으며, 담당자만 확인합니다.<br>다시 내면 앞서 낸 파일은 새 파일로 바뀝니다.
-      </div>
-    </section>
-
-    <section id="doneView" class="done-view" hidden>
-      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-      <h2>제출되었습니다</h2>
+  <div class="card" id="doneView" hidden>
+    <div class="done">
+      <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1>제출되었습니다</h1>
       <p id="doneText"></p>
-      <ul class="saved" id="saved"></ul>
-      <button class="btn ghost" id="again">파일 더 내기</button>
-    </section>
-  </main>
+      <div class="summary" id="summary"></div>
+      <button class="again" id="again" type="button">고칠 것이 있으면 다시 내기</button>
+    </div>
+  </div>
+  <p class="note" id="note" hidden>다른 분이 낸 내용은 보이지 않으며, 담당자만 확인합니다. 다시 내면 새로 올린 파일 항목만 바뀝니다.</p>
 </div>
 
 <script>
-const SLUG = (() => {
-  const q = new URLSearchParams(location.search).get('c');
-  if (q) return q.normalize('NFC');
-  const m = location.pathname.match(/\/upload\/([^/]+)\/?$/);
-  return m ? decodeURIComponent(m[1]).normalize('NFC') : '';
-})();
-let CONFIG = { prefix: '', title: '', maxMb: 20 };
-let MAX = CONFIG.maxMb * 1024 * 1024;
-// 이 화면을 연 동안 낸 파일은 한 번의 제출로 본다. 다시 열고 내면 앞서 낸 파일은 휴지통 폴더로 간다.
-const SUBMISSION = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).slice(0, 40);
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwMiLPL0gNKkceci2-VGnZC0_qb-DsgBggZ1_JDl97l0s6_6lFEc7KmwQONDV8SUbzF/exec';
+const FMT = { pdf: ['pdf'], hwp: ['hwp', 'hwpx'], img: ['jpg', 'jpeg', 'png', 'gif', 'heic', 'heif', 'webp', 'bmp'], office: ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv'] };
+const FMT_LABEL = { pdf: 'PDF', hwp: '한글', img: '이미지', office: '워드·엑셀·PPT', any: '모든 형식' };
+const PARAMS = new URLSearchParams(location.search);
+const PREVIEW = PARAMS.has('preview');
+const SLUG = (() => {
+  if (PARAMS.get('c')) return PARAMS.get('c').normalize('NFC');
+  const m = location.pathname.match(/\/upload\/([^/]+)\/?$/);
+  return m && m[1] !== 'app.html' ? decodeURIComponent(m[1]).normalize('NFC') : '';
+})();
+// 이 화면을 연 동안 낸 것은 한 번의 제출로 본다. 다시 열고 내면 다시 올린 파일 항목만 휴지통 폴더로 간다.
+let SUBMISSION = newId();
+let COL = null, busy = false;
+const vals = {}, files = {}, fstate = {};
 const $ = id => document.getElementById(id);
-let items = [];      // { file, status: 'wait'|'up'|'done'|'fail', saved, error }
-let busy = false;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>';
+const extOf = n => (String(n).match(/\.([0-9A-Za-z]{1,8})$/) || [, ''])[1].toLowerCase();
+const size = b => b < 1048576 ? Math.max(1, Math.round(b / 1024)) + 'KB' : (b / 1048576).toFixed(1) + 'MB';
+const cleanName = s => String(s || '').replace(/[\\/:*?"<>|_\s]/g, '').slice(0, 30);
+const who = () => cleanName(vals._name) || '이름';
+function newId() { return (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).slice(0, 40); }
+const saveAs = (q, i, n, f) => `${COL.prefix}_${who()}_${q.title}${n > 1 ? '_' + (i + 1) : ''}.${extOf(f.name) || 'pdf'}`;
+const fmtText = q => q.fmt.includes('any') ? '모든 형식' : q.fmt.map(f => FMT_LABEL[f]).join('·');
+const accept = q => q.fmt.includes('any') ? '' : q.fmt.flatMap(f => FMT[f]).map(e => '.' + e).join(',');
 
-
-const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-
-const cleanName = s => s.replace(/[\\/:*?"<>|_]/g, '').replace(/\s+/g, '');
-const extOf = n => { const m = n.match(/\.([0-9A-Za-z]{1,8})$/); return m ? m[1].toLowerCase() : ''; };
-const size = b => b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + 'KB' : (b / 1024 / 1024).toFixed(1) + 'MB';
-
-function renderSaveAs() {
-  const n = cleanName($('name').value);
-  const el = $('saveas');
-  el.innerHTML = '';
-  el.append('저장될 이름  ');
-  const b = document.createElement('b');
-  b.append(CONFIG.prefix);
-  const hl = document.createElement('span');
-  hl.className = 'hl';
-  hl.textContent = n || '이름';
-  b.append(hl);
-  el.append(b);
+// ───── 조건 안내·검사(서버와 같은 규칙) ─────
+function ruleOf(q) {
+  const r = [];
+  if (q.type === 'short') {
+    if (q.chars && q.chars !== 'any') r.push({ digits: '숫자만', alnum: '영문·숫자만', korean: '한글만' }[q.chars]);
+    if (q.min && q.min === q.max) r.push(q.min + '자'); else { if (q.min) r.push(q.min + '자 이상'); if (q.max) r.push(q.max + '자 이하'); }
+  }
+  if (q.type === 'long' && q.max) r.push(q.max + '자 이하');
+  if (q.type === 'number') { r.push(q.digits ? '숫자 ' + q.digits + '자리' : '숫자만'); if (q.min) r.push(q.min + ' 이상'); if (q.max) r.push(q.max + ' 이하'); }
+  if (q.type === 'date') { if (q.after) r.push(q.after + '부터'); if (q.before) r.push(q.before + '까지'); }
+  if (q.type === 'multi') r.push(q.maxPick ? '최대 ' + q.maxPick + '개 고르기' : '여러 개 고를 수 있습니다');
+  return r.join(' · ');
 }
+function check(q, v) {
+  if (q.type === 'multi') { if (q.maxPick && v.length > +q.maxPick) return `최대 ${q.maxPick}개까지 고를 수 있습니다`; return ''; }
+  if (!v) return '';
+  const len = [...v].length;
+  if (q.type === 'short') {
+    if (q.chars === 'digits' && /\D/.test(v)) return '숫자만 쓸 수 있습니다';
+    if (q.chars === 'alnum' && /[^0-9A-Za-z]/.test(v)) return '영문과 숫자만 쓸 수 있습니다';
+    if (q.chars === 'korean' && /[^가-힣\s]/.test(v)) return '한글만 쓸 수 있습니다';
+    if (q.min && q.min === q.max && len !== +q.min) return `${q.min}자로 써 주세요`;
+    if (q.min && len < +q.min) return `${q.min}자 이상 써 주세요`;
+    if (q.max && len > +q.max) return `${q.max}자까지 쓸 수 있습니다`;
+  }
+  if (q.type === 'long' && q.max && len > +q.max) return `${q.max}자까지 쓸 수 있습니다`;
+  if (q.type === 'number') {
+    if (!/^\d+$/.test(v)) return '숫자만 쓸 수 있습니다';
+    if (q.digits && v.length !== +q.digits) return `숫자 ${q.digits}자리로 써 주세요`;
+    if (q.min && +v < +q.min) return `${q.min} 이상이어야 합니다`;
+    if (q.max && +v > +q.max) return `${q.max} 이하여야 합니다`;
+  }
+  if (q.type === 'date') {
+    if (q.after && v < q.after) return `${q.after} 이후 날짜여야 합니다`;
+    if (q.before && v > q.before) return `${q.before} 이전 날짜여야 합니다`;
+  }
+  return '';
+}
+
+// ───── 그리기 ─────
+const NAME_Q = { id: '_name', type: 'short', title: '이름', req: true, ph: '예: 홍길동', name: true };
+function rowHTML(q) {
+  const tag = q.req ? '<span class="tag">필수</span>' : '<span class="tag opt">선택</span>';
+  let body = '';
+  if (q.type === 'short' || q.type === 'number') {
+    const max = q.type === 'number' ? (q.digits || '') : (q.max || '');
+    body = `<input type="text" class="${q.name ? '' : 'short'}" data-q="${q.id}" placeholder="${esc(q.ph || '')}" ${q.type === 'number' ? 'inputmode="numeric"' : ''} ${max ? `maxlength="${max}"` : ''} value="${esc(vals[q.id] || '')}">`;
+    if (!q.name) body += `<div class="rule" data-rule="${q.id}"><span>${esc(ruleOf(q))}</span><span data-count="${q.id}"></span></div>`;
+  }
+  if (q.type === 'long') body = `<textarea data-q="${q.id}" ${q.max ? `maxlength="${q.max}"` : ''}>${esc(vals[q.id] || '')}</textarea><div class="rule wide" data-rule="${q.id}"><span>${esc(ruleOf(q))}</span><span data-count="${q.id}"></span></div>`;
+  if (q.type === 'date') body = `<input type="date" data-q="${q.id}" ${q.after ? `min="${q.after}"` : ''} ${q.before ? `max="${q.before}"` : ''} value="${esc(vals[q.id] || '')}"><div class="rule" data-rule="${q.id}"><span>${esc(ruleOf(q))}</span><span></span></div>`;
+  if (q.type === 'single' || q.type === 'multi') {
+    const cur = vals[q.id] || (q.type === 'multi' ? [] : '');
+    body = `<div class="choices" data-choice="${q.id}">${q.opts.map(o => `<label><input type="${q.type === 'single' ? 'radio' : 'checkbox'}" name="c_${q.id}" value="${esc(o)}" ${(q.type === 'single' ? cur === o : cur.includes(o)) ? 'checked' : ''}>${esc(o)}</label>`).join('')}</div>` +
+      (q.type === 'multi' ? `<div class="rule wide" data-rule="${q.id}"><span>${esc(ruleOf(q))}</span><span></span></div>` : '');
+  }
+  if (q.type === 'file') {
+    const list = files[q.id] || [];
+    if (list.length) body += `<ul class="flist">${list.map((f, i) => {
+      const s = (fstate[q.id] || [])[i];
+      const right = s === 'up' ? '<span class="st up">올리는 중…</span>' : s === 'done' ? '<span class="st done">전달 완료</span>' : s && s.fail ? `<span class="st fail">${esc(s.fail)}</span>` : (busy ? '' : `<button class="rm" type="button" data-rm="${q.id}:${i}">빼기</button>`);
+      return `<li><div class="ext">${esc(extOf(f.name).slice(0, 4) || 'file')}</div><div style="min-width:0"><div class="fn">${esc(f.name)}</div><div class="fs">저장 이름 <b>${esc(saveAs(q, i, list.length, f))}</b></div></div><span class="size">${size(f.size)}</span>${right}</li>`;
+    }).join('')}</ul>`;
+    const full = list.length >= +q.maxFiles && q.many;
+    if (!full && !busy) {
+      const limit = q.many ? `최대 ${q.maxFiles}개` : '1개';
+      body += `<div class="drop ${list.length ? 'compact' : ''}" data-drop="${q.id}"><div class="ico">${UP}</div>
+        <div class="txt"><b>${list.length ? (q.many ? '파일 더 넣기' : '다른 파일로 바꾸기') : '여기로 파일을 끌어다 놓으세요'}</b>
+        <span>${list.length ? '끌어다 놓거나 오른쪽 단추를 누르세요' : `또는 오른쪽 「파일 선택」을 누르세요 · ${esc(fmtText(q))} · ${limit} · 1개당 ${q.mb}MB까지`}</span></div>
+        <button class="btn-pick" type="button">파일 선택</button><input type="file" hidden accept="${accept(q)}" ${q.many ? 'multiple' : ''}></div>`;
+    }
+    body += `<div class="ferr" data-ferr="${q.id}" hidden></div>`;
+  }
+  const lab = `<div class="lab"><b>${esc(q.title)}</b>${tag}${q.desc ? `<p>${esc(q.desc)}</p>` : ''}</div>`;
+  return `<div class="row" data-row="${q.id}">${lab}<div>${body}</div></div>`;
+}
+function consentHTML() {
+  const c = COL.consent;
+  return `<div class="row"><div class="lab"><b>개인정보 수집·이용 동의</b><span class="tag">필수</span></div><div><div class="consent">
+    <dl><dt>목적</dt><dd>${esc(c.purpose)}</dd><dt>항목</dt><dd>${esc(c.items.join(', '))}</dd><dt>보관</dt><dd>${esc(c.keepLabel)}</dd></dl>
+    동의하지 않을 수 있으나, 이 경우 제출할 수 없습니다.<br><label class="check"><input type="checkbox" id="agree" ${vals._agree ? 'checked' : ''}> 위 내용에 동의합니다</label></div></div></div>`;
+}
+function allQs() { return [NAME_Q].concat(COL.questions); }
 
 function render() {
-  const list = $('list');
-  list.innerHTML = '';
-  items.forEach((it, i) => {
-    const li = document.createElement('li');
-    li.className = 'file ' + it.status;
-    const ext = document.createElement('div');
-    ext.className = 'ext';
-    ext.textContent = extOf(it.file.name).slice(0, 4) || 'file';
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const fn = document.createElement('div');
-    fn.className = 'fname';
-    fn.textContent = it.file.name;
-    const sub = document.createElement('div');
-    sub.className = 'fsub';
-    sub.textContent = it.status === 'up' ? '올리는 중…'
-      : it.status === 'done' ? '전달 완료'
-      : it.status === 'fail' ? (it.error || '실패했습니다. 다시 눌러 주세요.')
-      : size(it.file.size);
-    meta.append(fn, sub);
-    li.append(ext, meta);
-    if (it.status === 'up') {
-      const s = document.createElement('div'); s.className = 'spin'; li.append(s);
-    } else if (it.status === 'done') {
-      const t = document.createElement('div'); t.className = 'tick'; t.innerHTML = ICON_OK; li.append(t);
-    } else if (!busy) {
-      const x = document.createElement('button');
-      x.className = 'x'; x.type = 'button'; x.title = '빼기'; x.innerHTML = ICON_X;
-      x.onclick = () => { items.splice(i, 1); setMsg(''); render(); };
-      li.append(x);
-    }
-    list.append(li);
+  $('title').textContent = COL.title;
+  $('lead').textContent = COL.lead || '이름과 필요한 내용을 적어 주세요. 로그인은 필요 없습니다.';
+  $('rows').innerHTML = allQs().map(rowHTML).join('') + (COL.consent.on ? consentHTML() : '');
+  allQs().forEach(q => paintRule(q));
+  $('rows').querySelectorAll('[data-q]').forEach(inp => inp.addEventListener('input', () => {
+    const q = allQs().find(x => x.id === inp.dataset.q);
+    vals[q.id] = inp.value;
+    paintRule(q);
+    if (q.id === '_name') refreshSaveNames();
+    status();
+  }));
+  $('rows').querySelectorAll('[data-choice]').forEach(box => box.addEventListener('change', () => {
+    const q = COL.questions.find(x => x.id === box.dataset.choice);
+    const picked = [...box.querySelectorAll('input:checked')].map(x => x.value);
+    vals[q.id] = q.type === 'single' ? (picked[0] || '') : picked;
+    paintRule(q); status();
+  }));
+  const agree = $('agree'); if (agree) agree.onchange = () => { vals._agree = agree.checked; status(); };
+  $('rows').querySelectorAll('[data-drop]').forEach(d => {
+    const q = COL.questions.find(x => x.id === d.dataset.drop), inp = d.querySelector('input');
+    d.onclick = e => { if (e.target !== inp) inp.click(); };
+    inp.onchange = () => { addFiles(q, inp.files); inp.value = ''; };
+    ['dragenter', 'dragover'].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(t => d.addEventListener(t, e => { e.preventDefault(); d.classList.remove('over'); }));
+    d.addEventListener('drop', e => addFiles(q, e.dataTransfer.files));
   });
-  const pending = items.filter(it => it.status !== 'done').length;
-  const btn = $('submit');
-  btn.classList.toggle('busy', busy);
-  btn.disabled = busy || !cleanName($('name').value) || pending === 0;
-  btn.innerHTML = busy ? '<div class="spin"></div><span>보내는 중</span>'
-    : pending ? `제출하기 <span style="opacity:.7;font-weight:500">${pending}개</span>` : '제출하기';
-  $('picker').disabled = busy;
-  $('name').disabled = busy;
+  $('rows').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { const [id, i] = b.dataset.rm.split(':'); files[id].splice(+i, 1); fstate[id] = []; render(); });
+  status();
 }
-
-function setMsg(t) { const m = $('msg'); m.textContent = t; m.className = 'msg' + (t ? ' err' : ''); }
-
-function add(fileList) {
-  const too = [];
-  [...fileList].forEach(f => {
-    if (f.size === 0) return;
-    if (f.size > MAX) { too.push(f.name); return; }
-    if (items.some(it => it.file.name === f.name && it.file.size === f.size && it.status !== 'done')) return;
-    items.push({ file: f, status: 'wait' });
+function paintRule(q) {
+  const inp = $('rows').querySelector(`[data-q="${q.id}"]`);
+  const v = q.type === 'multi' ? (vals[q.id] || []) : (vals[q.id] || '');
+  const e = q.name ? '' : check(q, v);
+  if (inp) inp.classList.toggle('bad', !!e);
+  const r = $('rows').querySelector(`[data-rule="${q.id}"]`);
+  if (r) { r.classList.toggle('err', !!e); r.firstElementChild.textContent = e || ruleOf(q); }
+  const c = $('rows').querySelector(`[data-count="${q.id}"]`);
+  const lim = q.type === 'number' ? q.digits : q.max;
+  if (c) c.textContent = lim ? `${[...String(v)].length}/${lim}` : '';
+}
+function refreshSaveNames() {
+  COL.questions.filter(q => q.type === 'file').forEach(q => {
+    const list = files[q.id] || [];
+    $('rows').querySelectorAll(`[data-row="${q.id}"] .fs b`).forEach((b, i) => { if (list[i]) b.textContent = saveAs(q, i, list.length, list[i]); });
   });
-  setMsg(too.length ? `${CONFIG.maxMb}MB가 넘어 뺐습니다: ${too.join(', ')}` : '');
+}
+function addFiles(q, fl) {
+  const arr = [...fl]; if (!arr.length || busy) return;
+  const okExt = q.fmt.includes('any') ? null : q.fmt.flatMap(f => FMT[f]);
+  const bad = [], big = [], good = [];
+  arr.forEach(f => {
+    if (okExt && !okExt.includes(extOf(f.name))) bad.push(f.name);
+    else if (f.size > +q.mb * 1048576) big.push(f.name);
+    else if (f.size > 0) good.push(f);
+  });
+  let list = q.many ? [...(files[q.id] || []), ...good] : good.slice(0, 1).concat(good.length ? [] : (files[q.id] || []));
+  const over = q.many && list.length > +q.maxFiles;
+  if (over) list = list.slice(0, +q.maxFiles);
+  files[q.id] = list; fstate[q.id] = [];
   render();
+  const msg = [bad.length && `${fmtText(q)} 파일만 낼 수 있어 뺐습니다: ${bad.join(', ')}`, big.length && `${q.mb}MB가 넘어 뺐습니다: ${big.join(', ')}`, over && `최대 ${q.maxFiles}개까지만 넣었습니다`].filter(Boolean).join(' / ');
+  const el = $('rows').querySelector(`[data-ferr="${q.id}"]`); if (el) { el.hidden = !msg; el.textContent = msg; }
 }
 
-function read(file) {
-  return new Promise((ok, no) => {
-    const r = new FileReader();
-    r.onload = () => ok(r.result.split(',')[1]);
-    r.onerror = () => no(new Error('파일을 읽지 못했습니다.'));
-    r.readAsDataURL(file);
+function missing() {
+  const miss = [];
+  allQs().forEach(q => {
+    if (q.type === 'file') { if (q.req && !(files[q.id] || []).length) miss.push(q.title); return; }
+    const v = vals[q.id];
+    const empty = q.type === 'multi' ? !(v || []).length : !String(v || '').trim();
+    if ((q.req && empty) || (!empty && !q.name && check(q, q.type === 'multi' ? v : String(v).trim()))) miss.push(q.title);
   });
+  if (COL.consent.on && !vals._agree) miss.push('개인정보 동의');
+  return miss;
+}
+function status(text) {
+  const s = $('status'), btn = $('submit');
+  if (busy) { s.className = 'left busy'; s.innerHTML = `<b>${esc(text || '보내는 중')}</b> · 창을 닫지 마세요.`; btn.disabled = true; btn.classList.add('busy'); btn.innerHTML = '<div class="spin"></div>보내는 중'; return; }
+  btn.classList.remove('busy'); btn.textContent = PREVIEW ? '제출하기 (미리보기)' : '제출하기';
+  const miss = missing();
+  btn.disabled = PREVIEW || miss.length > 0;
+  s.className = 'left' + (miss.length ? '' : ' ok');
+  s.innerHTML = miss.length ? `아직 채우지 않았거나 고칠 칸: <b>${esc(miss.join(', '))}</b>` : '<b>모두 채웠습니다.</b> 제출하기를 눌러 주세요.';
 }
 
+// ───── 보내기 ─────
 async function api(req) {
-  // 구글 로그인 쿠키를 보내지 않아서, 계정이 여러 개 로그인돼 있어도 막히지 않는다.
-  const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(req),
-    credentials: 'omit',
-    redirect: 'follow'
-  }).catch(() => { throw new Error('인터넷 연결을 확인하고 다시 눌러 주세요.'); });
+  const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req), credentials: 'omit', redirect: 'follow' })
+    .catch(() => { throw new Error('인터넷 연결을 확인하고 다시 눌러 주세요.'); });
   const out = await res.json().catch(() => ({ ok: false, error: '서버 응답을 읽지 못했습니다. 다시 눌러 주세요.' }));
   if (!out.ok) throw new Error(out.error || '실패했습니다.');
   return out;
 }
-
-async function call(req) {
-  const out = await api(Object.assign({ action: 'upload', slug: SLUG, submissionId: SUBMISSION }, req));
-  return out.name;
-}
-
-function showState(title, text) {
-  $('stateTitle').textContent = title;
-  $('stateText').textContent = text;
-  $('stateView').hidden = false;
-  $('formView').hidden = true;
-  $('doneView').hidden = true;
-}
-
-async function boot() {
-  if (!SLUG) return showState('주소가 올바르지 않습니다', '받은 링크를 그대로 열어 주세요.');
-  try {
-    const { item } = await api({ action: 'info', slug: SLUG });
-    CONFIG = item;
-    MAX = item.maxMb * 1024 * 1024;
-    document.title = item.title;
-    if (!item.open) return showState(item.title, '마감되었습니다. 더 이상 제출할 수 없습니다.');
-    $('title').textContent = item.title;
-    $('limit').textContent = `PDF, 한글, 이미지 등 · 1개당 ${item.maxMb}MB까지`;
-    $('stateView').hidden = true;
-    $('formView').hidden = false;
-    renderSaveAs();
-    render();
-  } catch (e) {
-    showState('열 수 없는 수합입니다', e.message);
-  }
-}
+const readB64 = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = () => no(new Error('파일을 읽지 못했습니다.')); r.readAsDataURL(f); });
 
 async function submit() {
-  const name = cleanName($('name').value);
-  if (!name || busy) return;
-  busy = true; setMsg(''); render();
-  for (const it of items) {
-    if (it.status === 'done') continue;
-    it.status = 'up'; render();
-    try {
-      it.saved = await call({ name, fileName: it.file.name, mimeType: it.file.type, data: await read(it.file) });
-      it.status = 'done';
-    } catch (e) {
-      it.status = 'fail';
-      it.error = (e && e.message) ? e.message.replace(/^Error:\s*/, '') : '실패했습니다.';
+  if (busy || missing().length || PREVIEW) return;
+  busy = true;
+  const name = cleanName(vals._name);
+  const fileQs = COL.questions.filter(q => q.type === 'file' && (files[q.id] || []).length);
+  const total = fileQs.reduce((n, q) => n + files[q.id].length, 0);
+  const saved = {};
+  let done = 0, failed = false;
+  render(); status(total ? `파일 0/${total} 보내는 중` : '보내는 중');
+  for (const q of fileQs) {
+    const list = files[q.id]; saved[q.id] = [];
+    fstate[q.id] = fstate[q.id] || [];
+    for (let i = 0; i < list.length; i++) {
+      if (fstate[q.id][i] === 'done') { saved[q.id].push(saveAs(q, i, list.length, list[i])); done++; continue; }
+      fstate[q.id][i] = 'up'; render(); status(`파일 ${done + 1}/${total} 보내는 중`);
+      try {
+        const out = await api({ action: 'upload', slug: COL.slug, name, qid: q.id, submissionId: SUBMISSION, index: i, total: list.length,
+          fileName: list[i].name, mimeType: list[i].type, data: await readB64(list[i]) });
+        fstate[q.id][i] = 'done'; saved[q.id].push(out.name); done++;
+      } catch (e) { fstate[q.id][i] = { fail: e.message }; failed = true; }
     }
-    render();
   }
+  if (failed) { busy = false; render(); $('status').className = 'left'; $('status').innerHTML = '<b>일부 파일이 전달되지 않았습니다.</b> 제출하기를 다시 누르면 실패한 파일만 다시 보냅니다.'; return; }
+  status('입력한 내용 저장 중');
+  try {
+    const answers = {};
+    COL.questions.filter(q => q.type !== 'file').forEach(q => answers[q.id] = vals[q.id] ?? (q.type === 'multi' ? [] : ''));
+    await api({ action: 'answer', slug: COL.slug, name, submissionId: SUBMISSION, answers, files: saved, agree: !!vals._agree });
+  } catch (e) { busy = false; render(); $('status').className = 'left'; $('status').innerHTML = `<b>${esc(e.message)}</b>`; return; }
   busy = false;
-  if (items.every(it => it.status === 'done')) showDone(name);
-  else { setMsg('일부 파일이 전달되지 않았습니다. 「제출하기」를 다시 누르면 실패한 파일만 다시 보냅니다.'); render(); }
+  showDone(name, saved);
 }
-
-function showDone(name) {
-  $('doneText').textContent = `${name} 님의 파일 ${items.length}개가 전달되었습니다.`;
-  const ul = $('saved'); ul.innerHTML = '';
-  items.forEach(it => {
-    const li = document.createElement('li');
-    li.innerHTML = ICON_OK;
-    li.append(it.saved);
-    ul.append(li);
-  });
-  $('formView').hidden = true;
-  $('doneView').hidden = false;
+function showDone(name, saved) {
+  $('doneText').textContent = `${name} 님의 내용이 전달되었습니다.`;
+  const rows = [['이름', esc(name)]];
+  const n = COL.questions.filter(q => q.type !== 'file' && (q.type === 'multi' ? (vals[q.id] || []).length : String(vals[q.id] || '').trim())).length;
+  if (n) rows.push(['입력한 내용', `${n}개 항목`]);
+  COL.questions.filter(q => q.type === 'file').forEach(q => rows.push([esc(q.title), (saved[q.id] || []).length ? saved[q.id].map(esc).join('<br>') : '<span style="color:var(--faint)">이번에 내지 않음</span>']));
+  $('summary').innerHTML = rows.map(([k, v]) => `<div class="r"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  $('formView').hidden = true; $('doneView').hidden = false; window.scrollTo(0, 0);
 }
-
-$('again').onclick = () => {
-  items = [];
-  $('doneView').hidden = true;
-  $('formView').hidden = false;
-  render();
-};
-$('name').addEventListener('input', () => { renderSaveAs(); render(); });
-$('picker').addEventListener('change', e => { add(e.target.files); e.target.value = ''; });
 $('submit').onclick = submit;
-const drop = $('drop');
-['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { if (!busy) add(e.dataTransfer.files); });
+$('again').onclick = () => {
+  SUBMISSION = newId();
+  COL.questions.filter(q => q.type === 'file').forEach(q => { files[q.id] = []; fstate[q.id] = []; });
+  $('doneView').hidden = true; $('formView').hidden = false; render(); window.scrollTo(0, 0);
+};
 
-boot();
+// ───── 시작 ─────
+function showForm(col) {
+  COL = col;
+  document.title = col.title;
+  $('stateView').hidden = true; $('formView').hidden = false; $('note').hidden = false;
+  render();
+}
+function showState(t, x) { $('stateTitle').textContent = t; $('stateText').textContent = x || ''; $('stateView').hidden = false; $('formView').hidden = true; }
+if (PREVIEW) {
+  document.body.insertAdjacentHTML('beforeend', '<div class="preview-tag">미리보기</div>');
+  window.addEventListener('message', e => { if (e.data && e.data.type === 'preview-col') showForm(e.data.col); });
+  parent.postMessage({ type: 'preview-ready' }, '*');
+} else if (!SLUG) {
+  showState('주소가 올바르지 않습니다', '받은 링크를 그대로 열어 주세요.');
+} else {
+  api({ action: 'info', slug: SLUG }).then(({ item }) => {
+    if (!item.open) return showState(item.title, '마감되었습니다. 더 이상 제출할 수 없습니다.');
+    showForm(item);
+  }).catch(e => showState('열 수 없는 수합입니다', e.message));
+}
 </script>
 </body>
 </html>
