@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>학교폭력 유공교원 가산점 서류 제출 · 대왕중학교</title>
+<meta name="robots" content="noindex">
+<meta property="og:title" content="학교폭력 유공교원 가산점 서류 제출">
+<meta property="og:description" content="대왕중학교 · 이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --bg:#f3f4f7; --card:#ffffff; --text:#14161c; --muted:#6b7080; --faint:#9aa0ad;
+    --line:#e4e6ec; --field:#f7f8fa; --accent:#2b44c9; --accent-hover:#2238ad; --accent-soft:#eef1fd;
+    --ok:#12805c; --ok-soft:#e7f6ef; --err:#c9302c; --err-soft:#fdeeee;
+    --shadow:0 1px 2px rgba(20,22,28,.04),0 8px 28px rgba(20,22,28,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --card:#171a21; --text:#eceef3; --muted:#9aa0ad; --faint:#6b7080;
+      --line:#2a2e38; --field:#1d2029; --accent:#7189ff; --accent-hover:#8a9dff; --accent-soft:#1f2540;
+      --ok:#4cc79a; --ok-soft:#15302a; --err:#ff7a74; --err-soft:#3a1d1d;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text)}
+  body{font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased;letter-spacing:-.01em;word-break:keep-all;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 16px 32px}
+  .wrap{width:100%;max-width:480px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:32px 28px}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:14px}
+  .badge i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  h1{font-size:23px;line-height:1.35;font-weight:700;margin:0 0 8px;letter-spacing:-.025em}
+  .lead{font-size:14.5px;line-height:1.6;color:var(--muted);margin:0 0 28px}
+
+  .step{margin-bottom:24px}
+  .step-head{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px}
+  .num{width:20px;height:20px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;display:grid;place-items:center}
+
+  input[type=text]{width:100%;height:50px;padding:0 16px;font:inherit;font-size:16px;color:var(--text);background:var(--field);
+    border:1px solid var(--line);border-radius:12px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+  input[type=text]::placeholder{color:var(--faint)}
+  input[type=text]:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 4px var(--accent-soft)}
+
+  .saveas{margin-top:10px;font-size:12.5px;color:var(--muted);line-height:1.5;word-break:break-all}
+  .saveas b{font-weight:600;color:var(--text)}
+  .saveas .hl{color:var(--accent);font-weight:700}
+
+  .drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;
+    padding:28px 16px;border:1.5px dashed var(--line);border-radius:14px;background:var(--field);cursor:pointer;transition:border-color .15s,background .15s}
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+  .drop svg{width:28px;height:28px;color:var(--accent);margin-bottom:4px}
+  .drop strong{font-size:15px;font-weight:600}
+  .drop span{font-size:13px;color:var(--muted)}
+  .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  .files{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .file{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  .ext{flex:none;width:38px;height:38px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:700;
+    display:grid;place-items:center;text-transform:uppercase;letter-spacing:0}
+  .meta{flex:1;min-width:0}
+  .fname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fsub{font-size:12px;color:var(--muted);margin-top:2px}
+  .file.done .fsub{color:var(--ok)} .file.fail .fsub{color:var(--err)}
+  .file.fail{border-color:var(--err)}
+  .x{flex:none;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--faint);cursor:pointer;display:grid;place-items:center}
+  .x:hover{background:var(--field);color:var(--text)}
+  .x svg{width:16px;height:16px}
+  .spin{flex:none;width:18px;height:18px;margin-right:6px;border:2px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:r .7s linear infinite}
+  .tick{flex:none;width:22px;height:22px;margin-right:4px;color:var(--ok)}
+  @keyframes r{to{transform:rotate(360deg)}}
+
+  .msg{min-height:0;font-size:13.5px;line-height:1.5;border-radius:10px;margin-top:4px}
+  .msg.err{padding:10px 12px;background:var(--err-soft);color:var(--err)}
+
+  .btn{width:100%;height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;
+    cursor:pointer;transition:background .15s,opacity .15s,transform .05s;display:flex;align-items:center;justify-content:center;gap:10px}
+  .btn:hover:not(:disabled){background:var(--accent-hover)}
+  .btn:active:not(:disabled){transform:translateY(1px)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.busy:disabled{opacity:.85}
+  .btn .spin{border-color:rgba(255,255,255,.35);border-top-color:#fff;margin:0}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--accent-soft)}
+
+  .note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:18px;font-size:12.5px;color:var(--muted)}
+  .note svg{width:14px;height:14px}
+
+  .done-view{text-align:center;padding:12px 0 4px}
+  .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+  .check svg{width:30px;height:30px}
+  .check path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .4s .15s ease-out forwards}
+  @keyframes pop{from{transform:scale(.6);opacity:0}}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .done-view h2{font-size:21px;font-weight:700;margin:0 0 6px;letter-spacing:-.02em}
+  .done-view p{font-size:14.5px;color:var(--muted);margin:0 0 22px;line-height:1.6}
+  .saved{list-style:none;margin:0 0 22px;padding:14px 16px;text-align:left;background:var(--field);border-radius:12px;display:flex;flex-direction:column;gap:8px}
+  .saved li{display:flex;gap:8px;font-size:13px;line-height:1.45;word-break:break-all}
+  .saved svg{flex:none;width:16px;height:16px;margin-top:1px;color:var(--ok)}
+
+  footer{margin-top:20px;text-align:center;font-size:12px;color:var(--faint)}
+  [hidden]{display:none!important}
+  @media (max-width:480px){ body{padding-top:20px} .card{padding:26px 20px;border-radius:18px} h1{font-size:21px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main class="card">
+    <section id="formView">
+      <div class="badge"><i></i><span id="school"></span></div>
+      <h1 id="title"></h1>
+      <p class="lead">이름을 적고 파일을 올리면 담당 선생님 폴더로 바로 전달됩니다. 로그인은 필요 없습니다.</p>
+
+      <div class="step">
+        <div class="step-head"><span class="num">1</span>이름</div>
+        <input type="text" id="name" maxlength="30" placeholder="예: 홍길동" autocomplete="name">
+        <div class="saveas" id="saveas"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="num">2</span>파일</div>
+        <label class="drop" id="drop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <strong>파일을 끌어다 놓거나 눌러서 선택</strong>
+          <span id="limit"></span>
+          <input type="file" id="picker" multiple>
+        </label>
+        <ul class="files" id="list"></ul>
+      </div>
+
+      <div class="msg" id="msg"></div>
+      <button class="btn" id="submit" disabled>제출하기</button>
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        다른 분이 낸 파일은 보이지 않으며, 담당자만 확인합니다.
+      </div>
+    </section>
+
+    <section id="doneView" class="done-view" hidden>
+      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h2>제출되었습니다</h2>
+      <p id="doneText"></p>
+      <ul class="saved" id="saved"></ul>
+      <button class="btn ghost" id="again">파일 더 내기</button>
+    </section>
+  </main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const CONFIG = {"prefix":"대왕중_학교폭력유공교원가산점_","school":"대왕중학교","title":"학교폭력 유공교원 가산점 서류 제출","maxMb":20};
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwMiLPL0gNKkceci2-VGnZC0_qb-DsgBggZ1_JDl97l0s6_6lFEc7KmwQONDV8SUbzF/exec';
+const MAX = CONFIG.maxMb * 1024 * 1024;
+const $ = id => document.getElementById(id);
+let items = [];      // { file, status: 'wait'|'up'|'done'|'fail', saved, error }
+let busy = false;
+
+$('school').textContent = CONFIG.school;
+$('title').textContent = CONFIG.title;
+$('foot').textContent = CONFIG.school;
+$('limit').textContent = `PDF, 한글, 이미지 등 · 1개당 ${CONFIG.maxMb}MB까지`;
+
+const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+const cleanName = s => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '');
+const extOf = n => { const m = n.match(/\.([0-9A-Za-z]{1,8})$/); return m ? m[1].toLowerCase() : ''; };
+const size = b => b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + 'KB' : (b / 1024 / 1024).toFixed(1) + 'MB';
+
+function renderSaveAs() {
+  const n = cleanName($('name').value);
+  const el = $('saveas');
+  el.innerHTML = '';
+  el.append('저장될 이름  ');
+  const b = document.createElement('b');
+  b.append(CONFIG.prefix);
+  const hl = document.createElement('span');
+  hl.className = 'hl';
+  hl.textContent = n || '이름';
+  b.append(hl);
+  el.append(b);
+}
+
+function render() {
+  const list = $('list');
+  list.innerHTML = '';
+  items.forEach((it, i) => {
+    const li = document.createElement('li');
+    li.className = 'file ' + it.status;
+    const ext = document.createElement('div');
+    ext.className = 'ext';
+    ext.textContent = extOf(it.file.name).slice(0, 4) || 'file';
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const fn = document.createElement('div');
+    fn.className = 'fname';
+    fn.textContent = it.file.name;
+    const sub = document.createElement('div');
+    sub.className = 'fsub';
+    sub.textContent = it.status === 'up' ? '올리는 중…'
+      : it.status === 'done' ? '전달 완료'
+      : it.status === 'fail' ? (it.error || '실패했습니다. 다시 눌러 주세요.')
+      : size(it.file.size);
+    meta.append(fn, sub);
+    li.append(ext, meta);
+    if (it.status === 'up') {
+      const s = document.createElement('div'); s.className = 'spin'; li.append(s);
+    } else if (it.status === 'done') {
+      const t = document.createElement('div'); t.className = 'tick'; t.innerHTML = ICON_OK; li.append(t);
+    } else if (!busy) {
+      const x = document.createElement('button');
+      x.className = 'x'; x.type = 'button'; x.title = '빼기'; x.innerHTML = ICON_X;
+      x.onclick = () => { items.splice(i, 1); setMsg(''); render(); };
+      li.append(x);
+    }
+    list.append(li);
+  });
+  const pending = items.filter(it => it.status !== 'done').length;
+  const btn = $('submit');
+  btn.classList.toggle('busy', busy);
+  btn.disabled = busy || !cleanName($('name').value) || pending === 0;
+  btn.innerHTML = busy ? '<div class="spin"></div><span>보내는 중</span>'
+    : pending ? `제출하기 <span style="opacity:.7;font-weight:500">${pending}개</span>` : '제출하기';
+  $('picker').disabled = busy;
+  $('name').disabled = busy;
+}
+
+function setMsg(t) { const m = $('msg'); m.textContent = t; m.className = 'msg' + (t ? ' err' : ''); }
+
+function add(fileList) {
+  const too = [];
+  [...fileList].forEach(f => {
+    if (f.size === 0) return;
+    if (f.size > MAX) { too.push(f.name); return; }
+    if (items.some(it => it.file.name === f.name && it.file.size === f.size && it.status !== 'done')) return;
+    items.push({ file: f, status: 'wait' });
+  });
+  setMsg(too.length ? `${CONFIG.maxMb}MB가 넘어 뺐습니다: ${too.join(', ')}` : '');
+  render();
+}
+
+function read(file) {
+  return new Promise((ok, no) => {
+    const r = new FileReader();
+    r.onload = () => ok(r.result.split(',')[1]);
+    r.onerror = () => no(new Error('파일을 읽지 못했습니다.'));
+    r.readAsDataURL(file);
+  });
+}
+
+async function call(req) {
+  // 구글 로그인 쿠키를 보내지 않아서, 계정이 여러 개 로그인돼 있어도 막히지 않는다.
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(req),
+    credentials: 'omit',
+    redirect: 'follow'
+  }).catch(() => { throw new Error('인터넷 연결을 확인하고 다시 눌러 주세요.'); });
+  const out = await res.json().catch(() => ({ ok: false, error: '서버 응답을 읽지 못했습니다. 다시 눌러 주세요.' }));
+  if (!out.ok) throw new Error(out.error || '실패했습니다.');
+  return out.name;
+}
+
+async function submit() {
+  const name = cleanName($('name').value);
+  if (!name || busy) return;
+  busy = true; setMsg(''); render();
+  for (const it of items) {
+    if (it.status === 'done') continue;
+    it.status = 'up'; render();
+    try {
+      it.saved = await call({ name, fileName: it.file.name, mimeType: it.file.type, data: await read(it.file) });
+      it.status = 'done';
+    } catch (e) {
+      it.status = 'fail';
+      it.error = (e && e.message) ? e.message.replace(/^Error:\s*/, '') : '실패했습니다.';
+    }
+    render();
+  }
+  busy = false;
+  if (items.every(it => it.status === 'done')) showDone(name);
+  else { setMsg('일부 파일이 전달되지 않았습니다. 「제출하기」를 다시 누르면 실패한 파일만 다시 보냅니다.'); render(); }
+}
+
+function showDone(name) {
+  $('doneText').textContent = `${name} 선생님의 파일 ${items.length}개가 전달되었습니다.`;
+  const ul = $('saved'); ul.innerHTML = '';
+  items.forEach(it => {
+    const li = document.createElement('li');
+    li.innerHTML = ICON_OK;
+    li.append(it.saved);
+    ul.append(li);
+  });
+  $('formView').hidden = true;
+  $('doneView').hidden = false;
+}
+
+$('again').onclick = () => {
+  items = [];
+  $('doneView').hidden = true;
+  $('formView').hidden = false;
+  render();
+};
+$('name').addEventListener('input', () => { renderSaveAs(); render(); });
+$('picker').addEventListener('change', e => { add(e.target.files); e.target.value = ''; });
+$('submit').onclick = submit;
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { if (!busy) add(e.dataTransfer.files); });
+
+renderSaveAs();
+render();
+</script>
+</body>
+</html>
