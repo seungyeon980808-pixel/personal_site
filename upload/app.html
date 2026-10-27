@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>서류 제출 · 대왕중학교</title>
+<title>파일 제출</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b44c9%27/%3E%3Cpath d=%27M16 21V9m-5 5 5-5 5 5M9 20v2.5A1.5 1.5 0 0 0 10.5 24h11a1.5 1.5 0 0 0 1.5-1.5V20%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <meta name="robots" content="noindex">
-<meta property="og:title" content="서류 제출 · 대왕중학교">
-<meta property="og:description" content="대왕중학교 · 이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다.">
+<meta property="og:title" content="파일 제출">
+<meta property="og:description" content="이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
@@ -111,15 +112,15 @@
 <div class="wrap">
   <main class="card">
     <section id="stateView" class="state-view">
-      <div class="badge"><i></i><span>대왕중학교</span></div>
+      <div class="badge"><i></i><span>파일 제출</span></div>
       <h1 id="stateTitle">불러오는 중…</h1>
       <p class="lead" id="stateText"></p>
     </section>
 
     <section id="formView" hidden>
-      <div class="badge"><i></i><span id="school"></span></div>
+      <div class="badge"><i></i><span>파일 제출</span></div>
       <h1 id="title"></h1>
-      <p class="lead">이름을 적고 파일을 올리면 담당 선생님 폴더로 바로 전달됩니다. 로그인은 필요 없습니다.</p>
+      <p class="lead">이름을 적고 파일을 올리면 담당자에게 바로 전달됩니다. 로그인은 필요 없습니다.</p>
 
       <div class="step">
         <div class="step-head"><span class="num">1</span>이름</div>
@@ -154,7 +155,6 @@
       <button class="btn ghost" id="again">파일 더 내기</button>
     </section>
   </main>
-  <footer id="foot"></footer>
 </div>
 
 <script>
@@ -164,7 +164,7 @@ const SLUG = (() => {
   const m = location.pathname.match(/\/upload\/([^/]+)\/?$/);
   return m ? decodeURIComponent(m[1]).normalize('NFC') : '';
 })();
-let CONFIG = { prefix: '', school: '대왕중학교', title: '', maxMb: 20 };
+let CONFIG = { prefix: '', title: '', maxMb: 20 };
 let MAX = CONFIG.maxMb * 1024 * 1024;
 // 이 화면을 연 동안 낸 파일은 한 번의 제출로 본다. 다시 열고 내면 앞서 낸 파일은 휴지통 폴더로 간다.
 const SUBMISSION = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).slice(0, 40);
@@ -173,7 +173,6 @@ const $ = id => document.getElementById(id);
 let items = [];      // { file, status: 'wait'|'up'|'done'|'fail', saved, error }
 let busy = false;
 
-$('foot').textContent = CONFIG.school;
 
 const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -296,9 +295,8 @@ async function boot() {
     const { item } = await api({ action: 'info', slug: SLUG });
     CONFIG = item;
     MAX = item.maxMb * 1024 * 1024;
-    document.title = item.title + ' · ' + item.school;
+    document.title = item.title;
     if (!item.open) return showState(item.title, '마감되었습니다. 더 이상 제출할 수 없습니다.');
-    $('school').textContent = item.school;
     $('title').textContent = item.title;
     $('limit').textContent = `PDF, 한글, 이미지 등 · 1개당 ${item.maxMb}MB까지`;
     $('stateView').hidden = true;
@@ -332,7 +330,7 @@ async function submit() {
 }
 
 function showDone(name) {
-  $('doneText').textContent = `${name} 선생님의 파일 ${items.length}개가 전달되었습니다.`;
+  $('doneText').textContent = `${name} 님의 파일 ${items.length}개가 전달되었습니다.`;
   const ul = $('saved'); ul.innerHTML = '';
   items.forEach(it => {
     const li = document.createElement('li');

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>파일 수합 관리 · 대왕중학교</title>
+<title>파일 수합 관리</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%232b44c9%27/%3E%3Cpath d=%27M16 21V9m-5 5 5-5 5 5M9 20v2.5A1.5 1.5 0 0 0 10.5 24h11a1.5 1.5 0 0 0 1.5-1.5V20%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -113,7 +114,7 @@
   <!-- 로그인 전 -->
   <section id="loginView" class="center" hidden>
     <div class="card">
-      <div class="badge"><i></i><span>대왕중학교</span></div>
+      <div class="badge"><i></i><span>파일 수합</span></div>
       <h1 style="margin-bottom:8px">파일 수합 관리</h1>
       <p class="lead">자료 요청 링크를 만들고 관리합니다. 허용된 구글 계정으로 로그인해 주세요.</p>
       <button class="gbtn" id="loginBtn" type="button">
@@ -128,7 +129,7 @@
   <section id="adminView" hidden>
     <div class="top">
       <div>
-        <div class="badge"><i></i><span>대왕중학교</span></div>
+        <div class="badge"><i></i><span>파일 수합</span></div>
         <h1>파일 수합 관리</h1>
       </div>
       <div class="who"><b id="whoEmail"></b><button class="btn link" id="logoutBtn" type="button">로그아웃</button></div>
@@ -148,7 +149,7 @@
         </label>
         <label class="f">
           <span>파일 이름 앞부분</span>
-          <input type="text" id="fPrefix" maxlength="60" placeholder="대왕중_유공교원_">
+          <input type="text" id="fPrefix" maxlength="60" placeholder="유공교원_">
           <small id="fPrefixEx"></small>
         </label>
         <label class="f full">
@@ -165,7 +166,6 @@
     <div class="list" id="list"><div class="empty">불러오는 중…</div></div>
   </section>
 
-  <footer>대왕중학교 · 파일 수합</footer>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -236,8 +236,8 @@ A.onAuthStateChanged(auth, async user => {
 let prefixTouched = false;
 function syncPrefix() {
   const slug = slugOf($('fSlug').value);
-  if (!prefixTouched) $('fPrefix').value = slug ? '대왕중_' + slug + '_' : '';
-  const p = cleanPart($('fPrefix').value) || '대왕중_' + (slug || '주소이름') + '_';
+  if (!prefixTouched) $('fPrefix').value = slug ? slug + '_' : '';
+  const p = cleanPart($('fPrefix').value) || (slug || '주소이름') + '_';
   $('fPrefixEx').innerHTML = '';
   $('fPrefixEx').append('저장 예: ', Object.assign(document.createElement('b'), { textContent: p + '홍길동.pdf' }));
 }
@@ -248,7 +248,7 @@ syncPrefix();
 $('createBtn').onclick = async () => {
   const btn = $('createBtn'), msg = $('createMsg');
   const req = { action: 'create', title: $('fTitle').value.trim(), slug: slugOf($('fSlug').value),
-    prefix: cleanPart($('fPrefix').value), folder: $('fFolder').value.trim() };
+    prefix: cleanPart($('fPrefix').value) || slugOf($('fSlug').value) + '_', folder: $('fFolder').value.trim() };
   if (!req.title) return setMsg(msg, '제목을 적어 주세요.');
   if (!req.slug) return setMsg(msg, '주소 이름을 적어 주세요.');
   btn.disabled = true; btn.innerHTML = '<div class="spin"></div>만드는 중'; setMsg(msg, '');
