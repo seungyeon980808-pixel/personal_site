@@ -11,7 +11,7 @@ for(const [name,ua,scheme] of [['instagram',instagram,'instagram://extbrowser/']
   await expect(page.locator('#entrance')).toBeVisible();
   expect(await page.locator('iframe').count()).toBe(0);
   const bar=page.locator('.inapp-bar');await expect(bar).toBeVisible();
-  await bar.getByRole('button',{name:'Safari에서 열기'}).click();
+  await bar.getByRole('button',{name:/Safari로 전체 보기/}).click();
   await expect(bar.locator('.inapp-help')).toBeVisible();
   expect(tried.some(url=>url.startsWith(scheme))).toBe(true);
   await bar.getByRole('button',{name:'닫기'}).click();await expect(bar).toHaveCount(0);

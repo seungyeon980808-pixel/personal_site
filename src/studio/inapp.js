@@ -22,7 +22,7 @@ export function initInApp(){
  const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  const browser=ios?'Safari':'Chrome',target=location.origin+'/';
  const bar=document.createElement('aside');bar.className='inapp-bar';bar.setAttribute('aria-label','외부 브라우저로 열기');
- bar.innerHTML=`<div class="inapp-row"><p><b>${names[app]||'앱'} 안에서 보고 있어요</b><span>${browser}에서 보면 더 부드러워요</span></p><button class="inapp-open" type="button">${browser}에서 열기</button><button class="inapp-close" type="button" aria-label="닫기">×</button></div><div class="inapp-help" hidden><p>바로 넘어가지 않으면 <b>${manual[app]||'메뉴에서 「브라우저에서 열기」'}</b>를 눌러 주세요.</p><button class="inapp-copy" type="button">링크 복사</button><span class="inapp-copied" role="status"></span></div>`;
+ bar.innerHTML=`<div class="inapp-row"><p class="inapp-sr">${names[app]||'앱'} 안에서 보고 있어요. ${browser}에서 열면 첫 화면부터 전체를 볼 수 있어요.</p><button class="inapp-open" type="button">${browser}로 전체 보기 ↗</button><button class="inapp-close" type="button" aria-label="닫기">×</button></div><div class="inapp-help" hidden><p>바로 넘어가지 않으면 <b>${manual[app]||'메뉴에서 「브라우저에서 열기」'}</b>를 눌러 주세요.</p><button class="inapp-copy" type="button">링크 복사</button><span class="inapp-copied" role="status"></span></div>`;
  document.body.append(bar);document.body.classList.add('inapp-mode');
  const help=bar.querySelector('.inapp-help');
  bar.querySelector('.inapp-open').onclick=()=>{
