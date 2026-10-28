@@ -53,3 +53,14 @@ img.app-icon{outline:1px solid #1020301a;outline-offset:-1px}
 /* 위쪽 설정·검색 아이콘 줄(top 40px)은 가리지 않고 그 아래에 띠를 둔다 */
 @media(max-width:700px){body.inapp-mode #desktop{padding-top:calc(128px + var(--safe-top))}}
 @media(min-width:701px){.inapp-bar{top:calc(var(--safe-top) + 52px)}}
+
+/* 2026-10-28 앱 안 띠 → 오른쪽 위 작은 알약(시안 personal-site-compare/inapp-bar 안 B).
+   단추를 눌러도 앱이 막아 그대로면 알약이 카드로 펼쳐져 직접 여는 방법·링크 복사를 보여 준다 */
+.inapp-bar{left:auto;right:10px;top:calc(var(--safe-top) + 10px);width:auto;max-width:calc(100vw - 20px);margin:0;padding:4px 4px 4px 12px;border-radius:999px;background:#ffffffe6}
+.inapp-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.inapp-open{padding:6px 12px;font-size:12.5px}
+.inapp-close{width:26px;height:26px;font-size:16px}
+.inapp-bar:has(.inapp-help:not([hidden])){left:10px;border-radius:16px;padding:8px 8px 10px 14px}
+.inapp-bar:has(.inapp-help:not([hidden])) .inapp-row{justify-content:flex-end}
+@media(min-width:701px){.inapp-bar{top:calc(var(--safe-top) + 52px)}}
+@media(max-width:700px){body.inapp-mode #desktop{padding-top:0}}

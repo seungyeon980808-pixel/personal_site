@@ -163,7 +163,14 @@
  .ph-app:focus:not(:focus-visible),.ph-widget:focus:not(:focus-visible){outline:none}
 }
 /* 앱 안 브라우저 띠(inapp.js)가 위에 있을 때는 홈을 그만큼 내린다 */
-@media(max-width:700px){body.inapp-mode .ph-page{padding-top:calc(var(--safe-top) + 132px)}}
+@media(max-width:700px){
+ body.inapp-mode .ph-page{padding-top:calc(var(--safe-top) + 58px)}
+ /* 알약이 오른쪽 위를 쓰므로 내려놓기(자물쇠) 단추는 왼쪽 위로 */
+ body.inapp-mode #desktop .menu-bar #return{right:auto;left:14px}
+}
+/* 카카오톡처럼 세로가 짧은 화면: 위젯이 눌려 납작해지지 않게 하고, 모자라면 홈 한 쪽을 위아래로 밀어 본다 */
+@media(max-width:700px){.ph-page>*{flex-shrink:0}.ph-page{overflow-y:auto;scrollbar-width:none}.ph-page::-webkit-scrollbar{display:none}}
+@media(max-width:700px) and (max-height:740px){.ph-wlabel{margin:4px 0 8px}.ph-grid{row-gap:12px}.ph-grid2{row-gap:8px}}
 /* 실제 터치 휴대폰에선 기기의 홈 표시줄·상태 표시줄이 있으므로 사이트는 그리지 않는다(시안의 9:41·홈 막대는 모양 확인용) */
 /* 다이내믹 아일랜드: 진짜 휴대폰(터치·호버 없음)에는 기기 자신의 것이 있으므로 그리지 않고,
    컴퓨터에서 보는 휴대폰 화면(입구의 휴대폰 미리보기, 반응형 모드)에서만 시안처럼 검은 알약을 그린다.
