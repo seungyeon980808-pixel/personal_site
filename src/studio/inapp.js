@@ -1,6 +1,6 @@
 // 인스타그램·스레드·카카오톡 등 앱 안 브라우저에서 열렸을 때: 외부 브라우저(Safari·Chrome)로 넘기는 띠.
 // 앱이 밖으로 나가는 길을 자주 막으므로 ① 앱별로 알려진 방법을 시도하고 ② 안 넘어가면 직접 여는 방법과 링크 복사를 보여 준다.
-// 앱 감지와 가벼운 모드(입구 연출 생략) 이동은 shell.html 맨 앞 스크립트가 먼저 한다.
+// 앱 감지와 가벼운 랜딩(노트북·휴대폰 iframe 대신 입구 하나, 누르면 들어감) 이동은 shell.html 맨 앞 스크립트가 먼저 한다.
 export function detectInApp(ua=navigator.userAgent){
  return /Instagram/i.test(ua)?'instagram':/Barcelona/i.test(ua)?'threads':/FBAN|FBAV|FB_IAB|FBIOS/i.test(ua)?'facebook':/KAKAOTALK/i.test(ua)?'kakaotalk':/NAVER\(inapp|NAVER\//i.test(ua)?'naver':/ Line\//i.test(ua)?'line':/DaumApps/i.test(ua)?'daum':'';
 }
