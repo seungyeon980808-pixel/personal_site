@@ -727,6 +727,12 @@ body.edit-mode .cta-link-edit { display: flex; }
   .detail-hero.has-hero-media .hero-left { opacity: 1; }
 }
 
+/* 2026-11-01: 재생 무대 높이를 처음부터 잡아 둔다. hero-5e.js 가 0.6초쯤 뒤에 min-height(화면 높이 − 위 막대)를
+   넣으면서 아래 내용이 500px 가까이 밀리던 화면 흔들림(CLS 0.37)을 없앤다. 재생이 끝나면(k5-done) 놓아준다. */
+@media (prefers-reduced-motion: no-preference) {
+  .detail-hero.has-hero-media:not(.k5-done) { min-height: calc(100vh - 56px); }
+}
+
 /* ===== FEATURE SECTIONS ===== */
 .features { padding: clamp(12px, 2vw, 24px) 0 clamp(32px, 5vw, 56px); }
 .detail-guide { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; padding:0 0 clamp(24px,4vw,40px); }

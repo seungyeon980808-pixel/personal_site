@@ -10,7 +10,7 @@ export function separateWindow(url){
 export function browserView(id,mode='detail'){
  const app=state.site.programs.find(p=>p.id===id);if(!app)return;
  const url=mode==='launch'?app.url:new URL(`projects/${app.slug}.html?embedded=1&v=desktop-refinement-1`,location.href).href;
- if(!safeURL(url))return;
+ if(!safeURL(url))return content(app.label,`<div class="page compact-page"><h1>${e(app.label)}</h1><p class="muted">아직 바로 실행할 수 있는 주소가 없습니다. 「설명 보기」에서 소개를 확인해 주세요.</p><button class="secondary" data-route='${e(JSON.stringify({view:'program',id}))}'>프로그램 소개로 돌아가기</button></div>`);
  const title=mode==='launch'?`${app.label} · 실행`:`${app.label} · 설명`,external=mode==='launch',origin=new URL(url).host;
  content(title,`<div class="browser-view"><p id="browser-error" class="browser-error" role="alert" hidden>화면을 불러오지 못했습니다. <button id="browser-fallback">별도 창으로 열기</button></p><iframe id="browser-frame" title="${e(title)}" src="${e(url)}" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals" allow="clipboard-write; fullscreen"></iframe></div>`);
  $('#workspace-window').classList.remove('maximized');$('#window-expand').setAttribute('aria-pressed','false');$('#workspace-window').classList.add('browser-window');

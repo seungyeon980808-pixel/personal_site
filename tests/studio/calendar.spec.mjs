@@ -8,6 +8,7 @@ const schedule={id:'calendar-schedule',date:'2026-09-16',start:610,end:650,title
 const workspace={version:1,note:'방문자 메모',records:[record],resources:[],shortcuts:[],schedules:[schedule]};
 
 async function prepare(page,{owner=false}={}){
+ await page.clock.setFixedTime(new Date('2026-09-14T09:00:00+09:00'));
  await page.route('https://firestore.googleapis.com/**',route=>{const request=route.request();if(request.url().includes(':batchGet'))return route.fulfill({json:[{found:{name:'projects/p/databases/(default)/documents/personal-site/main',...encode(seed).mapValue}},{found:{name:'projects/p/databases/(default)/documents/personal-site/desktop-v1',...encode(workspace).mapValue,updateTime:'2026-09-13T00:00:00Z'}}]});return route.fulfill({status:404,json:{}});});
  await page.route('https://www.gstatic.com/firebasejs/**',route=>route.fulfill({contentType:'application/javascript',body:route.request().url().includes('firebase-app')?'export const initializeApp=()=>({});':`const user={email:'seungyeon980808@gmail.com',emailVerified:true,getIdToken:async()=> 'test-token'};export const getAuth=()=>({currentUser:${owner?'user':'null'},authStateReady:async()=>{}});export const onAuthStateChanged=(auth,callback)=>callback(auth.currentUser);export class GoogleAuthProvider{};export const signInWithPopup=async()=>({user});export const signOut=async()=>{};`}));
  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/?entrance=photo');const enter=page.getByRole('button',{name:/(노트북 열고|휴대폰 들고) 작업실 들어가기/,exact:true});if(await enter.isVisible())await enter.click();await expect(page.locator('#entrance')).toBeHidden();
@@ -44,7 +45,7 @@ const scrollbarModes=[
 ];
 
 async function openWeek(page,scrollbarWidth){
- await prepare(page);await page.getByRole('button',{name:'전체 기록 ↗',exact:true}).click();await page.locator('.calendar-month-day[data-cal-date="2026-09-16"]').click();await page.getByRole('button',{name:'주간',exact:true}).click();
+ await prepare(page);if((page.viewportSize()?.width||0)<=700)await page.locator('#phone-home .ph-cal-widget').click();else await page.getByRole('button',{name:'전체 기록 ↗',exact:true}).click();await page.locator('.calendar-month-day[data-cal-date="2026-09-16"]').click();await page.getByRole('button',{name:'주간',exact:true}).click();
  await page.addStyleTag({content:`.calendar-week-header,.calendar-week-record-strip,.calendar-week-scroll{scrollbar-gutter:${scrollbarWidth?'stable':'auto'}!important}.calendar-week-header::-webkit-scrollbar,.calendar-week-record-strip::-webkit-scrollbar,.calendar-week-scroll::-webkit-scrollbar{width:${scrollbarWidth}px!important;height:${scrollbarWidth}px!important}`});
 }
 

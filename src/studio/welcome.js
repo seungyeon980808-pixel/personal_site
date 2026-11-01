@@ -10,13 +10,15 @@ export function initWelcome(){
  function guide(step){
   clear();overlay.className='tour';
   const mobile=matchMedia('(max-width:700px)').matches;
-  if(step===1&&mobile)document.querySelector('.desktop-layout').scrollTo({left:document.querySelector('.desktop-layout').clientWidth,behavior:'instant'});
-  const target=document.querySelector(step===0?'#dock':'#icons');target.classList.add('tour-target');
-  overlay.innerHTML=`<div class="tour-card"><p class="tour-count">${step+1} / 2</p><h2>${step===0?'직접 만든 도구를 만나보세요':'필요한 자료를 가져가세요'}</h2><p>${step===0?(mobile?'하단의 만든 프로그램 폴더에서 도구를 둘러보세요.':'하단에서 만든 프로그램을 열고, 게으른 교사의 GitHub를 방문할 수 있어요.'):'오른쪽 폴더에서 연수 자료와 공유 자료, 추천 도구를 둘러볼 수 있어요.'}</p><div><button data-end>넘어가기</button><button class="primary" data-next>${step===0?'다음':'시작하기'}</button></div></div>`;
+  // 휴대폰 폭은 아이폰식 홈(phone-home.js): 2단계는 1쪽의 자료 앱 줄(공유 자료·추천 도구함·자료 아카이브)을 가리킨다
+  if(step===1&&mobile)document.querySelector('#phone-home .ph-pages')?.scrollTo({left:0,behavior:'instant'});
+  const target=step===0?document.querySelector('#dock'):mobile?document.querySelector('#phone-home .ph-page > .ph-grid')||document.querySelector('#dock'):document.querySelector('#icons');target.classList.add('tour-target');
+  overlay.innerHTML=`<div class="tour-card"><p class="tour-count">${step+1} / 2</p><h2>${step===0?'직접 만든 도구를 만나보세요':'필요한 자료를 가져가세요'}</h2><p>${step===0?(mobile?'하단의 만든 프로그램 폴더에서 도구를 둘러보세요.':'하단에서 만든 프로그램을 열고, 게으른 교사의 GitHub를 방문할 수 있어요.'):(mobile?'홈 화면의 앱에서 연수 자료와 공유 자료, 추천 도구를 둘러볼 수 있어요.':'오른쪽 폴더에서 연수 자료와 공유 자료, 추천 도구를 둘러볼 수 있어요.')}</p><div><button data-end>넘어가기</button><button class="primary" data-next>${step===0?'다음':'시작하기'}</button></div></div>`;
   overlay.querySelector('[data-end]').onclick=finish;overlay.querySelector('[data-next]').onclick=()=>step===0?guide(1):finish();
   const card=overlay.querySelector('.tour-card'),r=target.getBoundingClientRect();
-  card.style.left=Math.max(16,Math.min(innerWidth-card.offsetWidth-16,step===0?r.left+r.width/2-card.offsetWidth/2:r.left-card.offsetWidth-24))+'px';
-  card.style.top=Math.max(16,Math.min(innerHeight-card.offsetHeight-16,step===0?r.top-card.offsetHeight-24:r.top))+'px';
+  const above=step===0||mobile;
+  card.style.left=Math.max(16,Math.min(innerWidth-card.offsetWidth-16,above?r.left+r.width/2-card.offsetWidth/2:r.left-card.offsetWidth-24))+'px';
+  card.style.top=Math.max(16,Math.min(innerHeight-card.offsetHeight-16,above?(step===1&&mobile?r.bottom+16:r.top-card.offsetHeight-24):r.top))+'px';
   overlay.querySelector('[data-next]').focus();
   if(!reduced())stepTimer=setTimeout(()=>step===0?guide(1):finish(),8000);
   card.onpointerenter=()=>clearTimeout(stepTimer);card.onfocusin=()=>clearTimeout(stepTimer);
