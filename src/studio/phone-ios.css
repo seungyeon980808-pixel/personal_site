@@ -118,7 +118,7 @@
  #browser-controls button{width:44px;height:44px;border-radius:22px;background:#ffffffd9;box-shadow:0 1px 6px #0000001f;border:0}
  #window-body,#workspace-window #window-body{height:100%!important;max-height:none!important;overflow:auto!important;padding:calc(var(--safe-top) + 62px) 0 calc(var(--safe-bottom) + 24px);background:#f2f2f7}
  #window-body>.page,#window-body>div{padding-left:16px;padding-right:16px}
- #window-body .page h1,#window-body .folder-caption h1{font:700 32px/1.15 -apple-system,"SF Pro Display",sans-serif;letter-spacing:-.02em;margin:4px 0 6px;color:#111}
+ #window-body .page h1,#window-body .folder-caption h1,#window-body .settings-panel h1,#window-body .community-panel h1{font:700 32px/1.15 -apple-system,"SF Pro Display",sans-serif;letter-spacing:-.02em;margin:4px 0 6px;color:#111}
  #window-body .eyebrow{display:none}
  #window-body .muted{color:#6c6c70}
  #window-body input:not([type=checkbox]):not([type=radio]):not([type=range]),#window-body textarea,#window-body select{border:0;border-radius:12px;background:#fff;font-size:16px;padding:12px 14px;box-shadow:none}
@@ -178,3 +178,5 @@
 @media(max-width:700px) and (hover:hover),(max-width:700px) and (pointer:fine){
  body:has(#entrance[hidden]) #phone-home:before,#phone-folder:not([hidden]):before,#workspace-window[open] #titlebar:after{content:"";position:fixed;z-index:70;left:50%;top:11px;width:126px;height:37px;margin-left:-63px;border-radius:20px;background:#000;pointer-events:none}
 }
+/* 처음 방문 안내: 강조하는 앱 줄이 위젯(position:relative)보다 위에 그려져야 둘레가 고르게 어두워진다 */
+@media(max-width:700px){#phone-home .tour-target{position:relative;z-index:5}}

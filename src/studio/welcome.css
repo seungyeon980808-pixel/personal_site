@@ -1,4 +1,4 @@
-@font-face{font-family:WelcomeScript;src:url('assets/fonts/Pacifico-Regular.ttf') format('truetype');font-display:swap}
+@font-face{font-family:WelcomeScript;src:url('assets/fonts/Pacifico-welcome.woff2') format('woff2');font-display:swap}
 #welcome{position:fixed;inset:0;z-index:80;color:white;display:grid;place-items:center}#welcome[hidden]{display:none}
 #welcome.welcome-intro{background:#102d3d32;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .welcome-copy{text-align:center;padding:24px;width:100%}.welcome-greeting{font-family:WelcomeScript,cursive;font-size:clamp(64px,14vw,164px);line-height:1.7;min-height:1.7em;color:white;text-shadow:0 3px 20px #17344b20}.welcome-greeting:lang(ko),.welcome-greeting:lang(ja),.welcome-greeting:lang(zh){font-family:'Apple SD Gothic Neo',sans-serif;font-size:clamp(44px,9vw,104px);font-weight:700;line-height:2.68}

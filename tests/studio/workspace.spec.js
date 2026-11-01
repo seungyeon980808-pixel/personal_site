@@ -11,6 +11,8 @@ const close=page=>page.getByRole('button',{name:'창 닫기',exact:true}).click(
 const manage=page=>page.getByRole('button',{name:'작업실 설정',exact:true}).click();
 async function edit(page){await manage(page);await page.getByRole('button',{name:'Google 관리자 로그인'}).click();await page.getByRole('button',{name:'초안 편집 시작'}).click();await close(page);await page.getByLabel('방문자에게 메뉴').click();await page.getByRole('button',{name:'메모 편집'}).click();}
 test('all content, dated records, Finder navigation, search and window controls',async({page})=>{
+ // 「이전 달 → 8월 30일」은 2026년 9월 기준이라 시계를 그때로 고정한다
+ await page.clock.setFixedTime(new Date('2026-09-14T09:00:00+09:00'));
  const errors=[];page.on('pageerror',err=>errors.push(err.message));await mock(page);
  await page.getByRole('button',{name:'ExamPool',exact:true}).click();await expect(page.getByRole('button',{name:/설명 보기/})).toBeVisible();
  await page.getByRole('button',{name:'창 최소화'}).click();await expect(page.locator('#workspace-window')).not.toBeVisible();await page.locator('#restore').click();await expect(page.getByRole('button',{name:/설명 보기/})).toBeVisible();await close(page);
