@@ -118,3 +118,9 @@ npm run preview:studio
 - 5E 상세: 재생 무대 높이를 처음부터 잡아 화면 흔들림(CLS 0.37 → 0.02) 제거, 모양·동작은 그대로.
 - 세로가 짧은 넓은 화면(휴대폰 가로)에서 메모가 캘린더를 가리던 것 → 메모를 캘린더 오른쪽부터.
 - 검사: 날짜에 묶여 실패하던 4개를 시계 고정·휴대폰 위젯 경로로 고쳐 82개 모두 통과.
+
+## 수업 자료실 /class (2026-11-04)
+- 주소 `www.psy.ai.kr/class/`. 파일은 `class/index.html`(한 파일), 목록·공지는 `class/books.json`, 자료마다 `class/books/<slug>/`(원본 `file.pdf`, 넘겨 보기 `pNN.jpg`, 책 넘김 `tNN.jpg`).
+- 원본 자리는 구글 드라이브 `내 드라이브/class 자료실/`(자료마다 폴더 하나 + PDF 하나, 폴더 이름 = 제목, 「교재 · 제목」이면 앞부분이 분류).
+- 새 자료: 드라이브 폴더에 넣고 `python3 tools/class-sync.py` → 커밋·푸시. 공지는 `books.json`의 `notices`를 고친다.
+- 드라이브 파일은 웹에서 직접 받을 수 없어(CORS·API 키 차단) PDF 사본을 저장소에 둔다. 내려받기는 Chrome·Edge에서 저장 위치를 묻고, Safari는 기본 다운로드.

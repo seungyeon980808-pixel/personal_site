@@ -1,0 +1,27 @@
+{
+  "notices": [
+    {
+      "date": "2026-11-04",
+      "title": "「별과 우주 기출 탐구」 학습지를 올렸습니다",
+      "body": "기말고사 대비 49문항(수능·모의평가 17, 전국연합학력평가 28, 평가원 변형 4)입니다. 넘겨 보기로 먼저 훑어보고, 필요하면 내려받아 인쇄해서 풀어 보세요."
+    }
+  ],
+  "books": [
+    {
+      "slug": "star-universe-1",
+      "no": 1,
+      "kind": "학습지",
+      "kicker": "EXHIBITION OF QUESTIONS · 49",
+      "title": "별과 우주 기출 탐구",
+      "sub": "대왕중학교 2학년 과학B · 2026 2학기 기말고사 대비",
+      "date": "2026-11-04",
+      "pages": 34,
+      "file": "books/star-universe-1/file.pdf",
+      "fileName": "20261104_별과우주_학습지_v1.pdf",
+      "size": 28802884,
+      "drive": "https://drive.google.com/file/d/15ARQQqxyYbb0n8pd-3TwsQcv3iq2z0a7/view",
+      "folder": "별과 우주 학습지",
+      "hash": "dd7a68ef0f9b"
+    }
+  ]
+}
