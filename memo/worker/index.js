@@ -102,7 +102,7 @@ async function route(request,env,url){
 }
 export default {
   async fetch(request,env){
-    const origin=request.headers.get('origin'),allowed=(env.ALLOWED_ORIGINS||'https://www.5e.ai.kr,https://5e.ai.kr').split(',').map(s=>s.trim());
+    const origin=request.headers.get('origin'),allowed=(env.ALLOWED_ORIGINS||'https://www.psy.ai.kr,https://psy.ai.kr,https://www.5e.ai.kr,https://5e.ai.kr').split(',').map(s=>s.trim());
     const headers={'content-type':'application/json;charset=utf-8','cache-control':'no-store','vary':'Origin','x-content-type-options':'nosniff'};
     if(origin&&!allowed.includes(origin))return Response.json({code:'ORIGIN_DENIED',message:'Origin not allowed'},{status:403,headers});
     if(origin)headers['access-control-allow-origin']=origin;

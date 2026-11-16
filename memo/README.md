@@ -1,6 +1,6 @@
 # 5E 메모
 
-`https://5e.ai.kr/memo/`의 공유 메모장입니다. 화면은 GitHub Pages, 저장 API는 Cloudflare Workers, 메모 데이터는 D1을 사용합니다. 공개 작업판에는 로그인 없이 메모와 링크를 적습니다. 제목은 선택이고 포스트잇을 편집·이동할 수 있습니다.
+공유 메모장입니다. 1.7.1부터 화면은 개인 사이트(psy) 저장소에 있고(예전 주소 `https://5e.ai.kr/memo/`는 넘겨 주는 페이지만 남음), 화면은 GitHub Pages, 저장 API는 Cloudflare Workers, 메모 데이터는 D1을 사용합니다. 공개 작업판에는 로그인 없이 메모와 링크를 적습니다. 제목은 선택이고 포스트잇을 편집·이동할 수 있습니다.
 
 ## 연결 구성
 
@@ -8,7 +8,7 @@
 - `memo/worker/wrangler.jsonc`: 실제 Cloudflare 계정과 D1 바인딩, 공개 Google 웹 클라이언트 ID.
 - `OWNER_EMAIL`: Workers secret에 지정한 주인장 Google 이메일을 저장합니다. 처음 로그인한 사람이 주인장이 되지 않습니다.
 - `memo/config.js`: 공개 Worker URL과 Google 클라이언트 ID만 포함합니다. Cloudflare 토큰, Google 비밀 키, 이메일은 웹 자산에 넣지 않습니다.
-- Google 웹 클라이언트의 허용 JavaScript 출처에 `https://www.5e.ai.kr`, `https://5e.ai.kr`가 필요합니다. 기존 Google 리디렉션 설정은 유지합니다.
+- Google 웹 클라이언트의 허용 JavaScript 출처에 화면이 열리는 주소(`https://www.psy.ai.kr`, `https://psy.ai.kr`)가 필요합니다. 넘겨 주는 기간 동안 `https://www.5e.ai.kr`, `https://5e.ai.kr`도 남겨 둡니다. Worker의 `ALLOWED_ORIGINS`(`memo/worker/wrangler.jsonc`)도 같은 목록입니다. 기존 Google 리디렉션 설정은 유지합니다.
 
 ## 서버 준비와 배포
 
@@ -16,13 +16,13 @@
 npm ci --prefix memo
 npm test --prefix memo
 node memo/tests/browser.mjs
-node scripts/memo-worker-config.cjs
+npm run check:worker-config --prefix memo
 memo/node_modules/.bin/wrangler d1 migrations apply DB --remote --config memo/worker/wrangler.jsonc
 npm run deploy:worker --prefix memo
 memo/node_modules/.bin/wrangler secret put OWNER_EMAIL --config memo/worker/wrangler.jsonc
 ```
 
-실제 서버와 Google 로그인을 확인한 뒤 GitHub의 `Memo Route` 워크플로를 실행합니다. `base_run`은 현재 게시된 성공한 OurDocs Route 또는 Memo Route 실행 번호입니다. 기존 사이트의 파일 해시를 확인하고 메모의 7개 자산만 덧붙입니다. 이후 전체 웹 배포에도 같은 자산이 포함됩니다. 설정을 덮어쓸 경우 공개 repository variables `MEMO_API_URL`, `MEMO_GOOGLE_CLIENT_ID`를 사용합니다.
+화면은 psy 저장소 main에 합쳐지면 GitHub Pages로 바로 공개됩니다(5E의 `Memo Route` 워크플로는 쓰지 않음). Worker·검사·문서 파일은 `_config.yml`의 `exclude`로 공개에서 뺍니다. 공개 설정은 `memo/config.js`에 직접 적습니다.
 
 ## 저장과 동기화
 

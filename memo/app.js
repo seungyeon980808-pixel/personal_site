@@ -8,6 +8,8 @@ let entries=[], archiveEntries=[], recentMore=false, archiveMore=false, statusTi
 let createAttempt=null;
 const pending = new Map(), cards = new Map();
 const config = window.MEMO_CONFIG || {};
+// 머리줄 주소 표시는 지금 열린 주소를 따른다(5e.ai.kr/memo 에서는 예전과 같은 글자).
+{ const domain=document.querySelector('.domain'); if(domain&&/^https?:$/.test(location.protocol)) domain.textContent=location.host.replace(/^www\./,'')+location.pathname.replace(/\/(index\.html)?$/,''); }
 const storageKey = '5e-memo-drafts-v1:' + (config.apiUrl || 'unconfigured');
 function now() { return cloud ? cloud.now() : Date.now(); }
 function recent(e) { return e.created + DAY > now(); }

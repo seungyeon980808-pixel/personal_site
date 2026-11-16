@@ -85,3 +85,7 @@ shader-experiment/dist/
 .omo/
 test-results/
 playwright-report/
+
+# memo 검사·Worker 빌드 산출물(memo/tests/browser.mjs, npm run build:worker)
+_work/
+.wrangler/
