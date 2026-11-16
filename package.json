@@ -11,6 +11,8 @@
     "preview:studio": "node tools/serve-studio.mjs",
     "audit:studio": "node tools/audit-studio.mjs",
     "test:comments": "node --test tests/comments-pagination.test.mjs",
+    "test:ourdocs": "node --test tests/ourdocs-entry.test.mjs",
+    "test:memo": "npm ci --prefix memo --no-audit --no-fund && npm test --prefix memo && node memo/tests/browser.mjs",
     "test:rules": "npx --yes firebase-tools@14.22.0 emulators:exec --only firestore --project demo-personal-site-rules --config firebase.rules-test.json \"node --test tests/firestore-rules-runtime.test.mjs tests/sc-rules-runtime.test.mjs\""
   },
   "repository": {
