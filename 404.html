@@ -13,6 +13,18 @@
           .then(function (t) { document.open(); document.write(t); document.close(); })
           .catch(function () { document.documentElement.style.visibility = ''; });
       })();
+      // …/ourdocs/<문서 이름> 짧은 주소는 OurDocs 입구로 넘긴다(5E 404.html에서 옮김).
+      (function () {
+        var match = /^(.*\/)ourdocs\/([^/]+)\/?$/.exec(location.pathname);
+        if (!match) return;
+        var name;
+        try { name = decodeURIComponent(match[2]).normalize('NFC').toLowerCase(); } catch (e) { return; }
+        if (!/^[\p{L}\p{N}][\p{L}\p{N}_-]{0,59}$/u.test(name)
+          || ['login','documents','invite','manage','admin','studio','rhwp','api','health','assets','s','index.html'].indexOf(name) >= 0) return;
+        var target = new URL(match[1] + 'ourdocs/', location.origin);
+        target.searchParams.set('route', '/s/' + encodeURIComponent(name));
+        location.replace(target.href);
+      })();
     </script>
 
     <title>페이지를 찾을 수 없어요 · 게으른 교사의 작업실</title>

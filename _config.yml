@@ -21,3 +21,18 @@ exclude:
   - NEXT-STEPS.md
   - STUDIO.md
   - personal-site-plan.md
+  # 5E에서 옮긴 memo·hub: 화면 파일만 공개(Worker 소스·검사·문서·의존성 목록은 뺌).
+  - memo/worker
+  - memo/tests
+  - memo/scripts
+  - memo/package.json
+  - memo/package-lock.json
+  - memo/assets.json
+  - memo/DESIGN.md
+  - memo/PRODUCT.md
+  - memo/README.md
+  - memo/surface-brief.md
+  - hub/assets.json
+  - hub/DESIGN.md
+  - hub/PRODUCT.md
+  - _work

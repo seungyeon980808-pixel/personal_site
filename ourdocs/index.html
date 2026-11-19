@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="origin">
+  <title>OurDocs · 함께 쓰는 한글 문서</title>
+  <style>html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#fff}iframe{display:block;width:100%;height:100%;border:0}noscript{display:block;padding:24px}</style>
+</head>
+<body>
+  <iframe id="ourdocs" title="OurDocs 공동작성" allow="clipboard-write; fullscreen" allowfullscreen></iframe>
+  <noscript><a href="https://ourdocs-cloud.5e-desktop.workers.dev/">OurDocs 열기</a></noscript>
+  <script>
+    (() => {
+      const frame = document.getElementById('ourdocs');
+      // 이 입구가 놓인 폴더(예: /ourdocs/). 어느 사이트·경로에 올려도 같은 모양으로 돈다.
+      const base = new URL(location.href).pathname.replace(/[^/]*$/, '');
+      const app = new URL('https://ourdocs-cloud.5e-desktop.workers.dev/ourdocs/');
+      const validRoute = path => typeof path === 'string' && path.length <= 2048
+        && /^\/(?:|login|documents|invite|manage|admin|studio\/[a-f0-9-]{36}|s\/[A-Za-z0-9%_-]+)(?:\?[^#]*)?$/.test(path);
+      const route = new URLSearchParams(location.search).get('route') || '/';
+      const namedRoute = /^\/s\/[A-Za-z0-9%_-]+$/.test(route) ? route : null;
+      if (namedRoute) {
+        const address = new URL(location.href);
+        address.pathname = base + namedRoute.slice(3); address.search = ''; address.hash = '';
+        history.replaceState(null, '', address);
+      }
+      if (validRoute(route)) {
+        const selected = new URL(route, app.origin);
+        app.pathname = '/ourdocs' + selected.pathname;
+        app.search = selected.search;
+      }
+      app.hash = location.hash;
+      window.addEventListener('message', event => {
+        if (event.origin !== app.origin || event.source !== frame.contentWindow
+          || event.data?.type !== '5e:ourdocs-location') return;
+        const { path, hash } = event.data;
+        if (!validRoute(path) || typeof hash !== 'string' || hash.length > 8192
+          || (hash && !hash.startsWith('#'))) return;
+        const address = new URL(location.href);
+        address.pathname = base; address.search = '';
+        if (/^\/s\/[A-Za-z0-9%_-]+$/.test(path)) address.pathname += path.slice(3);
+        else if (path !== '/') address.searchParams.set('route', path);
+        address.hash = hash;
+        history.replaceState(null, '', address);
+      });
+      frame.addEventListener('load', () => frame.contentWindow?.postMessage({ type: '5e:ourdocs-ready' }, app.origin));
+      frame.src = app.href;
+    })();
+  </script>
+</body>
+</html>

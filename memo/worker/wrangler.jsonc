@@ -1,0 +1,24 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "5e-memo-api",
+  "main": "index.js",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGINS": "https://www.psy.ai.kr,https://psy.ai.kr,https://www.5e.ai.kr,https://5e.ai.kr",
+    "GOOGLE_CLIENT_ID": "238855230001-hcfrvjk21u3sifi44qg225a72017c9vq.apps.googleusercontent.com"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "5e-memo",
+      "database_id": "e9aa3ab3-414b-4a3e-9297-2e8ff00c9a3f",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "ratelimits": [
+    { "name": "MEMO_CREATE_LIMITER", "namespace_id": "5101", "simple": { "limit": 10, "period": 60 } },
+    { "name": "MEMO_WRITE_LIMITER", "namespace_id": "5102", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "account_id": "a6dd35b7aa385514042f9003bc937b92"
+}
